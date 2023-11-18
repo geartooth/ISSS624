@@ -9,3 +9,56 @@ execute:
   warning: false
 editor: visual
 ---
+
+## Getting started
+
+The code chunk below load the following packages:
+
+-   tmap: for thematic mapping
+
+-   sf: for geospatial data handling
+
+-   tidyverse: for non-spatial data handling
+
+```{r}
+pacman::p_load(tmap,sf,tidyverse)
+```
+
+## Preparing the Flow data
+### Importing the OD data
+Firstly, we will import the *Passenger Volume by Origin Destination* data set downloaded from LTA DataMall by using `read_csv()` of **readr** package.
+
+```{r}
+odbus <-read_csv("data/aspatial/origin_destination_bus_202308.csv")
+```
+A quick check of odbus tibble data frame
+
+
+```{r}
+odbus$ORIGIN_PT_CODE<-as.factor(odbus$ORIGIN_PT_CODE)
+odbus$DESTINATION_PT_CODE<-as.factor(odbus$DESTINATION_PT_CODE)
+```
+
+### Extracting the study data
+
+For the purpose of this exercise, we will extract commuting flows on weekday and between 7 and 9 o'clock
+
+```{r}
+origtrip_7_9<-odbus %>% 
+  filter(DAY_TYPE == "WEEKDAY") %>%
+  filter(TIME_PER_HOUR >= 7 &
+           TIME_PER_HOUR <= 9) %>%
+  group_by(ORIGIN_PT_CODE) %>%
+  summarise(TRIPS = sum(TOTAL_TRIPS))
+```
+
+```{r}
+busstop <- st_read(dsn = "data/geospatial", layer = "BusStop")%>%
+  st_transform(crs=3414)
+```
+
+```{r}
+mpsz <- st_read(dsn = "data/geospatial", layer = "MPSZ-2019") %>%
+  st_transform(crs=3414)
+mpsz
+```
