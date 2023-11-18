@@ -33,5 +33,12 @@
     "title": "Hands-on Exercise 1",
     "section": "Getting Started",
     "text": "Getting Started\nThis is the getting start paragraph"
+  },
+  {
+    "objectID": "In-class_Ex/Ex1/data/geospatial/MPSZ-2019.html",
+    "href": "In-class_Ex/Ex1/data/geospatial/MPSZ-2019.html",
+    "title": "ISSS624",
+    "section": "",
+    "text": "&lt;!DOCTYPE qgis PUBLIC ‘http://mrcc.com/qgis.dtd’ ‘SYSTEM’&gt;     dataset\n\n\n        0 0     false"
   }
 ]
