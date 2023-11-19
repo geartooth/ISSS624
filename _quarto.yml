@@ -22,11 +22,10 @@ website:
 
 format:
   html:
-    theme: 
-      - cosmo
-      - theme.scss
+    theme: sandstone
+
     mainfont: arial
-    fontsize: 1.5rem
+    
     
     monofont: courier new
     
