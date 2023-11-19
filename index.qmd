@@ -8,11 +8,11 @@ about:
   
 ---
 
-Welcome to ISSS624 Geospatial Analytics.
+Welcome to my ISSS624 Geospatial Analytics.
 
-In this webpage, I am going to share with you my learning journey of geospatial analytics.
+In this webpage, I will be going over the different hands on exercises and in-class exercises.
 
-To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
+
 
 ```         
 ```
