@@ -7,8 +7,10 @@ website:
     left:
       - text: Hands-on Exercises
         menu: 
-          - text: Hands-on Exercise 01
+          - text: Hands-on Exercise 1 part 1 Data Wrangling with R
             href: Hands-on_Ex01/Hands-on_Ex1.html
+          - text: Hands-on Exercise 1 part 2 Choropleth Mapping with R
+            href: Hands-on_Ex01/Hands-on_Ex1_part_2.html
       - text: In-class Exercises
         menu: 
           - text: In-class Exercise 1
