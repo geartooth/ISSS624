@@ -22,7 +22,7 @@ website:
 
 format:
   html:
-    theme: journal
+    theme: spacelab
     mainfont: calibri
     fontsize: 1.5rem
     
