@@ -22,7 +22,10 @@ website:
 
 format:
   html:
-    theme: cosmo
+    theme: journal
+    mainfont: calibri
+    fontsize: 1.5rem
+    
     css: styles.css
     toc: true
 
