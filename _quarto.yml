@@ -7,10 +7,18 @@ website:
     left:
       - text: Hands-on Exercises
         menu: 
-          - text: Exercise 1 part 1 Data Wrangling with R
+          - text: Ex 1 part 1 Data Wrangling with R
             href: Hands-on_Ex01/Hands-on_Ex1.html
-          - text: Exercise 1 part 2 Choropleth Mapping with R
+          - text: Ex 1 part 2 Choropleth Mapping with R
             href: Hands-on_Ex01/Hands-on_Ex1_part_2.html
+            
+          - text: Ex 2 part 1 Spatial Weights & Applications
+            href: Hands-on_Ex02/Hands-on_Ex2_1.html
+          - text: Ex 2 part 2 Global Measures of Spatial Autocorrelation
+            href: Hands-on_Ex02/Hands-on_Ex2_2.html
+          - text: Ex 2 part 2 Local Measures of Spatial Autocorrelation
+            href: Hands-on_Ex02/Hands-on_Ex2_3.html
+            
       - text: In-class Exercises
         menu: 
           - text: In-class Exercise 1
@@ -18,7 +26,7 @@ website:
     right:
       - href: index.qmd
         text: Home
-      - about.qmd
+      - index.qmd
 
 format:
   html:

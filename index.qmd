@@ -12,7 +12,7 @@ Welcome to my ISSS624 Geospatial Analytics.
 
 In this webpage, I will be going over the different hands on exercises and in-class exercises.
 
-
+By the end of this course, we will have learnt how to navigate geospatial data and present them for data analysis.
 
 ```         
 ```
