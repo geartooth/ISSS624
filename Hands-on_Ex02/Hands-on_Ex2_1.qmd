@@ -3,13 +3,13 @@ title: "Hands-on Exercise 2 part 1"
 subtitle: "Spatial Weights & Applications"
 ---
 
-# Ex2-1.1Overview
+# Ex2-1.1 Overview
 
 In this exercise we will compute spatial weights of the Hunan county in China.
 
-# Ex2-1.2Loading packages & data
+# Ex2-1.2 Loading packages & data
 
-## Ex2-1.2.1Load packages
+## Ex2-1.2.1 Load packages
 
 ```{r}
 pacman::p_load(sf, spdep, tmap, tidyverse, knitr)
