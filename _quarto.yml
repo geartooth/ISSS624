@@ -22,12 +22,7 @@ website:
 
 format:
   html:
-    theme: sandstone
-
-    mainfont: arial
-    
-    
-    monofont: courier new
+    theme: cosmo
     
     css: styles.css
     toc: true
