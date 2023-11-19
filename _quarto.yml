@@ -23,8 +23,10 @@ website:
 format:
   html:
     theme: spacelab
-    mainfont: calibri
+    mainfont: arial
     fontsize: 1.5rem
+    fontcolor: "2956D8"
+    monofont: courier new
     
     css: styles.css
     toc: true
