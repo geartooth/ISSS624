@@ -271,5 +271,75 @@
     "title": "Hands-on Exercise 2 part 1",
     "section": "Ex2-1.2.1 Load packages",
     "text": "Ex2-1.2.1 Load packages\n\npacman::p_load(sf, spdep, tmap, tidyverse, knitr)"
+  },
+  {
+    "objectID": "Hands-on_Ex02/Hands-on_Ex2_2.html",
+    "href": "Hands-on_Ex02/Hands-on_Ex2_2.html",
+    "title": "Hands-on Exercise 2 part 2",
+    "section": "",
+    "text": "In this exercise we will utilise Global and Local Measure of Spatial Autocrrelation(GLSA). We will plot a Moran scatterplot and compute and plot the spatial correlogram. Additionally we will also compute the Local Indicator of Spatial Association(LISA)"
+  },
+  {
+    "objectID": "Hands-on_Ex02/Hands-on_Ex2_2.html#load-packages",
+    "href": "Hands-on_Ex02/Hands-on_Ex2_2.html#load-packages",
+    "title": "Hands-on Exercise 2 part 2",
+    "section": "Load packages",
+    "text": "Load packages\n\npacman::p_load(sf, spdep, tmap, tidyverse)"
+  },
+  {
+    "objectID": "Hands-on_Ex02/Hands-on_Ex2_2.html#load-data",
+    "href": "Hands-on_Ex02/Hands-on_Ex2_2.html#load-data",
+    "title": "Hands-on Exercise 2 part 2",
+    "section": "Load data",
+    "text": "Load data\nHere we will use the local development indicators of Hunan province, China, in 2012.\n\nhunan &lt;- st_read(dsn = \"data/part 2/geospatial\", \n                 layer = \"Hunan\")\n\nReading layer `Hunan' from data source \n  `C:\\Users\\Lian Khye\\Desktop\\MITB\\Geospatial\\geartooth\\ISSS624\\Hands-on_Ex02\\data\\part 2\\geospatial' \n  using driver `ESRI Shapefile'\nSimple feature collection with 88 features and 7 fields\nGeometry type: POLYGON\nDimension:     XY\nBounding box:  xmin: 108.7831 ymin: 24.6342 xmax: 114.2544 ymax: 30.12812\nGeodetic CRS:  WGS 84\n\nhunan2012 &lt;- read_csv(\"data/part 2/aspatial/Hunan_2012.csv\")\n\nRows: 88 Columns: 29\n── Column specification ────────────────────────────────────────────────────────\nDelimiter: \",\"\nchr  (2): County, City\ndbl (27): avg_wage, deposite, FAI, Gov_Rev, Gov_Exp, GDP, GDPPC, GIO, Loan, ...\n\nℹ Use `spec()` to retrieve the full column specification for this data.\nℹ Specify the column types or set `show_col_types = FALSE` to quiet this message."
+  },
+  {
+    "objectID": "Hands-on_Ex02/Hands-on_Ex2_2.html#relational-join-of-data",
+    "href": "Hands-on_Ex02/Hands-on_Ex2_2.html#relational-join-of-data",
+    "title": "Hands-on Exercise 2 part 2",
+    "section": "Relational join of data",
+    "text": "Relational join of data\nHere we will join the hunan2012 dataframe to the polygon or the hunan map. Bascially relating the development data to various regions of Hunan.\n\nhunan &lt;- left_join(hunan,hunan2012) %&gt;%\n  select(1:4, 7, 15)\n\nJoining with `by = join_by(County)`\n\nequal &lt;- tm_shape(hunan) +\n  tm_fill(\"GDPPC\",\n          n = 5,\n          style = \"equal\") +\n  tm_borders(alpha = 0.5) +\n  tm_layout(main.title = \"Equal interval classification\")\n\nquantile &lt;- tm_shape(hunan) +\n  tm_fill(\"GDPPC\",\n          n = 5,\n          style = \"quantile\") +\n  tm_borders(alpha = 0.5) +\n  tm_layout(main.title = \"Equal quantile classification\")\n\ntmap_arrange(equal, \n             quantile, \n             asp=1, \n             ncol=2)"
+  },
+  {
+    "objectID": "Hands-on_Ex02/Hands-on_Ex2_2.html#computing-contiguity-spatial-weights",
+    "href": "Hands-on_Ex02/Hands-on_Ex2_2.html#computing-contiguity-spatial-weights",
+    "title": "Hands-on Exercise 2 part 2",
+    "section": "Computing Contiguity Spatial Weights",
+    "text": "Computing Contiguity Spatial Weights\nWe have to construct a spatial weights or to degine the relationships of the different regions. Here we will use the Queen contiguity weight matrix.\n\nwm_q &lt;- poly2nb(hunan, \n                queen=TRUE)\nsummary(wm_q)\n\nNeighbour list object:\nNumber of regions: 88 \nNumber of nonzero links: 448 \nPercentage nonzero weights: 5.785124 \nAverage number of links: 5.090909 \nLink number distribution:\n\n 1  2  3  4  5  6  7  8  9 11 \n 2  2 12 16 24 14 11  4  2  1 \n2 least connected regions:\n30 65 with 1 link\n1 most connected region:\n85 with 11 links\n\n\nThe data shows that there are 88 regions. 1 region has 11 connected and immediate neighbours and 2 regions only having 1."
+  },
+  {
+    "objectID": "Hands-on_Ex02/Hands-on_Ex2_2.html#row-standardised-weight-matrix",
+    "href": "Hands-on_Ex02/Hands-on_Ex2_2.html#row-standardised-weight-matrix",
+    "title": "Hands-on Exercise 2 part 2",
+    "section": "Row-standardised weight matrix",
+    "text": "Row-standardised weight matrix\nNext we will assign weights to each neighbour using equal weight. This is done using 1/number of neighbours. We will then sum up the weighted income values.\n\nrswm_q &lt;- nb2listw(wm_q, \n                   style=\"W\", \n                   zero.policy = TRUE)\nrswm_q\n\nCharacteristics of weights list object:\nNeighbour list object:\nNumber of regions: 88 \nNumber of nonzero links: 448 \nPercentage nonzero weights: 5.785124 \nAverage number of links: 5.090909 \n\nWeights style: W \nWeights constants summary:\n   n   nn S0       S1       S2\nW 88 7744 88 37.86334 365.9147"
+  },
+  {
+    "objectID": "Hands-on_Ex02/Hands-on_Ex2_2.html#performing-the-test",
+    "href": "Hands-on_Ex02/Hands-on_Ex2_2.html#performing-the-test",
+    "title": "Hands-on Exercise 2 part 2",
+    "section": "Performing the test",
+    "text": "Performing the test\nHere we use the moran.test() for calculating the Moran I value.\n\nmoran.test(hunan$GDPPC, \n           listw=rswm_q, \n           zero.policy = TRUE, \n           na.action=na.omit)\n\n\n    Moran I test under randomisation\n\ndata:  hunan$GDPPC  \nweights: rswm_q    \n\nMoran I statistic standard deviate = 4.7351, p-value = 1.095e-06\nalternative hypothesis: greater\nsample estimates:\nMoran I statistic       Expectation          Variance \n      0.300749970      -0.011494253       0.004348351 \n\n\nFrom the test above we can see that the Moran I statistical value is more than 0, meaning that the development of Hunan province has clustering.\nWe can also simulate using moran.mc().\n\nset.seed(1234)\nbperm= moran.mc(hunan$GDPPC, \n                listw=rswm_q, \n                nsim=999, \n                zero.policy = TRUE, \n                na.action=na.omit)\nbperm\n\n\n    Monte-Carlo simulation of Moran I\n\ndata:  hunan$GDPPC \nweights: rswm_q  \nnumber of simulations + 1: 1000 \n\nstatistic = 0.30075, observed rank = 1000, p-value = 0.001\nalternative hypothesis: greater"
+  },
+  {
+    "objectID": "Hands-on_Ex02/Hands-on_Ex2_2.html#visualising-the-morans-i-test",
+    "href": "Hands-on_Ex02/Hands-on_Ex2_2.html#visualising-the-morans-i-test",
+    "title": "Hands-on Exercise 2 part 2",
+    "section": "Visualising the Moran’s I test",
+    "text": "Visualising the Moran’s I test\nWe can then plot the distribution of the simulated Moran’s I statistical test using a histogram.\n\nmean(bperm$res[1:999])\n\n[1] -0.01504572\n\nvar(bperm$res[1:999])\n\n[1] 0.004371574\n\nsummary(bperm$res[1:999])\n\n    Min.  1st Qu.   Median     Mean  3rd Qu.     Max. \n-0.18339 -0.06168 -0.02125 -0.01505  0.02611  0.27593 \n\nhist(bperm$res, \n     freq=TRUE, \n     breaks=20, \n     xlab=\"Simulated Moran's I\")\nabline(v=0, \n       col=\"red\")"
+  },
+  {
+    "objectID": "Hands-on_Ex02/Hands-on_Ex2_2.html#performing-the-test-1",
+    "href": "Hands-on_Ex02/Hands-on_Ex2_2.html#performing-the-test-1",
+    "title": "Hands-on Exercise 2 part 2",
+    "section": "Performing the test",
+    "text": "Performing the test\nHere we use the geary.mc() to perform the Geary C test.\n\ngeary.test(hunan$GDPPC, listw=rswm_q)\n\n\n    Geary C test under randomisation\n\ndata:  hunan$GDPPC \nweights: rswm_q \n\nGeary C statistic standard deviate = 3.6108, p-value = 0.0001526\nalternative hypothesis: Expectation greater than statistic\nsample estimates:\nGeary C statistic       Expectation          Variance \n        0.6907223         1.0000000         0.0073364 \n\n\nWe can also perform a permutation test with a simulation.\n\nset.seed(1234)\nbperm=geary.mc(hunan$GDPPC, \n               listw=rswm_q, \n               nsim=999)\nbperm\n\n\n    Monte-Carlo simulation of Geary C\n\ndata:  hunan$GDPPC \nweights: rswm_q \nnumber of simulations + 1: 1000 \n\nstatistic = 0.69072, observed rank = 1, p-value = 0.001\nalternative hypothesis: greater"
+  },
+  {
+    "objectID": "Hands-on_Ex02/Hands-on_Ex2_2.html#visualising-the-gearys-c-test",
+    "href": "Hands-on_Ex02/Hands-on_Ex2_2.html#visualising-the-gearys-c-test",
+    "title": "Hands-on Exercise 2 part 2",
+    "section": "Visualising the Geary’s C test",
+    "text": "Visualising the Geary’s C test\nWe can then plot the distribution of the simulated Geary’s C statistical test using a histogram.\n\nmean(bperm$res[1:999])\n\n[1] 1.004402\n\nvar(bperm$res[1:999])\n\n[1] 0.007436493\n\nsummary(bperm$res[1:999])\n\n   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. \n 0.7142  0.9502  1.0052  1.0044  1.0595  1.2722 \n\nhist(bperm$res, freq=TRUE, breaks=20, xlab=\"Simulated Geary c\")\nabline(v=1, col=\"red\") \n\n\n\n\n#Spatial Correlogram Here we examine the patterns of the Moran’s I and Geary’s C test. We can see the correlation of when distances are increased.\n#Moran’s I correlogram We will use the sp.correlogram() for calculating the spatial correlogram of the devleopment of Hunan.\n\nMI_corr &lt;- sp.correlogram(wm_q, \n                          hunan$GDPPC, \n                          order=6, \n                          method=\"I\", \n                          style=\"W\")\nplot(MI_corr)\n\n\n\nprint(MI_corr)\n\nSpatial correlogram for hunan$GDPPC \nmethod: Moran's I\n         estimate expectation   variance standard deviate Pr(I) two sided    \n1 (88)  0.3007500  -0.0114943  0.0043484           4.7351       2.189e-06 ***\n2 (88)  0.2060084  -0.0114943  0.0020962           4.7505       2.029e-06 ***\n3 (88)  0.0668273  -0.0114943  0.0014602           2.0496        0.040400 *  \n4 (88)  0.0299470  -0.0114943  0.0011717           1.2107        0.226015    \n5 (88) -0.1530471  -0.0114943  0.0012440          -4.0134       5.984e-05 ***\n6 (88) -0.1187070  -0.0114943  0.0016791          -2.6164        0.008886 ** \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n\n#Geary’s C correlogram We will use the sp.correlogram() for calculating the spatial correlogram of the devleopment of Hunan.\n\nGC_corr &lt;- sp.correlogram(wm_q, \n                          hunan$GDPPC, \n                          order=6, \n                          method=\"C\", \n                          style=\"W\")\nplot(GC_corr)\n\n\n\nprint(GC_corr)\n\nSpatial correlogram for hunan$GDPPC \nmethod: Geary's C\n        estimate expectation  variance standard deviate Pr(I) two sided    \n1 (88) 0.6907223   1.0000000 0.0073364          -3.6108       0.0003052 ***\n2 (88) 0.7630197   1.0000000 0.0049126          -3.3811       0.0007220 ***\n3 (88) 0.9397299   1.0000000 0.0049005          -0.8610       0.3892612    \n4 (88) 1.0098462   1.0000000 0.0039631           0.1564       0.8757128    \n5 (88) 1.2008204   1.0000000 0.0035568           3.3673       0.0007592 ***\n6 (88) 1.0773386   1.0000000 0.0058042           1.0151       0.3100407    \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1"
   }
 ]

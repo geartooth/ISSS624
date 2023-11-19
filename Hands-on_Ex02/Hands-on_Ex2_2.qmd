@@ -1,3 +1,195 @@
 ---
-title: "Hands-on_Ex2_1"
+title: "Hands-on Exercise 2 part 2"
+subtitle: "Global Measures of Spatial Autocorrelation"
 ---
+
+# Overview
+
+In this exercise we will utilise Global and Local Measure of Spatial Autocrrelation(GLSA). We will plot a Moran scatterplot and compute and plot the spatial correlogram. Additionally we will also compute the Local Indicator of Spatial Association(LISA)
+
+# Loading packages and data
+
+## Load packages
+
+```{r}
+pacman::p_load(sf, spdep, tmap, tidyverse)
+```
+
+## Load data
+
+Here we will use the local development indicators of Hunan province, China, in 2012.
+
+```{r}
+hunan <- st_read(dsn = "data/part 2/geospatial", 
+                 layer = "Hunan")
+hunan2012 <- read_csv("data/part 2/aspatial/Hunan_2012.csv")
+```
+
+## Relational join of data
+
+Here we will join the hunan2012 dataframe to the polygon or the hunan map. Bascially relating the development data to various regions of Hunan.
+
+```{r}
+hunan <- left_join(hunan,hunan2012) %>%
+  select(1:4, 7, 15)
+equal <- tm_shape(hunan) +
+  tm_fill("GDPPC",
+          n = 5,
+          style = "equal") +
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "Equal interval classification")
+
+quantile <- tm_shape(hunan) +
+  tm_fill("GDPPC",
+          n = 5,
+          style = "quantile") +
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "Equal quantile classification")
+
+tmap_arrange(equal, 
+             quantile, 
+             asp=1, 
+             ncol=2)
+```
+
+# Global Spatial Autocorrelation
+
+Here we will compute global spatial autocorrelation statistics and perform a spatial complete randomness test.
+
+## Computing Contiguity Spatial Weights
+
+We have to construct a spatial weights or to degine the relationships of the different regions. Here we will use the [Queen contiguity weight matrix.](https://isss624-liankhye.netlify.app/hands-on_ex02/hands-on_ex2_1)
+
+```{r}
+wm_q <- poly2nb(hunan, 
+                queen=TRUE)
+summary(wm_q)
+```
+
+The data shows that there are 88 regions. 1 region has 11 connected and immediate neighbours and 2 regions only having 1.
+
+## Row-standardised weight matrix
+
+Next we will assign weights to each neighbour using equal weight. This is done using 1/number of neighbours. We will then sum up the weighted income values.
+
+```{r}
+rswm_q <- nb2listw(wm_q, 
+                   style="W", 
+                   zero.policy = TRUE)
+rswm_q
+```
+
+# Global Spatial Autocorrelation using Moran's I test
+
+Moran's I describes how features differ from the values in the study area as a whole. It uses a Moran I(Z-value). 
+
+I-value more than 0: Clustered and observations are similar.
+I-value less than 0: Dispersed, observations tend to be different.
+I-value close to 0: Random, scattered all over.
+
+## Performing the test
+
+Here we use the *moran.test()* for calculating the Moran I value.
+
+```{r}
+moran.test(hunan$GDPPC, 
+           listw=rswm_q, 
+           zero.policy = TRUE, 
+           na.action=na.omit)
+```
+From the test above we can see that the Moran I statistical value is more than 0, meaning that the development of Hunan province has clustering. 
+
+We can also simulate using *moran.mc()*.
+
+```{r}
+set.seed(1234)
+bperm= moran.mc(hunan$GDPPC, 
+                listw=rswm_q, 
+                nsim=999, 
+                zero.policy = TRUE, 
+                na.action=na.omit)
+bperm
+```
+
+## Visualising the Moran's I test 
+
+We can then plot the distribution of the simulated Moran's I statistical test using a histogram.
+
+```{r}
+mean(bperm$res[1:999])
+var(bperm$res[1:999])
+summary(bperm$res[1:999])
+hist(bperm$res, 
+     freq=TRUE, 
+     breaks=20, 
+     xlab="Simulated Moran's I")
+abline(v=0, 
+       col="red") 
+```
+
+# Global Spatial Autocorrelation using Geary's C test
+
+Geary's C test describes how features differ from their immediate neighbours. It uses a Geary C(Z value).
+
+If the Geary C value is larger than 1: the features are dispersed and observations tend to be different.
+If the Geary C value is smaller than 1: the features are clustered and observations tend to be similar.
+If the Geary C value is close to 1: the features are randomly arranged.
+
+## Performing the test
+Here we use the *geary.mc()* to perform the Geary C test.
+```{r}
+geary.test(hunan$GDPPC, listw=rswm_q)
+
+```
+We can also perform a permutation test with a simulation.
+
+```{r}
+set.seed(1234)
+bperm=geary.mc(hunan$GDPPC, 
+               listw=rswm_q, 
+               nsim=999)
+bperm
+```
+
+## Visualising the Geary's C test
+We can then plot the distribution of the simulated Geary's C statistical test using a histogram.
+
+```{r}
+mean(bperm$res[1:999])
+var(bperm$res[1:999])
+summary(bperm$res[1:999])
+hist(bperm$res, freq=TRUE, breaks=20, xlab="Simulated Geary c")
+abline(v=1, col="red") 
+```
+
+#Spatial Correlogram
+Here we examine the patterns of the Moran's I and Geary's C test. We can see the correlation of when distances are increased.
+
+#Moran's I correlogram
+We will use the *sp.correlogram()* for calculating the spatial correlogram of the devleopment of Hunan.
+
+```{r}
+MI_corr <- sp.correlogram(wm_q, 
+                          hunan$GDPPC, 
+                          order=6, 
+                          method="I", 
+                          style="W")
+plot(MI_corr)
+print(MI_corr)
+```
+
+#Geary's C correlogram
+We will use the *sp.correlogram()* for calculating the spatial correlogram of the devleopment of Hunan.
+
+```{r}
+GC_corr <- sp.correlogram(wm_q, 
+                          hunan$GDPPC, 
+                          order=6, 
+                          method="C", 
+                          style="W")
+plot(GC_corr)
+print(GC_corr)
+```
+
+# Conclusion
+Place holder
