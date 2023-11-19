@@ -22,7 +22,8 @@ website:
 
 format:
   html:
-    theme: spacelab
+    theme: cosmo
+      
     mainfont: arial
     fontsize: 1.5rem
     fontcolor: "#2956D8"
