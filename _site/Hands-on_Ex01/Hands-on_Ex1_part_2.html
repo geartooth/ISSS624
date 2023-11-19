@@ -168,8 +168,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
   <li><a href="#getting-started" id="toc-getting-started" class="nav-link" data-scroll-target="#getting-started">Getting Started</a></li>
-  <li><a href="#importing-geospatial-data" id="toc-importing-geospatial-data" class="nav-link" data-scroll-target="#importing-geospatial-data">Importing Geospatial data</a></li>
-  <li><a href="#creating-thematic-map-using-tmap" id="toc-creating-thematic-map-using-tmap" class="nav-link" data-scroll-target="#creating-thematic-map-using-tmap">Creating thematic map using <em>tmap</em></a></li>
+  <li><a href="#importing-geospatial-data" id="toc-importing-geospatial-data" class="nav-link" data-scroll-target="#importing-geospatial-data">Importing Geospatial data</a>
+  <ul class="collapse">
+  <li><a href="#joining-the-attribute-data-and-geospatial-data" id="toc-joining-the-attribute-data-and-geospatial-data" class="nav-link" data-scroll-target="#joining-the-attribute-data-and-geospatial-data">Joining the attribute data and geospatial data</a></li>
+  </ul></li>
+  <li><a href="#creating-thematic-map-using-tmap" id="toc-creating-thematic-map-using-tmap" class="nav-link" data-scroll-target="#creating-thematic-map-using-tmap">Creating thematic map using <em>tmap</em></a>
+  <ul class="collapse">
+  <li><a href="#using-qtm" id="toc-using-qtm" class="nav-link" data-scroll-target="#using-qtm">Using <em>qtm()</em></a></li>
+  <li><a href="#using-tmaps-elements" id="toc-using-tmaps-elements" class="nav-link" data-scroll-target="#using-tmaps-elements">Using <em>tmap’s</em> elements</a></li>
+  <li><a href="#using-various-functions-of-tmap-for-plotting" id="toc-using-various-functions-of-tmap-for-plotting" class="nav-link" data-scroll-target="#using-various-functions-of-tmap-for-plotting">Using various functions of tmap for plotting</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -297,7 +305,8 @@ dbl (2): Pop, Time
 `.groups` argument.</code></pre>
 </div>
 </div>
-<p>Joining the attribute data and geospatial data</p>
+<section id="joining-the-attribute-data-and-geospatial-data" class="level3">
+<h3 class="anchored" data-anchor-id="joining-the-attribute-data-and-geospatial-data">Joining the attribute data and geospatial data</h3>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>popdata2020 <span class="ot">&lt;-</span> popdata2020 <span class="sc">%&gt;%</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate_at</span>(<span class="at">.vars =</span> <span class="fu">vars</span>(PA, SZ), </span>
@@ -308,9 +317,11 @@ dbl (2): Pop, Time
 <span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(mpsz_pop2020, <span class="st">"data/rds/mpszpop2020.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
+</section>
 <section id="creating-thematic-map-using-tmap" class="level2">
 <h2 class="anchored" data-anchor-id="creating-thematic-map-using-tmap">Creating thematic map using <em>tmap</em></h2>
-<p>Using <em>qtm()</em></p>
+<section id="using-qtm" class="level3">
+<h3 class="anchored" data-anchor-id="using-qtm">Using <em>qtm()</em></h3>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
@@ -322,7 +333,9 @@ dbl (2): Pop, Time
 <p><img src="Hands-on_Ex1_part_2_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>Using <em>tmap’s </em> elements</p>
+</section>
+<section id="using-tmaps-elements" class="level3">
+<h3 class="anchored" data-anchor-id="using-tmaps-elements">Using <em>tmap’s</em> elements</h3>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(mpsz_pop2020)<span class="sc">+</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"DEPENDENCY"</span>, </span>
@@ -345,29 +358,38 @@ dbl (2): Pop, Time
 <p><img src="Hands-on_Ex1_part_2_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>Using various functions of tmap for plotting</p>
-<p>Drawing a base map</p>
+</section>
+<section id="using-various-functions-of-tmap-for-plotting" class="level3">
+<h3 class="anchored" data-anchor-id="using-various-functions-of-tmap-for-plotting">Using various functions of tmap for plotting</h3>
+<section id="drawing-a-base-map" class="level4">
+<h4 class="anchored" data-anchor-id="drawing-a-base-map">Drawing a base map</h4>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(mpsz_pop2020) <span class="sc">+</span> <span class="fu">tm_polygons</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="Hands-on_Ex1_part_2_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>Drawing a choropleth map</p>
+</section>
+<section id="drawing-a-choropleth-map" class="level4">
+<h4 class="anchored" data-anchor-id="drawing-a-choropleth-map">Drawing a choropleth map</h4>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(mpsz_pop2020)<span class="sc">+</span><span class="fu">tm_polygons</span>(<span class="st">"DEPENDENCY"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="Hands-on_Ex1_part_2_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>Shaing the polygons using the default colour scheme</p>
+</section>
+<section id="shaing-the-polygons-using-the-default-colour-scheme" class="level4">
+<h4 class="anchored" data-anchor-id="shaing-the-polygons-using-the-default-colour-scheme">Shaing the polygons using the default colour scheme</h4>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(mpsz_pop2020)<span class="sc">+</span><span class="fu">tm_fill</span>(<span class="st">"DEPENDENCY"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="Hands-on_Ex1_part_2_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>Adding boundaries</p>
+</section>
+<section id="adding-boundaries" class="level4">
+<h4 class="anchored" data-anchor-id="adding-boundaries">Adding boundaries</h4>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(mpsz_pop2020)<span class="sc">+</span></span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"DEPENDENCY"</span>) <span class="sc">+</span></span>
@@ -376,7 +398,9 @@ dbl (2): Pop, Time
 <p><img src="Hands-on_Ex1_part_2_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>Data classification Plotting with built-in classification and 5 classifications</p>
+</section>
+<section id="data-classification-plotting-with-built-in-classification-and-5-classifications" class="level4">
+<h4 class="anchored" data-anchor-id="data-classification-plotting-with-built-in-classification-and-5-classifications">Data classification Plotting with built-in classification and 5 classifications</h4>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(mpsz_pop2020)<span class="sc">+</span></span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"DEPENDENCY"</span>,</span>
@@ -387,7 +411,9 @@ dbl (2): Pop, Time
 <p><img src="Hands-on_Ex1_part_2_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>Using <em>equal</em> data classification method</p>
+</section>
+<section id="using-equal-data-classification-method" class="level4">
+<h4 class="anchored" data-anchor-id="using-equal-data-classification-method">Using <em>equal</em> data classification method</h4>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(mpsz_pop2020)<span class="sc">+</span></span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"DEPENDENCY"</span>,</span>
@@ -398,7 +424,9 @@ dbl (2): Pop, Time
 <p><img src="Hands-on_Ex1_part_2_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>Setting breakpoints</p>
+</section>
+<section id="setting-breakpoints" class="level4">
+<h4 class="anchored" data-anchor-id="setting-breakpoints">Setting breakpoints</h4>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mpsz_pop2020<span class="sc">$</span>DEPENDENCY)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -416,7 +444,9 @@ dbl (2): Pop, Time
 <p><img src="Hands-on_Ex1_part_2_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>Changing colour schemes Blue</p>
+</section>
+<section id="changing-colour-schemes-blue" class="level4">
+<h4 class="anchored" data-anchor-id="changing-colour-schemes-blue">Changing colour schemes Blue</h4>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(mpsz_pop2020)<span class="sc">+</span></span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"DEPENDENCY"</span>,</span>
@@ -428,7 +458,9 @@ dbl (2): Pop, Time
 <p><img src="Hands-on_Ex1_part_2_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>Green and darkest meaning least dependency</p>
+</section>
+<section id="green-and-darkest-meaning-least-dependency" class="level4">
+<h4 class="anchored" data-anchor-id="green-and-darkest-meaning-least-dependency">Green and darkest meaning least dependency</h4>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(mpsz_pop2020)<span class="sc">+</span></span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"DEPENDENCY"</span>,</span>
@@ -439,7 +471,9 @@ dbl (2): Pop, Time
 <p><img src="Hands-on_Ex1_part_2_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>Adding map legends</p>
+</section>
+<section id="adding-map-legends" class="level4">
+<h4 class="anchored" data-anchor-id="adding-map-legends">Adding map legends</h4>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(mpsz_pop2020)<span class="sc">+</span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"DEPENDENCY"</span>, </span>
@@ -461,7 +495,9 @@ dbl (2): Pop, Time
 <p><img src="Hands-on_Ex1_part_2_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>Changing styles <em>Classic</em></p>
+</section>
+<section id="changing-styles-classic" class="level4">
+<h4 class="anchored" data-anchor-id="changing-styles-classic">Changing styles <em>Classic</em></h4>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(mpsz_pop2020)<span class="sc">+</span></span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"DEPENDENCY"</span>, </span>
@@ -479,7 +515,9 @@ dbl (2): Pop, Time
 <p><img src="Hands-on_Ex1_part_2_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>Adding accessories such as compass, scale bars and grids</p>
+</section>
+<section id="adding-accessories-such-as-compass-scale-bars-and-grids" class="level4">
+<h4 class="anchored" data-anchor-id="adding-accessories-such-as-compass-scale-bars-and-grids">Adding accessories such as compass, scale bars and grids</h4>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(mpsz_pop2020)<span class="sc">+</span></span>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"DEPENDENCY"</span>, </span>
@@ -521,7 +559,9 @@ dbl (2): Pop, Time
 <p><img src="Hands-on_Ex1_part_2_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>Changing the colours and style for multiple maps</p>
+</section>
+<section id="changing-the-colours-and-style-for-multiple-maps" class="level4">
+<h4 class="anchored" data-anchor-id="changing-the-colours-and-style-for-multiple-maps">Changing the colours and style for multiple maps</h4>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(mpsz_pop2020)<span class="sc">+</span> </span>
 <span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>(<span class="fu">c</span>(<span class="st">"DEPENDENCY"</span>,<span class="st">"AGED"</span>),</span>
@@ -532,7 +572,9 @@ dbl (2): Pop, Time
 <p><img src="Hands-on_Ex1_part_2_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>Splitting up choroplath map into smaller sections</p>
+</section>
+<section id="splitting-up-choroplath-map-into-smaller-sections" class="level4">
+<h4 class="anchored" data-anchor-id="splitting-up-choroplath-map-into-smaller-sections">Splitting up choroplath map into smaller sections</h4>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(mpsz_pop2020) <span class="sc">+</span></span>
 <span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"DEPENDENCY"</span>,</span>
@@ -554,7 +596,9 @@ therefore deprecated</code></pre>
 <p><img src="Hands-on_Ex1_part_2_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>Using <em>tmap_arrange()</em> for creating multiple smaller maps that are each assigned separately aka joining multiple maps together</p>
+</section>
+<section id="using-tmap_arrange-for-creating-multiple-smaller-maps-that-are-each-assigned-separately-aka-joining-multiple-maps-together" class="level4">
+<h4 class="anchored" data-anchor-id="using-tmap_arrange-for-creating-multiple-smaller-maps-that-are-each-assigned-separately-aka-joining-multiple-maps-together">Using <em>tmap_arrange()</em> for creating multiple smaller maps that are each assigned separately aka joining multiple maps together</h4>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>youngmap <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(mpsz_pop2020)<span class="sc">+</span> </span>
 <span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>(<span class="st">"YOUNG"</span>, </span>
@@ -571,10 +615,11 @@ therefore deprecated</code></pre>
 <p><img src="Hands-on_Ex1_part_2_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>Cropping out the smaller sections of a map based on criteria</p>
-<p>tm_shape(mpsz_pop2020[mpsz_pop2020$REGION_N==“CENTRAL REGION”, ])+ tm_fill(“DEPENDENCY”, style = “quantile”, palette = “Blues”, legend.hist = TRUE, legend.is.portrait = TRUE, legend.hist.z = 0.1) + tm_layout(legend.outside = TRUE, legend.height = 0.45, legend.width = 5.0, legend.position = c(“right”, “bottom”), frame = FALSE) + tm_borders(alpha = 0.5)</p>
+<p>Cropping out the smaller sections of a map based on criteria ```{r} tm_shape(mpsz_pop2020[mpsz_pop2020$REGION_N==“CENTRAL REGION”, ])+ tm_fill(“DEPENDENCY”, style = “quantile”, palette = “Blues”, legend.hist = TRUE, legend.is.portrait = TRUE, legend.hist.z = 0.1) + tm_layout(legend.outside = TRUE, legend.height = 0.45, legend.width = 5.0, legend.position = c(“right”, “bottom”), frame = FALSE) + tm_borders(alpha = 0.5)</p>
 
 
+</section>
+</section>
 </section>
 
 </main> <!-- /main -->

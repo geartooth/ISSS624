@@ -4,17 +4,18 @@ title: "Hands-on_Ex1_part_2"
 
 ## Overview
 
-Hands on exercise 1.2
-Choropleth Mapping with R
+Hands on exercise 1.2 Choropleth Mapping with R
 
 ## Getting Started
 
 Importing packages
+
 ```{r}
 pacman::p_load(sf,tmap, tidyverse)
 ```
 
 ## Importing Geospatial data
+
 ```{r}
 mpsz <- st_read(dsn = "data/geospatial", 
                 layer = "MP14_SUBZONE_WEB_PL")
@@ -43,7 +44,7 @@ mutate(`DEPENDENCY` = (`YOUNG` + `AGED`)
        `TOTAL`, `DEPENDENCY`)
 ```
 
-Joining the attribute data and geospatial data
+### Joining the attribute data and geospatial data
 
 ```{r}
 popdata2020 <- popdata2020 %>%
@@ -56,13 +57,17 @@ write_rds(mpsz_pop2020, "data/rds/mpszpop2020.rds")
 ```
 
 ## Creating thematic map using *tmap*
-Using *qtm()*
+
+### Using *qtm()*
+
 ```{r}
 tmap_mode("plot")
 qtm(mpsz_pop2020, 
     fill = "DEPENDENCY")
 ```
-Using *tmap's * elements
+
+### Using *tmap's*  elements
+
 ```{r}
 tm_shape(mpsz_pop2020)+
   tm_fill("DEPENDENCY", 
@@ -83,29 +88,36 @@ tm_shape(mpsz_pop2020)+
              position = c("left", "bottom"))
 ```
 
-Using various functions of tmap for plotting
+### Using various functions of tmap for plotting
 
-Drawing a base map
+#### Drawing a base map
+
 ```{r}
 tm_shape(mpsz_pop2020) + tm_polygons()
 ```
-Drawing a choropleth map
+
+#### Drawing a choropleth map
+
 ```{r}
 tm_shape(mpsz_pop2020)+tm_polygons("DEPENDENCY")
 ```
-Shaing the polygons using the default colour scheme
+
+#### Shaing the polygons using the default colour scheme
+
 ```{r}
 tm_shape(mpsz_pop2020)+tm_fill("DEPENDENCY")
 ```
-Adding boundaries
+
+#### Adding boundaries
+
 ```{r}
 tm_shape(mpsz_pop2020)+
   tm_fill("DEPENDENCY") +
   tm_borders(lwd = 0.1,  alpha = 1)
 ```
 
-Data classification
-Plotting with built-in classification and 5 classifications
+#### Data classification Plotting with built-in classification and 5 classifications
+
 ```{r}
 tm_shape(mpsz_pop2020)+
   tm_fill("DEPENDENCY",
@@ -114,7 +126,8 @@ tm_shape(mpsz_pop2020)+
   tm_borders(alpha = 0.5)
 ```
 
-Using *equal* data classification method
+#### Using *equal* data classification method
+
 ```{r}
 tm_shape(mpsz_pop2020)+
   tm_fill("DEPENDENCY",
@@ -123,7 +136,8 @@ tm_shape(mpsz_pop2020)+
   tm_borders(alpha = 0.5)
 ```
 
-Setting breakpoints
+#### Setting breakpoints
+
 ```{r}
 summary(mpsz_pop2020$DEPENDENCY)
 tm_shape(mpsz_pop2020)+
@@ -132,8 +146,8 @@ tm_shape(mpsz_pop2020)+
   tm_borders(alpha = 0.5)
 ```
 
-Changing colour schemes
-Blue
+#### Changing colour schemes Blue
+
 ```{r}
 tm_shape(mpsz_pop2020)+
   tm_fill("DEPENDENCY",
@@ -142,7 +156,9 @@ tm_shape(mpsz_pop2020)+
           palette = "Blues") +
   tm_borders(alpha = 0.5)
 ```
-Green and darkest meaning least dependency
+
+#### Green and darkest meaning least dependency
+
 ```{r}
 tm_shape(mpsz_pop2020)+
   tm_fill("DEPENDENCY",
@@ -151,7 +167,8 @@ tm_shape(mpsz_pop2020)+
   tm_borders(alpha = 0.5)
 ```
 
-Adding map legends
+#### Adding map legends
+
 ```{r}
 tm_shape(mpsz_pop2020)+
   tm_fill("DEPENDENCY", 
@@ -171,8 +188,8 @@ tm_shape(mpsz_pop2020)+
   tm_borders(alpha = 0.5)
 ```
 
-Changing styles
-*Classic*
+#### Changing styles *Classic*
+
 ```{r}
 tm_shape(mpsz_pop2020)+
   tm_fill("DEPENDENCY", 
@@ -181,7 +198,9 @@ tm_shape(mpsz_pop2020)+
   tm_borders(alpha = 0.5) +
   tmap_style("classic")
 ```
-Adding accessories such as compass, scale bars and grids
+
+#### Adding accessories such as compass, scale bars and grids
+
 ```{r}
 tm_shape(mpsz_pop2020)+
   tm_fill("DEPENDENCY", 
@@ -203,6 +222,7 @@ tm_shape(mpsz_pop2020)+
 ```
 
 Drawing multiple smaller choropleth maps
+
 ```{r}
 tm_shape(mpsz_pop2020)+
   tm_fill(c("YOUNG", "AGED"),
@@ -213,7 +233,8 @@ tm_shape(mpsz_pop2020)+
   tmap_style("white")
 ```
 
-Changing the colours and style for multiple maps
+#### Changing the colours and style for multiple maps
+
 ```{r}
 tm_shape(mpsz_pop2020)+ 
   tm_polygons(c("DEPENDENCY","AGED"),
@@ -222,7 +243,8 @@ tm_shape(mpsz_pop2020)+
   tm_layout(legend.position = c("right", "bottom"))
 ```
 
-Splitting up choroplath map into smaller sections
+#### Splitting up choroplath map into smaller sections
+
 ```{r}
 tm_shape(mpsz_pop2020) +
   tm_fill("DEPENDENCY",
@@ -238,7 +260,8 @@ tm_shape(mpsz_pop2020) +
   tm_borders(alpha = 0.5)
 ```
 
-Using *tmap_arrange()* for creating multiple smaller maps that are each assigned separately aka joining multiple maps together
+#### Using *tmap_arrange()* for creating multiple smaller maps that are each assigned separately aka joining multiple maps together
+
 ```{r}
 youngmap <- tm_shape(mpsz_pop2020)+ 
   tm_polygons("YOUNG", 
@@ -253,18 +276,4 @@ agedmap <- tm_shape(mpsz_pop2020)+
 tmap_arrange(youngmap, agedmap, asp=1, ncol=2)
 ```
 
-Cropping out the smaller sections of a map based on criteria
-```{r}
-tm_shape(mpsz_pop2020[mpsz_pop2020$REGION_N=="CENTRAL REGION", ])+
-  tm_fill("DEPENDENCY", 
-          style = "quantile", 
-          palette = "Blues", 
-          legend.hist = TRUE, 
-          legend.is.portrait = TRUE,
-          legend.hist.z = 0.1) +
-  tm_layout(legend.outside = TRUE,
-            legend.height = 0.45, 
-            legend.width = 5.0,
-            legend.position = c("right", "bottom"),
-            frame = FALSE) +
-  tm_borders(alpha = 0.5)
+Cropping out the smaller sections of a map based on criteria \`\`\`{r} tm_shape(mpsz_pop2020\[mpsz_pop2020\$REGION_N=="CENTRAL REGION", \])+ tm_fill("DEPENDENCY", style = "quantile", palette = "Blues", legend.hist = TRUE, legend.is.portrait = TRUE, legend.hist.z = 0.1) + tm_layout(legend.outside = TRUE, legend.height = 0.45, legend.width = 5.0, legend.position = c("right", "bottom"), frame = FALSE) + tm_borders(alpha = 0.5)
