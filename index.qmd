@@ -1,5 +1,11 @@
 ---
 title: "ISSS624"
+image: images/adventure-compass.gif
+about:
+  template: jolla
+  image-shape: round
+  image-width: 15em
+  
 ---
 
 Welcome to ISSS624 Geospatial Analytics.
