@@ -4,8 +4,6 @@ project:
 website:
   title: "ISSS624"
   navbar:
-  sidebar:
-  pinned: true
     left:
       - text: Hands-on Exercises
         menu: 
