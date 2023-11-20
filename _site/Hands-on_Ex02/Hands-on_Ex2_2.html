@@ -200,6 +200,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#performing-the-test-1" id="toc-performing-the-test-1" class="nav-link" data-scroll-target="#performing-the-test-1">Performing the test</a></li>
   <li><a href="#visualising-the-gearys-c-test" id="toc-visualising-the-gearys-c-test" class="nav-link" data-scroll-target="#visualising-the-gearys-c-test">Visualising the Geary’s C test</a></li>
   </ul></li>
+  <li><a href="#spatial-correlogram" id="toc-spatial-correlogram" class="nav-link" data-scroll-target="#spatial-correlogram">Spatial Correlogram</a>
+  <ul class="collapse">
+  <li><a href="#morans-i-correlogram" id="toc-morans-i-correlogram" class="nav-link" data-scroll-target="#morans-i-correlogram">Moran’s I correlogram</a></li>
+  <li><a href="#gearys-c-correlogram" id="toc-gearys-c-correlogram" class="nav-link" data-scroll-target="#gearys-c-correlogram">Geary’s C correlogram</a></li>
+  </ul></li>
   <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
   </ul>
 </nav>
@@ -495,8 +500,14 @@ alternative hypothesis: greater</code></pre>
 <p><img src="Hands-on_Ex2_2_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>#Spatial Correlogram Here we examine the patterns of the Moran’s I and Geary’s C test. We can see the correlation of when distances are increased.</p>
-<p>#Moran’s I correlogram We will use the <em>sp.correlogram()</em> for calculating the spatial correlogram of the devleopment of Hunan.</p>
+</section>
+</section>
+<section id="spatial-correlogram" class="level1">
+<h1>Spatial Correlogram</h1>
+<p>Here we examine the patterns of the Moran’s I and Geary’s C test. We can see the correlation of when distances are increased.</p>
+<section id="morans-i-correlogram" class="level2">
+<h2 class="anchored" data-anchor-id="morans-i-correlogram">Moran’s I correlogram</h2>
+<p>We will use the <em>sp.correlogram()</em> for calculating the spatial correlogram of the devleopment of Hunan.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>MI_corr <span class="ot">&lt;-</span> <span class="fu">sp.correlogram</span>(wm_q, </span>
 <span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>                          hunan<span class="sc">$</span>GDPPC, </span>
@@ -522,7 +533,10 @@ method: Moran's I
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 </div>
-<p>#Geary’s C correlogram We will use the <em>sp.correlogram()</em> for calculating the spatial correlogram of the devleopment of Hunan.</p>
+</section>
+<section id="gearys-c-correlogram" class="level2">
+<h2 class="anchored" data-anchor-id="gearys-c-correlogram">Geary’s C correlogram</h2>
+<p>We will use the <em>sp.correlogram()</em> for calculating the spatial correlogram of the devleopment of Hunan.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>GC_corr <span class="ot">&lt;-</span> <span class="fu">sp.correlogram</span>(wm_q, </span>
 <span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>                          hunan<span class="sc">$</span>GDPPC, </span>

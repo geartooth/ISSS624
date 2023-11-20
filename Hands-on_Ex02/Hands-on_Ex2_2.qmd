@@ -162,10 +162,10 @@ hist(bperm$res, freq=TRUE, breaks=20, xlab="Simulated Geary c")
 abline(v=1, col="red") 
 ```
 
-#Spatial Correlogram
+# Spatial Correlogram
 Here we examine the patterns of the Moran's I and Geary's C test. We can see the correlation of when distances are increased.
 
-#Moran's I correlogram
+## Moran's I correlogram
 We will use the *sp.correlogram()* for calculating the spatial correlogram of the devleopment of Hunan.
 
 ```{r}
@@ -178,7 +178,7 @@ plot(MI_corr)
 print(MI_corr)
 ```
 
-#Geary's C correlogram
+## Geary's C correlogram
 We will use the *sp.correlogram()* for calculating the spatial correlogram of the devleopment of Hunan.
 
 ```{r}
