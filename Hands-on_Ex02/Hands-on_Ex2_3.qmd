@@ -134,9 +134,11 @@ hist(bperm$res, freq=TRUE, breaks=20, xlab="Simulated Geary c")
 abline(v=1, col="red") 
 ```
 
-# Spatial Correlogram Here we examine the patterns of the Moran's I and Geary's C test as seen in Hands-on Ex 2 part 2.
+# Spatial Correlogram 
+Here we examine the patterns of the Moran's I and Geary's C test as seen in Hands-on Ex 2 part 2.
 
-# Moran's I correlogram We will use the *sp.correlogram()* for calculating the spatial correlogram of the devleopment of Hunan.
+# Moran's I correlogram 
+We will use the *sp.correlogram()* for calculating the spatial correlogram of the devleopment of Hunan.
 
 ```{r}
 MI_corr <- sp.correlogram(wm_q, 
@@ -148,7 +150,8 @@ plot(MI_corr)
 print(MI_corr)
 ```
 
-# Geary's C correlogram We will use the *sp.correlogram()* for calculating the spatial correlogram of the devleopment of Hunan.
+# Geary's C correlogram 
+We will use the *sp.correlogram()* for calculating the spatial correlogram of the devleopment of Hunan.
 
 ```{r}
 GC_corr <- sp.correlogram(wm_q, 
@@ -355,3 +358,110 @@ There are 2 types of distance-based proximity matrix:
 ## Deriving the centroid
 Here we will associate a region to a center using coordinates. 
 
+Here we will get the longitudinal and latitudinal data before combining them together using *cbind()*
+```{r}
+longitude <- map_dbl(hunan$geometry, ~st_centroid(.x)[[1]])
+latitude <- map_dbl(hunan$geometry, ~st_centroid(.x)[[2]])
+coords <- cbind(longitude, latitude)
+
+```
+
+Next we will determine the cut-off distance. The distance will be determined by the max from the output below.
+
+```{r}
+k1 <- knn2nb(knearneigh(coords))
+k1dists <- unlist(nbdists(k1, coords, longlat = TRUE))
+summary(k1dists)
+```
+
+The cut off distance is found to be 61.79km in this case.
+
+## Computing fixed distance weight matrix
+
+Here we will calculate the fixed distance weight matrix where we will quantify the spatial relationships between features amongst the data.
+
+```{r}
+wm_d62 <- dnearneigh(coords, 0, 62, longlat = TRUE)
+wm_d62
+wm62_lw <- nb2listw(wm_d62, style = 'B')
+summary(wm62_lw)
+```
+
+## Computing adaptive distance weight matrix
+
+Adaptive distance weight matrix refers to the possibility to control the number of neighbours by accepting asymmetrical neightbours or imposing symmetrical.
+
+```{r}
+knn <- knn2nb(knearneigh(coords, k=8))
+knn
+knn_lw <- nb2listw(knn, style = 'B')
+summary(knn_lw)
+```
+
+# Gi statistics
+
+## Compute Gi statistics using fixed distance
+
+Here we will be using fixed distance for calculating Gi statistics. The results is set as a Z-score. 
+- Positive Z-score refers to high clusters
+- Negative Z-score refers to low clusters
+
+
+```{r}
+fips <- order(hunan$County)
+gi.fixed <- localG(hunan$GDPPC, wm62_lw)
+gi.fixed
+
+```
+
+After that we will join the Gi values to their data. It converts the output vector into a r matrix and then binding it to the hunan data to produced a new SpatialPolygonDataframe. 
+
+```{r}
+hunan.gi <- cbind(hunan, as.matrix(gi.fixed)) %>%
+  rename(gstat_fixed = as.matrix.gi.fixed.)
+```
+## Mapping Gi values to fixed distance weights
+
+```{r}
+gdppc <- qtm(hunan, "GDPPC")
+
+Gimap <-tm_shape(hunan.gi) +
+  tm_fill(col = "gstat_fixed", 
+          style = "pretty",
+          palette="-RdBu",
+          title = "local Gi") +
+  tm_borders(alpha = 0.5)
+
+tmap_arrange(gdppc, Gimap, asp=1, ncol=2)
+```
+
+## Gi statistics using adaptive distance
+
+Here we will calculate the Gi values of the development of Hunan using the adaptive distance weight matrix instead of fixed distance.
+
+```{r}
+fips <- order(hunan$County)
+gi.adaptive <- localG(hunan$GDPPC, knn_lw)
+hunan.gi <- cbind(hunan, as.matrix(gi.adaptive)) %>%
+  rename(gstat_adaptive = as.matrix.gi.adaptive.)
+```
+
+## Mapping Gi values with adaptive distance weights
+
+Here we will visualise the hot and cold spots if there are any using a choropleth map.
+
+```{r}
+gdppc<- qtm(hunan, "GDPPC")
+
+Gimap <- tm_shape(hunan.gi) + 
+  tm_fill(col = "gstat_adaptive", 
+          style = "pretty", 
+          palette="-RdBu", 
+          title = "local Gi") + 
+  tm_borders(alpha = 0.5)
+
+tmap_arrange(gdppc, 
+             Gimap, 
+             asp=1, 
+             ncol=2)
+```
