@@ -498,7 +498,7 @@ alternative hypothesis: greater</code></pre>
 </section>
 <section id="spatial-correlogram" class="level1">
 <h1>Spatial Correlogram</h1>
-<p>Here we examine the patterns of the Moran’s I and Geary’s C test as seen in Hands-on Ex 2 part 2.</p>
+<p>Here we examine the patterns of the Moran’s I and Geary’s C test as seen in <a href="https://isss624-liankhye.netlify.app/hands-on_ex02/hands-on_ex2_2">Hands-on Ex 2 part 2</a>.</p>
 </section>
 <section id="morans-i-correlogram" class="level1">
 <h1>Moran’s I correlogram</h1>
@@ -733,7 +733,7 @@ Zixing        -7.6849e-01 -8.8210e-02  9.4057e-01 -7.0144e-01         0.4830</co
 </section>
 <section id="lisa-cluster-map" class="level1">
 <h1>LISA cluster map</h1>
-<p>The LISA cluster map can show the locations with significance by first plotting the Moran scatterplot.</p>
+<p>LISA indicates the extent of significant spatial clustering and the sum of LISA will be proportional to the global spatial data. The LISA cluster map can show the locations with significance by first plotting the Moran scatterplot.</p>
 <section id="plotting-moran-scatterplot" class="level2">
 <h2 class="anchored" data-anchor-id="plotting-moran-scatterplot">Plotting Moran scatterplot</h2>
 <p>We will use the <em>moran.plot()</em> to plot the Moran scatterplot.</p>
@@ -841,12 +841,29 @@ Zixing        -7.6849e-01 -8.8210e-02  9.4057e-01 -7.0144e-01         0.4830</co
 <p>We can also utilise hot and cold spots to describe clustering and areas with a higher feature value. Hot spots are used to represent regions with high value of the interested feature.</p>
 <section id="getis-and-ords-g-statistics" class="level2">
 <h2 class="anchored" data-anchor-id="getis-and-ords-g-statistics">Getis and Ord’s G statistics</h2>
-<p>Getis and Ord’s G statistics look at neighbours within a certain distance to check for the presence of clustering.</p>
+<p>Getis and Ord’s G statistics look at neighbours within a certain distance to check for the presence of clustering. Significant and positive values will indicate hot spots while significant and negative values will indicate cold spots.</p>
 <p>It can be broken down into the following steps: - Deriving spatial weight matrix - Computing Gi statistics - Mapping Gi statistics</p>
 </section>
 <section id="deriving-distance-based-weight-matrix" class="level2">
 <h2 class="anchored" data-anchor-id="deriving-distance-based-weight-matrix">Deriving distance-based weight matrix</h2>
-<p>Firstly we will need to set what constitutes a neighbour using distance. There are 2 types of distance-based proximity matrix: - Fixed distance weight matrix - Adaptive distance weight matrix</p>
+<p>Firstly we will need to set what constitutes a neighbour using distance. There are 2 types of distance-based proximity matrix:</p>
+<p><strong>Fixed distance weight matrix</strong></p>
+<ul>
+<li><div>
+<ul>
+<li><p>requires 1 or more neighbours and 8 neighbours if the data is skewed</p></li>
+<li><p>will increase variance if sparse data points</p></li>
+<li><p>variance will be masked if data points are dense</p></li>
+</ul>
+</div>
+<p><strong>Adaptive distance weight matrix</strong></p></li>
+<li><div>
+<ul>
+<li><p>changes bandwidth based on density</p></li>
+<li><p>find nearest neighbour</p></li>
+</ul>
+</div></li>
+</ul>
 </section>
 <section id="deriving-the-centroid" class="level2">
 <h2 class="anchored" data-anchor-id="deriving-the-centroid">Deriving the centroid</h2>

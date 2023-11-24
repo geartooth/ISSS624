@@ -56,9 +56,11 @@ tmap_arrange(equal,
 
 Here we will compute global spatial autocorrelation statistics and perform a spatial complete randomness test.
 
+Spatial autocorrelation describes the spatial relationship of variables and explore the statistical dependency of collection of variables in a region. These regions can refer to a continuous surface, fixed sites and areas that are dubdivisable.
+
 ## Computing Contiguity Spatial Weights
 
-We have to construct a spatial weights or to degine the relationships of the different regions. Here we will use the [Queen contiguity weight matrix.](https://isss624-liankhye.netlify.app/hands-on_ex02/hands-on_ex2_1)
+We have to construct a spatial weights or to degine the relationships of the different regions. Here we will use the [Queen contiguity weight matrix.](https://isss624-liankhye.netlify.app/hands-on_ex02/hands-on_ex2_1) Here we see if neighbours are similar to one another.
 
 ```{r}
 wm_q <- poly2nb(hunan, 
@@ -70,7 +72,7 @@ The data shows that there are 88 regions. 1 region has 11 connected and immediat
 
 ## Row-standardised weight matrix
 
-Next we will assign weights to each neighbour using equal weight. This is done using 1/number of neighbours. We will then sum up the weighted income values.
+Next we will assign weights to each neighbour using equal weight. This is done using 1/number of neighbours. We will then sum up the weighted income values. This is to create proportional weights especially when the data contains unequal number of weights and is useful against potentially bias or skewed data.
 
 ```{r}
 rswm_q <- nb2listw(wm_q, 
@@ -81,15 +83,25 @@ rswm_q
 
 # Global Spatial Autocorrelation using Moran's I test
 
-Moran's I describes how features differ from the values in the study area as a whole. It uses a Moran I(Z-value). 
+Moran's I describes how features differ from the values in the study area as a whole. It uses a Moran I(Z-value).
 
-I-value more than 0: Clustered and observations are similar.
-I-value less than 0: Dispersed, observations tend to be different.
-I-value close to 0: Random, scattered all over.
+-   I-value more than 0: Clustered and observations are similar.
+
+-   I-value less than 0: Dispersed, observations tend to be different.
+
+-   I-value close to 0: Random, scattered all over.
 
 ## Performing the test
 
 Here we use the *moran.test()* for calculating the Moran I value.
+
+Null hypothesis or H0:
+
+-   observed pattern are equally likely as other pattern
+
+-   the value of one location is not dependent on neighbours
+
+-   changing the value of one region does not affect another
 
 ```{r}
 moran.test(hunan$GDPPC, 
@@ -97,7 +109,10 @@ moran.test(hunan$GDPPC,
            zero.policy = TRUE, 
            na.action=na.omit)
 ```
-From the test above we can see that the Moran I statistical value is more than 0, meaning that the development of Hunan province has clustering. 
+
+From the test above we can see that the Moran I statistical value is more than 0, meaning that the development of Hunan province has clustering.
+
+Moran's I test require normal and randomised data and we can test that using Monte Carlo simulation. The simulation predicts the likelihood of outcomes based on random values. Here we use *set.seed()* to fix the random values so that we will obtain the same set when generating the random values. The p-value obtained will then be used to compare against the p-value of the actual p-value from the Moran's I test.
 
 We can also simulate using *moran.mc()*.
 
@@ -111,7 +126,9 @@ bperm= moran.mc(hunan$GDPPC,
 bperm
 ```
 
-## Visualising the Moran's I test 
+Both the actual test and simulated shows a small p-value, which means we can reject the null hypothesis of the Moran's I test and we have sufficient evidence that there is an observed pattern or values of a region is affected by another neighbour.
+
+## Visualising the Moran's I test
 
 We can then plot the distribution of the simulated Moran's I statistical test using a histogram.
 
@@ -131,16 +148,27 @@ abline(v=0,
 
 Geary's C test describes how features differ from their immediate neighbours. It uses a Geary C(Z value).
 
-If the Geary C value is larger than 1: the features are dispersed and observations tend to be different.
-If the Geary C value is smaller than 1: the features are clustered and observations tend to be similar.
-If the Geary C value is close to 1: the features are randomly arranged.
+-   If the Geary C value is larger than 1: the features are dispersed and observations tend to be different.
+
+-   If the Geary C value is smaller than 1: the features are clustered and observations tend to be similar.
+
+-   If the Geary C value is close to 1: the features are randomly arranged.
+
+## Relationship to Moran's I test
+
+Both tests have an inverse relationship to each other where a low C value and high I value can be seen when there is clustering of similar values. High C value and low I value can be seen when dissimilar values cluster.
+
+C values range from 0 to 3 while I values range from -1 to 1.
 
 ## Performing the test
+
 Here we use the *geary.mc()* to perform the Geary C test.
+
 ```{r}
 geary.test(hunan$GDPPC, listw=rswm_q)
 
 ```
+
 We can also perform a permutation test with a simulation.
 
 ```{r}
@@ -152,6 +180,7 @@ bperm
 ```
 
 ## Visualising the Geary's C test
+
 We can then plot the distribution of the simulated Geary's C statistical test using a histogram.
 
 ```{r}
@@ -163,9 +192,11 @@ abline(v=1, col="red")
 ```
 
 # Spatial Correlogram
+
 Here we examine the patterns of the Moran's I and Geary's C test. We can see the correlation of when distances are increased.
 
 ## Moran's I correlogram
+
 We will use the *sp.correlogram()* for calculating the spatial correlogram of the devleopment of Hunan.
 
 ```{r}
@@ -179,6 +210,7 @@ print(MI_corr)
 ```
 
 ## Geary's C correlogram
+
 We will use the *sp.correlogram()* for calculating the spatial correlogram of the devleopment of Hunan.
 
 ```{r}
@@ -192,4 +224,5 @@ print(GC_corr)
 ```
 
 # Conclusion
+
 Place holder

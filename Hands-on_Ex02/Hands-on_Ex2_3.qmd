@@ -134,10 +134,12 @@ hist(bperm$res, freq=TRUE, breaks=20, xlab="Simulated Geary c")
 abline(v=1, col="red") 
 ```
 
-# Spatial Correlogram 
-Here we examine the patterns of the Moran's I and Geary's C test as seen in Hands-on Ex 2 part 2.
+# Spatial Correlogram
 
-# Moran's I correlogram 
+Here we examine the patterns of the Moran's I and Geary's C test as seen in [Hands-on Ex 2 part 2](https://isss624-liankhye.netlify.app/hands-on_ex02/hands-on_ex2_2).
+
+# Moran's I correlogram
+
 We will use the *sp.correlogram()* for calculating the spatial correlogram of the devleopment of Hunan.
 
 ```{r}
@@ -150,7 +152,8 @@ plot(MI_corr)
 print(MI_corr)
 ```
 
-# Geary's C correlogram 
+# Geary's C correlogram
+
 We will use the *sp.correlogram()* for calculating the spatial correlogram of the devleopment of Hunan.
 
 ```{r}
@@ -237,7 +240,7 @@ tmap_arrange(localMI.map, pvalue.map, asp=1, ncol=2)
 
 # LISA cluster map
 
-The LISA cluster map can show the locations with significance by first plotting the Moran scatterplot.
+LISA indicates the extent of significant spatial clustering and the sum of LISA will be proportional to the global spatial data. The LISA cluster map can show the locations with significance by first plotting the Moran scatterplot.
 
 ## Plotting Moran scatterplot
 
@@ -277,6 +280,7 @@ nci2 <- moran.plot(hunan$Z.GDPPC, rswm_q,
 ## Preparing LISA map classes
 
 Here we will prepare a LISA cluster map. We will obtain the development of each region and center it around the mean followed by centering the local Moran's around the mean. We will use a significant level of 5%.
+
 ```{r}
 quadrant <- vector(mode="numeric",length=nrow(localMI))
 hunan$lag_GDPPC <- lag.listw(rswm_q, hunan$GDPPC)
@@ -286,6 +290,7 @@ signif <- 0.05
 ```
 
 We can then define the 4 quadrant based on it's development and if the neighbours have similar development. It will be defined as low-low (1), low-high (2), high-low (3) and high-high (4). Non-significant Moran will be placed into category 0.
+
 ```{r}
 quadrant[DV <0 & LM_I>0] <- 1
 quadrant[DV >0 & LM_I<0] <- 2
@@ -342,23 +347,43 @@ tmap_arrange(gdppc, LISAmap,
 We can also utilise hot and cold spots to describe clustering and areas with a higher feature value. Hot spots are used to represent regions with high value of the interested feature.
 
 ## Getis and Ord's G statistics
-Getis and Ord's G statistics look at neighbours within a certain distance to check for the presence of clustering. 
 
-It can be broken down into the following steps:
-- Deriving spatial weight matrix
-- Computing Gi statistics
-- Mapping Gi statistics
+Getis and Ord's G statistics look at neighbours within a certain distance to check for the presence of clustering. Significant and positive values will indicate hot spots while significant and negative values will indicate cold spots.
+
+It can be broken down into the following steps: - Deriving spatial weight matrix - Computing Gi statistics - Mapping Gi statistics
 
 ## Deriving distance-based weight matrix
-Firstly we will need to set what constitutes a neighbour using distance.
-There are 2 types of distance-based proximity matrix:
-- Fixed distance weight matrix
-- Adaptive distance weight matrix
+
+Firstly we will need to set what constitutes a neighbour using distance. There are 2 types of distance-based proximity matrix:
+
+**Fixed distance weight matrix**
+
+-   <div>
+
+    -    requires 1 or more neighbours and 8 neighbours if the data is skewed
+
+    -    will increase variance if sparse data points
+
+    -   variance will be masked if data points are dense
+
+    </div>
+
+    **Adaptive distance weight matrix**
+
+-   <div>
+
+    -   changes bandwidth based on density
+
+    -   find nearest neighbour
+
+    </div>
 
 ## Deriving the centroid
-Here we will associate a region to a center using coordinates. 
+
+Here we will associate a region to a center using coordinates.
 
 Here we will get the longitudinal and latitudinal data before combining them together using *cbind()*
+
 ```{r}
 longitude <- map_dbl(hunan$geometry, ~st_centroid(.x)[[1]])
 latitude <- map_dbl(hunan$geometry, ~st_centroid(.x)[[2]])
@@ -402,10 +427,7 @@ summary(knn_lw)
 
 ## Compute Gi statistics using fixed distance
 
-Here we will be using fixed distance for calculating Gi statistics. The results is set as a Z-score. 
-- Positive Z-score refers to high clusters
-- Negative Z-score refers to low clusters
-
+Here we will be using fixed distance for calculating Gi statistics. The results is set as a Z-score. - Positive Z-score refers to high clusters - Negative Z-score refers to low clusters
 
 ```{r}
 fips <- order(hunan$County)
@@ -414,12 +436,13 @@ gi.fixed
 
 ```
 
-After that we will join the Gi values to their data. It converts the output vector into a r matrix and then binding it to the hunan data to produced a new SpatialPolygonDataframe. 
+After that we will join the Gi values to their data. It converts the output vector into a r matrix and then binding it to the hunan data to produced a new SpatialPolygonDataframe.
 
 ```{r}
 hunan.gi <- cbind(hunan, as.matrix(gi.fixed)) %>%
   rename(gstat_fixed = as.matrix.gi.fixed.)
 ```
+
 ## Mapping Gi values to fixed distance weights
 
 ```{r}

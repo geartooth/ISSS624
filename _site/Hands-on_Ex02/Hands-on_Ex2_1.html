@@ -137,7 +137,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>  
         <li>
     <a class="dropdown-item" href="../Hands-on_Ex02/Hands-on_Ex2_3.html" rel="" target="">
- <span class="dropdown-text">Ex 2 part 2 Local Measures of Spatial Autocorrelation</span></a>
+ <span class="dropdown-text">Ex 2 part 3 Local Measures of Spatial Autocorrelation</span></a>
   </li>  
     </ul>
   </li>
@@ -178,33 +178,32 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#ex2-1.1-overview" id="toc-ex2-1.1-overview" class="nav-link active" data-scroll-target="#ex2-1.1-overview">Ex2-1.1 Overview</a></li>
-  <li><a href="#ex2-1.2-loading-packages-data" id="toc-ex2-1.2-loading-packages-data" class="nav-link" data-scroll-target="#ex2-1.2-loading-packages-data">Ex2-1.2 Loading packages &amp; data</a>
+  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
+  <li><a href="#loading-packages-data" id="toc-loading-packages-data" class="nav-link" data-scroll-target="#loading-packages-data">Loading packages &amp; data</a>
   <ul class="collapse">
-  <li><a href="#ex2-1.2.1-load-packages" id="toc-ex2-1.2.1-load-packages" class="nav-link" data-scroll-target="#ex2-1.2.1-load-packages">Ex2-1.2.1 Load packages</a></li>
-  <li><a href="#ex2-1.2.2-load-datasets" id="toc-ex2-1.2.2-load-datasets" class="nav-link" data-scroll-target="#ex2-1.2.2-load-datasets">Ex2-1.2.2 Load datasets</a></li>
+  <li><a href="#load-packages" id="toc-load-packages" class="nav-link" data-scroll-target="#load-packages">Load packages</a></li>
+  <li><a href="#load-datasets" id="toc-load-datasets" class="nav-link" data-scroll-target="#load-datasets">Load datasets</a></li>
   </ul></li>
-  <li><a href="#ex2-1.3-visualising-regional-development-indicator" id="toc-ex2-1.3-visualising-regional-development-indicator" class="nav-link" data-scroll-target="#ex2-1.3-visualising-regional-development-indicator">Ex2-1.3 Visualising Regional Development Indicator</a></li>
-  <li><a href="#ex2-1.4-computing-contiguity-spatial-weights" id="toc-ex2-1.4-computing-contiguity-spatial-weights" class="nav-link" data-scroll-target="#ex2-1.4-computing-contiguity-spatial-weights">Ex2-1.4 Computing Contiguity Spatial Weights</a>
+  <li><a href="#visualising-regional-development-indicator" id="toc-visualising-regional-development-indicator" class="nav-link" data-scroll-target="#visualising-regional-development-indicator">Visualising Regional Development Indicator</a></li>
+  <li><a href="#computing-contiguity-spatial-weights" id="toc-computing-contiguity-spatial-weights" class="nav-link" data-scroll-target="#computing-contiguity-spatial-weights">Computing Contiguity Spatial Weights</a>
   <ul class="collapse">
-  <li><a href="#ex2-1.4.1-using-queen-contiguity-based-neighbours" id="toc-ex2-1.4.1-using-queen-contiguity-based-neighbours" class="nav-link" data-scroll-target="#ex2-1.4.1-using-queen-contiguity-based-neighbours">Ex2-1.4.1 Using “Queen” contiguity based neighbours</a></li>
-  <li><a href="#ex2-1.4.2-using-rook-contiguity-based-neighbours" id="toc-ex2-1.4.2-using-rook-contiguity-based-neighbours" class="nav-link" data-scroll-target="#ex2-1.4.2-using-rook-contiguity-based-neighbours">Ex2-1.4.2 Using “Rook” contiguity based neighbours</a></li>
-  <li><a href="#ex2-1.4.3-visualising-the-contiguity-weights" id="toc-ex2-1.4.3-visualising-the-contiguity-weights" class="nav-link" data-scroll-target="#ex2-1.4.3-visualising-the-contiguity-weights">Ex2-1.4.3 Visualising the contiguity weights</a></li>
+  <li><a href="#using-queen-contiguity-based-neighbours" id="toc-using-queen-contiguity-based-neighbours" class="nav-link" data-scroll-target="#using-queen-contiguity-based-neighbours">Using “Queen” contiguity based neighbours</a></li>
+  <li><a href="#using-rook-contiguity-based-neighbours" id="toc-using-rook-contiguity-based-neighbours" class="nav-link" data-scroll-target="#using-rook-contiguity-based-neighbours">Using “Rook” contiguity based neighbours</a></li>
   </ul></li>
-  <li><a href="#ex2-1.5-computing-distance" id="toc-ex2-1.5-computing-distance" class="nav-link" data-scroll-target="#ex2-1.5-computing-distance">Ex2-1.5 Computing distance</a>
+  <li><a href="#computing-distance" id="toc-computing-distance" class="nav-link" data-scroll-target="#computing-distance">Computing distance</a>
   <ul class="collapse">
-  <li><a href="#ex2-1.5.1-determine-the-cut-off-distance" id="toc-ex2-1.5.1-determine-the-cut-off-distance" class="nav-link" data-scroll-target="#ex2-1.5.1-determine-the-cut-off-distance">Ex2-1.5.1 Determine the cut-off distance</a></li>
-  <li><a href="#ex2-1.5.2-plotting-the-fixed-distance-matrix" id="toc-ex2-1.5.2-plotting-the-fixed-distance-matrix" class="nav-link" data-scroll-target="#ex2-1.5.2-plotting-the-fixed-distance-matrix">Ex2-1.5.2 Plotting the fixed distance matrix</a></li>
-  <li><a href="#ex2-1.5.3-computing-adaptive-distance-weight-matrix" id="toc-ex2-1.5.3-computing-adaptive-distance-weight-matrix" class="nav-link" data-scroll-target="#ex2-1.5.3-computing-adaptive-distance-weight-matrix">Ex2-1.5.3 Computing adaptive distance weight matrix</a></li>
-  <li><a href="#ex2-1.5.4-plotting-distance-based-neighbours" id="toc-ex2-1.5.4-plotting-distance-based-neighbours" class="nav-link" data-scroll-target="#ex2-1.5.4-plotting-distance-based-neighbours">Ex2-1.5.4 Plotting distance based neighbours</a></li>
+  <li><a href="#determine-the-cut-off-distance" id="toc-determine-the-cut-off-distance" class="nav-link" data-scroll-target="#determine-the-cut-off-distance">Determine the cut-off distance</a></li>
+  <li><a href="#plotting-the-fixed-distance-matrix" id="toc-plotting-the-fixed-distance-matrix" class="nav-link" data-scroll-target="#plotting-the-fixed-distance-matrix">Plotting the fixed distance matrix</a></li>
+  <li><a href="#computing-adaptive-distance-weight-matrix" id="toc-computing-adaptive-distance-weight-matrix" class="nav-link" data-scroll-target="#computing-adaptive-distance-weight-matrix">Computing adaptive distance weight matrix</a></li>
+  <li><a href="#plotting-distance-based-neighbours" id="toc-plotting-distance-based-neighbours" class="nav-link" data-scroll-target="#plotting-distance-based-neighbours">Plotting distance based neighbours</a></li>
   </ul></li>
-  <li><a href="#ex2-1.6-weights-using-inversed-distance-method" id="toc-ex2-1.6-weights-using-inversed-distance-method" class="nav-link" data-scroll-target="#ex2-1.6-weights-using-inversed-distance-method">Ex2-1.6 Weights using Inversed Distance method</a></li>
-  <li><a href="#ex2-1.7-application-of-spatial-weight-matrix" id="toc-ex2-1.7-application-of-spatial-weight-matrix" class="nav-link" data-scroll-target="#ex2-1.7-application-of-spatial-weight-matrix">Ex2-1.7 Application of Spatial Weight Matrix</a>
+  <li><a href="#weights-using-inversed-distance-method" id="toc-weights-using-inversed-distance-method" class="nav-link" data-scroll-target="#weights-using-inversed-distance-method">Weights using Inversed Distance method</a></li>
+  <li><a href="#application-of-spatial-weight-matrix" id="toc-application-of-spatial-weight-matrix" class="nav-link" data-scroll-target="#application-of-spatial-weight-matrix">Application of Spatial Weight Matrix</a>
   <ul class="collapse">
-  <li><a href="#ex2-1.7.1-spatial-lag-with-row-standardized-weights" id="toc-ex2-1.7.1-spatial-lag-with-row-standardized-weights" class="nav-link" data-scroll-target="#ex2-1.7.1-spatial-lag-with-row-standardized-weights">Ex2-1.7.1 Spatial lag with row-standardized weights</a></li>
-  <li><a href="#ex2-1.7.2-spatial-lag-as-a-sum-of-neighbouring-values" id="toc-ex2-1.7.2-spatial-lag-as-a-sum-of-neighbouring-values" class="nav-link" data-scroll-target="#ex2-1.7.2-spatial-lag-as-a-sum-of-neighbouring-values">Ex2-1.7.2 Spatial lag as a sum of neighbouring values</a></li>
-  <li><a href="#ex2-1.7.3-spatial-window-average" id="toc-ex2-1.7.3-spatial-window-average" class="nav-link" data-scroll-target="#ex2-1.7.3-spatial-window-average">Ex2-1.7.3 Spatial window average</a></li>
-  <li><a href="#ex2-1.7.4-spatial-window-sum" id="toc-ex2-1.7.4-spatial-window-sum" class="nav-link" data-scroll-target="#ex2-1.7.4-spatial-window-sum">Ex2-1.7.4 Spatial window sum</a></li>
+  <li><a href="#spatial-lag-with-row-standardized-weights" id="toc-spatial-lag-with-row-standardized-weights" class="nav-link" data-scroll-target="#spatial-lag-with-row-standardized-weights">Spatial lag with row-standardized weights</a></li>
+  <li><a href="#spatial-lag-as-a-sum-of-neighbouring-values" id="toc-spatial-lag-as-a-sum-of-neighbouring-values" class="nav-link" data-scroll-target="#spatial-lag-as-a-sum-of-neighbouring-values">Spatial lag as a sum of neighbouring values</a></li>
+  <li><a href="#spatial-window-average" id="toc-spatial-window-average" class="nav-link" data-scroll-target="#spatial-window-average">Spatial window average</a></li>
+  <li><a href="#spatial-window-sum" id="toc-spatial-window-sum" class="nav-link" data-scroll-target="#spatial-window-sum">Spatial window sum</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -230,20 +229,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<section id="ex2-1.1-overview" class="level1">
-<h1>Ex2-1.1 Overview</h1>
+<section id="overview" class="level1">
+<h1>Overview</h1>
 <p>In this exercise we will compute spatial weights of the Hunan county in China.</p>
 </section>
-<section id="ex2-1.2-loading-packages-data" class="level1">
-<h1>Ex2-1.2 Loading packages &amp; data</h1>
-<section id="ex2-1.2.1-load-packages" class="level2">
-<h2 class="anchored" data-anchor-id="ex2-1.2.1-load-packages">Ex2-1.2.1 Load packages</h2>
+<section id="loading-packages-data" class="level1">
+<h1>Loading packages &amp; data</h1>
+<section id="load-packages" class="level2">
+<h2 class="anchored" data-anchor-id="load-packages">Load packages</h2>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(sf, spdep, tmap, tidyverse, knitr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="ex2-1.2.2-load-datasets" class="level2">
-<h2 class="anchored" data-anchor-id="ex2-1.2.2-load-datasets">Ex2-1.2.2 Load datasets</h2>
+<section id="load-datasets" class="level2">
+<h2 class="anchored" data-anchor-id="load-datasets">Load datasets</h2>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>hunan <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/part 1/geospatial"</span>, </span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>                 <span class="at">layer =</span> <span class="st">"Hunan"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -276,8 +275,8 @@ dbl (27): avg_wage, deposite, FAI, Gov_Rev, Gov_Exp, GDP, GDPPC, GIO, Loan, ...
 </div>
 </section>
 </section>
-<section id="ex2-1.3-visualising-regional-development-indicator" class="level1">
-<h1>Ex2-1.3 Visualising Regional Development Indicator</h1>
+<section id="visualising-regional-development-indicator" class="level1">
+<h1>Visualising Regional Development Indicator</h1>
 <p>Here we will prepare a basemap and choropleth map showing the distribution of development in the Hunan county. The 2 maps will prepared separately and then subsequently joined using the tmpa_arrange method we learned in <a href="https://isss624-liankhye.netlify.app/hands-on_ex01/hands-on_ex1_part_2">Hands-on Ex1 part 2</a>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>basemap <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(hunan) <span class="sc">+</span></span>
@@ -291,12 +290,12 @@ dbl (27): avg_wage, deposite, FAI, Gov_Rev, Gov_Exp, GDP, GDPPC, GIO, Loan, ...
 </div>
 </div>
 </section>
-<section id="ex2-1.4-computing-contiguity-spatial-weights" class="level1">
-<h1>Ex2-1.4 Computing Contiguity Spatial Weights</h1>
+<section id="computing-contiguity-spatial-weights" class="level1">
+<h1>Computing Contiguity Spatial Weights</h1>
 <p>Contiguity refers to a common boundary from the grid of interest. There are 3 classification cases as shown below.</p>
 <p><img src="..\images/Contiguity_types.png" class="img-fluid"></p>
-<section id="ex2-1.4.1-using-queen-contiguity-based-neighbours" class="level2">
-<h2 class="anchored" data-anchor-id="ex2-1.4.1-using-queen-contiguity-based-neighbours">Ex2-1.4.1 Using “Queen” contiguity based neighbours</h2>
+<section id="using-queen-contiguity-based-neighbours" class="level2">
+<h2 class="anchored" data-anchor-id="using-queen-contiguity-based-neighbours">Using “Queen” contiguity based neighbours</h2>
 <p>Utilise the “Queen” contiguity weight matrix. This means that all of the immediate neighbours will be taken into consideration.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>wm_q <span class="ot">&lt;-</span> <span class="fu">poly2nb</span>(hunan, <span class="at">queen=</span><span class="cn">TRUE</span>)</span>
@@ -434,8 +433,8 @@ Link number distribution:
 </div>
 </div>
 </section>
-<section id="ex2-1.4.2-using-rook-contiguity-based-neighbours" class="level2">
-<h2 class="anchored" data-anchor-id="ex2-1.4.2-using-rook-contiguity-based-neighbours">Ex2-1.4.2 Using “Rook” contiguity based neighbours</h2>
+<section id="using-rook-contiguity-based-neighbours" class="level2">
+<h2 class="anchored" data-anchor-id="using-rook-contiguity-based-neighbours">Using “Rook” contiguity based neighbours</h2>
 <p>Utilise the “Rook” contiguity weight matrix. This means that only neighbouring regions with certain length of contiguity will be taken into consideration. This means that 2 neighbours connected by a single point will not be considered.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>wm_r <span class="ot">&lt;-</span> <span class="fu">poly2nb</span>(hunan, <span class="at">queen=</span><span class="cn">FALSE</span>)</span>
@@ -457,9 +456,7 @@ Link number distribution:
 </div>
 </div>
 <p>Now the region with the most number of neighbouring polygon has only 11 neighbours.</p>
-</section>
-<section id="ex2-1.4.3-visualising-the-contiguity-weights" class="level2">
-<h2 class="anchored" data-anchor-id="ex2-1.4.3-visualising-the-contiguity-weights">Ex2-1.4.3 Visualising the contiguity weights</h2>
+<p>##Visualising the contiguity weights</p>
 <p>Here we will connect all of the regions with their neighbouring polygons with a line.</p>
 <p>We will first have to obtain the longitudinal and latitudinal data of each county. Then we will combine them into a coordinate.</p>
 <div class="cell">
@@ -496,11 +493,11 @@ Link number distribution:
 </div>
 </section>
 </section>
-<section id="ex2-1.5-computing-distance" class="level1">
-<h1>Ex2-1.5 Computing distance</h1>
+<section id="computing-distance" class="level1">
+<h1>Computing distance</h1>
 <p>Here we will use <em>dnearneigh()</em> of <strong>spdep</strong> package to obtain the distance-based weight matrices.</p>
-<section id="ex2-1.5.1-determine-the-cut-off-distance" class="level2">
-<h2 class="anchored" data-anchor-id="ex2-1.5.1-determine-the-cut-off-distance">Ex2-1.5.1 Determine the cut-off distance</h2>
+<section id="determine-the-cut-off-distance" class="level2">
+<h2 class="anchored" data-anchor-id="determine-the-cut-off-distance">Determine the cut-off distance</h2>
 <p>We will have to determine the upper limit for the distance first.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>k1 <span class="ot">&lt;-</span> <span class="fu">knn2nb</span>(<span class="fu">knearneigh</span>(coords))</span>
@@ -734,8 +731,8 @@ Average number of links: 3.681818 </code></pre>
 </div>
 </div>
 </section>
-<section id="ex2-1.5.2-plotting-the-fixed-distance-matrix" class="level2">
-<h2 class="anchored" data-anchor-id="ex2-1.5.2-plotting-the-fixed-distance-matrix">Ex2-1.5.2 Plotting the fixed distance matrix</h2>
+<section id="plotting-the-fixed-distance-matrix" class="level2">
+<h2 class="anchored" data-anchor-id="plotting-the-fixed-distance-matrix">Plotting the fixed distance matrix</h2>
 <p>Here we will plot the distance weight matrix. The red line represents closest neighbour and the black line will show neighbours that are within the cut-off of 62km.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">3</span>))</span>
@@ -751,8 +748,8 @@ Average number of links: 3.681818 </code></pre>
 </div>
 </div>
 </section>
-<section id="ex2-1.5.3-computing-adaptive-distance-weight-matrix" class="level2">
-<h2 class="anchored" data-anchor-id="ex2-1.5.3-computing-adaptive-distance-weight-matrix">Ex2-1.5.3 Computing adaptive distance weight matrix</h2>
+<section id="computing-adaptive-distance-weight-matrix" class="level2">
+<h2 class="anchored" data-anchor-id="computing-adaptive-distance-weight-matrix">Computing adaptive distance weight matrix</h2>
 <p>Here we will control the number of neighbours to a region. The number of neighbours will be denoted by the variable k.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>knn6 <span class="ot">&lt;-</span> <span class="fu">knn2nb</span>(<span class="fu">knearneigh</span>(coords, <span class="at">k=</span><span class="dv">6</span>))</span>
@@ -869,8 +866,8 @@ Non-symmetric neighbours list</code></pre>
 </div>
 <p>Even previously unconnected neighbours will have k number of neighbours.</p>
 </section>
-<section id="ex2-1.5.4-plotting-distance-based-neighbours" class="level2">
-<h2 class="anchored" data-anchor-id="ex2-1.5.4-plotting-distance-based-neighbours">Ex2-1.5.4 Plotting distance based neighbours</h2>
+<section id="plotting-distance-based-neighbours" class="level2">
+<h2 class="anchored" data-anchor-id="plotting-distance-based-neighbours">Plotting distance based neighbours</h2>
 <p>Here we will plot out the weight matrix of each region connecting to k number of neighbours.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(hunan<span class="sc">$</span>geometry, <span class="at">border=</span><span class="st">"lightgrey"</span>)</span>
@@ -881,8 +878,8 @@ Non-symmetric neighbours list</code></pre>
 </div>
 </section>
 </section>
-<section id="ex2-1.6-weights-using-inversed-distance-method" class="level1">
-<h1>Ex2-1.6 Weights using Inversed Distance method</h1>
+<section id="weights-using-inversed-distance-method" class="level1">
+<h1>Weights using Inversed Distance method</h1>
 <p>Inversed Distance method utilises weighted average. This is also known as IDW. We can calculate that using <em>nbdists()</em>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>dist <span class="ot">&lt;-</span> <span class="fu">nbdists</span>(wm_q, coords, <span class="at">longlat =</span> <span class="cn">TRUE</span>)</span>
@@ -1209,11 +1206,11 @@ B 88 7744 8.786867 0.3776535 3.8137</code></pre>
 </div>
 </div>
 </section>
-<section id="ex2-1.7-application-of-spatial-weight-matrix" class="level1">
-<h1>Ex2-1.7 Application of Spatial Weight Matrix</h1>
+<section id="application-of-spatial-weight-matrix" class="level1">
+<h1>Application of Spatial Weight Matrix</h1>
 <p>Spatial Lag refers to how one event in a neighbour affects the other.</p>
-<section id="ex2-1.7.1-spatial-lag-with-row-standardized-weights" class="level2">
-<h2 class="anchored" data-anchor-id="ex2-1.7.1-spatial-lag-with-row-standardized-weights">Ex2-1.7.1 Spatial lag with row-standardized weights</h2>
+<section id="spatial-lag-with-row-standardized-weights" class="level2">
+<h2 class="anchored" data-anchor-id="spatial-lag-with-row-standardized-weights">Spatial lag with row-standardized weights</h2>
 <p>Here we will use the average GDPPC value as the spatially lagged values.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>GDPPC.lag <span class="ot">&lt;-</span> <span class="fu">lag.listw</span>(rswm_q, hunan<span class="sc">$</span>GDPPC)</span>
@@ -1255,8 +1252,8 @@ B 88 7744 8.786867 0.3776535 3.8137</code></pre>
 </div>
 </div>
 </section>
-<section id="ex2-1.7.2-spatial-lag-as-a-sum-of-neighbouring-values" class="level2">
-<h2 class="anchored" data-anchor-id="ex2-1.7.2-spatial-lag-as-a-sum-of-neighbouring-values">Ex2-1.7.2 Spatial lag as a sum of neighbouring values</h2>
+<section id="spatial-lag-as-a-sum-of-neighbouring-values" class="level2">
+<h2 class="anchored" data-anchor-id="spatial-lag-as-a-sum-of-neighbouring-values">Spatial lag as a sum of neighbouring values</h2>
 <p>Now we will calculate spatial lag as a sum of neighbouring values through assigning binary weights.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>b_weights <span class="ot">&lt;-</span> <span class="fu">lapply</span>(wm_q, <span class="cf">function</span>(x) <span class="dv">0</span><span class="sc">*</span>x <span class="sc">+</span> <span class="dv">1</span>)</span>
@@ -1329,8 +1326,8 @@ B 88 7744 448 896 10224</code></pre>
 </div>
 </div>
 </section>
-<section id="ex2-1.7.3-spatial-window-average" class="level2">
-<h2 class="anchored" data-anchor-id="ex2-1.7.3-spatial-window-average">Ex2-1.7.3 Spatial window average</h2>
+<section id="spatial-window-average" class="level2">
+<h2 class="anchored" data-anchor-id="spatial-window-average">Spatial window average</h2>
 <p>Here we will use the row-standardized weights for assigning the weights. We will use <em>include.self()</em> for performing it.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>wm_qs <span class="ot">&lt;-</span> <span class="fu">include.self</span>(wm_q)</span>
@@ -1937,8 +1934,8 @@ W 88 7744 88 30.90265 357.5308</code></pre>
 </div>
 </div>
 </section>
-<section id="ex2-1.7.4-spatial-window-sum" class="level2">
-<h2 class="anchored" data-anchor-id="ex2-1.7.4-spatial-window-sum">Ex2-1.7.4 Spatial window sum</h2>
+<section id="spatial-window-sum" class="level2">
+<h2 class="anchored" data-anchor-id="spatial-window-sum">Spatial window sum</h2>
 <p>The spatial window sum is the opposite of the average and we will not be using thr row-standardized weights.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb77"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a>wm_qs <span class="ot">&lt;-</span> <span class="fu">include.self</span>(wm_q)</span>

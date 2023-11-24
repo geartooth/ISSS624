@@ -197,6 +197,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </ul></li>
   <li><a href="#global-spatial-autocorrelation-using-gearys-c-test" id="toc-global-spatial-autocorrelation-using-gearys-c-test" class="nav-link" data-scroll-target="#global-spatial-autocorrelation-using-gearys-c-test">Global Spatial Autocorrelation using Geary’s C test</a>
   <ul class="collapse">
+  <li><a href="#relationship-to-morans-i-test" id="toc-relationship-to-morans-i-test" class="nav-link" data-scroll-target="#relationship-to-morans-i-test">Relationship to Moran’s I test</a></li>
   <li><a href="#performing-the-test-1" id="toc-performing-the-test-1" class="nav-link" data-scroll-target="#performing-the-test-1">Performing the test</a></li>
   <li><a href="#visualising-the-gearys-c-test" id="toc-visualising-the-gearys-c-test" class="nav-link" data-scroll-target="#visualising-the-gearys-c-test">Visualising the Geary’s C test</a></li>
   </ul></li>
@@ -307,9 +308,10 @@ dbl (27): avg_wage, deposite, FAI, Gov_Rev, Gov_Exp, GDP, GDPPC, GIO, Loan, ...
 <section id="global-spatial-autocorrelation" class="level1">
 <h1>Global Spatial Autocorrelation</h1>
 <p>Here we will compute global spatial autocorrelation statistics and perform a spatial complete randomness test.</p>
+<p>Spatial autocorrelation describes the spatial relationship of variables and explore the statistical dependency of collection of variables in a region. These regions can refer to a continuous surface, fixed sites and areas that are dubdivisable.</p>
 <section id="computing-contiguity-spatial-weights" class="level2">
 <h2 class="anchored" data-anchor-id="computing-contiguity-spatial-weights">Computing Contiguity Spatial Weights</h2>
-<p>We have to construct a spatial weights or to degine the relationships of the different regions. Here we will use the <a href="https://isss624-liankhye.netlify.app/hands-on_ex02/hands-on_ex2_1">Queen contiguity weight matrix.</a></p>
+<p>We have to construct a spatial weights or to degine the relationships of the different regions. Here we will use the <a href="https://isss624-liankhye.netlify.app/hands-on_ex02/hands-on_ex2_1">Queen contiguity weight matrix.</a> Here we see if neighbours are similar to one another.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>wm_q <span class="ot">&lt;-</span> <span class="fu">poly2nb</span>(hunan, </span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">queen=</span><span class="cn">TRUE</span>)</span>
@@ -334,7 +336,7 @@ Link number distribution:
 </section>
 <section id="row-standardised-weight-matrix" class="level2">
 <h2 class="anchored" data-anchor-id="row-standardised-weight-matrix">Row-standardised weight matrix</h2>
-<p>Next we will assign weights to each neighbour using equal weight. This is done using 1/number of neighbours. We will then sum up the weighted income values.</p>
+<p>Next we will assign weights to each neighbour using equal weight. This is done using 1/number of neighbours. We will then sum up the weighted income values. This is to create proportional weights especially when the data contains unequal number of weights and is useful against potentially bias or skewed data.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>rswm_q <span class="ot">&lt;-</span> <span class="fu">nb2listw</span>(wm_q, </span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>                   <span class="at">style=</span><span class="st">"W"</span>, </span>
@@ -359,10 +361,20 @@ W 88 7744 88 37.86334 365.9147</code></pre>
 <section id="global-spatial-autocorrelation-using-morans-i-test" class="level1">
 <h1>Global Spatial Autocorrelation using Moran’s I test</h1>
 <p>Moran’s I describes how features differ from the values in the study area as a whole. It uses a Moran I(Z-value).</p>
-<p>I-value more than 0: Clustered and observations are similar. I-value less than 0: Dispersed, observations tend to be different. I-value close to 0: Random, scattered all over.</p>
+<ul>
+<li><p>I-value more than 0: Clustered and observations are similar.</p></li>
+<li><p>I-value less than 0: Dispersed, observations tend to be different.</p></li>
+<li><p>I-value close to 0: Random, scattered all over.</p></li>
+</ul>
 <section id="performing-the-test" class="level2">
 <h2 class="anchored" data-anchor-id="performing-the-test">Performing the test</h2>
 <p>Here we use the <em>moran.test()</em> for calculating the Moran I value.</p>
+<p>Null hypothesis or H0:</p>
+<ul>
+<li><p>observed pattern are equally likely as other pattern</p></li>
+<li><p>the value of one location is not dependent on neighbours</p></li>
+<li><p>changing the value of one region does not affect another</p></li>
+</ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">moran.test</span>(hunan<span class="sc">$</span>GDPPC, </span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>           <span class="at">listw=</span>rswm_q, </span>
@@ -383,6 +395,7 @@ Moran I statistic       Expectation          Variance
 </div>
 </div>
 <p>From the test above we can see that the Moran I statistical value is more than 0, meaning that the development of Hunan province has clustering.</p>
+<p>Moran’s I test require normal and randomised data and we can test that using Monte Carlo simulation. The simulation predicts the likelihood of outcomes based on random values. Here we use <em>set.seed()</em> to fix the random values so that we will obtain the same set when generating the random values. The p-value obtained will then be used to compare against the p-value of the actual p-value from the Moran’s I test.</p>
 <p>We can also simulate using <em>moran.mc()</em>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
@@ -404,6 +417,7 @@ statistic = 0.30075, observed rank = 1000, p-value = 0.001
 alternative hypothesis: greater</code></pre>
 </div>
 </div>
+<p>Both the actual test and simulated shows a small p-value, which means we can reject the null hypothesis of the Moran’s I test and we have sufficient evidence that there is an observed pattern or values of a region is affected by another neighbour.</p>
 </section>
 <section id="visualising-the-morans-i-test" class="level2">
 <h2 class="anchored" data-anchor-id="visualising-the-morans-i-test">Visualising the Moran’s I test</h2>
@@ -437,7 +451,16 @@ alternative hypothesis: greater</code></pre>
 <section id="global-spatial-autocorrelation-using-gearys-c-test" class="level1">
 <h1>Global Spatial Autocorrelation using Geary’s C test</h1>
 <p>Geary’s C test describes how features differ from their immediate neighbours. It uses a Geary C(Z value).</p>
-<p>If the Geary C value is larger than 1: the features are dispersed and observations tend to be different. If the Geary C value is smaller than 1: the features are clustered and observations tend to be similar. If the Geary C value is close to 1: the features are randomly arranged.</p>
+<ul>
+<li><p>If the Geary C value is larger than 1: the features are dispersed and observations tend to be different.</p></li>
+<li><p>If the Geary C value is smaller than 1: the features are clustered and observations tend to be similar.</p></li>
+<li><p>If the Geary C value is close to 1: the features are randomly arranged.</p></li>
+</ul>
+<section id="relationship-to-morans-i-test" class="level2">
+<h2 class="anchored" data-anchor-id="relationship-to-morans-i-test">Relationship to Moran’s I test</h2>
+<p>Both tests have an inverse relationship to each other where a low C value and high I value can be seen when there is clustering of similar values. High C value and low I value can be seen when dissimilar values cluster.</p>
+<p>C values range from 0 to 3 while I values range from -1 to 1.</p>
+</section>
 <section id="performing-the-test-1" class="level2">
 <h2 class="anchored" data-anchor-id="performing-the-test-1">Performing the test</h2>
 <p>Here we use the <em>geary.mc()</em> to perform the Geary C test.</p>
