@@ -350,7 +350,11 @@ We can also utilise hot and cold spots to describe clustering and areas with a h
 
 Getis and Ord's G statistics look at neighbours within a certain distance to check for the presence of clustering. Significant and positive values will indicate hot spots while significant and negative values will indicate cold spots.
 
-It can be broken down into the following steps: - Deriving spatial weight matrix - Computing Gi statistics - Mapping Gi statistics
+It can be broken down into the following steps:
+
+-   Deriving spatial weight matrix
+-   Computing Gi statistics
+-   Mapping Gi statistics
 
 ## Deriving distance-based weight matrix
 
@@ -360,9 +364,9 @@ Firstly we will need to set what constitutes a neighbour using distance. There a
 
 -   <div>
 
-    -    requires 1 or more neighbours and 8 neighbours if the data is skewed
+    -   requires 1 or more neighbours and 8 neighbours if the data is skewed
 
-    -    will increase variance if sparse data points
+    -   will increase variance if sparse data points
 
     -   variance will be masked if data points are dense
 
@@ -427,7 +431,10 @@ summary(knn_lw)
 
 ## Compute Gi statistics using fixed distance
 
-Here we will be using fixed distance for calculating Gi statistics. The results is set as a Z-score. - Positive Z-score refers to high clusters - Negative Z-score refers to low clusters
+Here we will be using fixed distance for calculating Gi statistics. The results is set as a Z-score.
+
+-   Positive Z-score refers to high clusters
+-   Negative Z-score refers to low clusters
 
 ```{r}
 fips <- order(hunan$County)
