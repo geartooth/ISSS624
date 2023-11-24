@@ -223,6 +223,4 @@ plot(GC_corr)
 print(GC_corr)
 ```
 
-# Conclusion
-
-Place holder
+# 
