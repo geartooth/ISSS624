@@ -365,9 +365,7 @@ Firstly we will need to set what constitutes a neighbour using distance. There a
 <div>
 
 -   requires 1 or more neighbours and 8 neighbours if the data is skewed
-
 -   will increase variance if sparse data points
-
 -   variance will be masked if data points are dense
 
 </div>
@@ -376,9 +374,8 @@ Firstly we will need to set what constitutes a neighbour using distance. There a
 
 <div>
 
--   changes bandwidth based on density
-
--   find nearest neighbour
+-   changes bandwidth based on density of data
+-   find nearest neighbour instead using a fixed distance
 
 </div>
 
