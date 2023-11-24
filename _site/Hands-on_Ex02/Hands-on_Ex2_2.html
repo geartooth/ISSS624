@@ -371,9 +371,9 @@ W 88 7744 88 37.86334 365.9147</code></pre>
 <p>Here we use the <em>moran.test()</em> for calculating the Moran I value.</p>
 <p>Null hypothesis or H0:</p>
 <ul>
-<li><p>observed pattern are equally likely as other pattern</p></li>
-<li><p>the value of one location is not dependent on neighbours</p></li>
-<li><p>changing the value of one region does not affect another</p></li>
+<li>observed pattern are equally likely as other pattern</li>
+<li>the value of one location is not dependent on neighbours</li>
+<li>changing the value of one region does not affect another</li>
 </ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">moran.test</span>(hunan<span class="sc">$</span>GDPPC, </span>
@@ -452,9 +452,9 @@ alternative hypothesis: greater</code></pre>
 <h1>Global Spatial Autocorrelation using Geary’s C test</h1>
 <p>Geary’s C test describes how features differ from their immediate neighbours. It uses a Geary C(Z value).</p>
 <ul>
-<li><p>If the Geary C value is larger than 1: the features are dispersed and observations tend to be different.</p></li>
-<li><p>If the Geary C value is smaller than 1: the features are clustered and observations tend to be similar.</p></li>
-<li><p>If the Geary C value is close to 1: the features are randomly arranged.</p></li>
+<li>If the Geary C value is larger than 1: the features are dispersed and observations tend to be different.</li>
+<li>If the Geary C value is smaller than 1: the features are clustered and observations tend to be similar.</li>
+<li>If the Geary C value is close to 1: the features are randomly arranged.</li>
 </ul>
 <section id="relationship-to-morans-i-test" class="level2">
 <h2 class="anchored" data-anchor-id="relationship-to-morans-i-test">Relationship to Moran’s I test</h2>

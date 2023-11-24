@@ -853,22 +853,20 @@ Zixing        -7.6849e-01 -8.8210e-02  9.4057e-01 -7.0144e-01         0.4830</co
 <h2 class="anchored" data-anchor-id="deriving-distance-based-weight-matrix">Deriving distance-based weight matrix</h2>
 <p>Firstly we will need to set what constitutes a neighbour using distance. There are 2 types of distance-based proximity matrix:</p>
 <p><strong>Fixed distance weight matrix</strong></p>
-<ul>
-<li><div>
+<div>
 <ul>
 <li><p>requires 1 or more neighbours and 8 neighbours if the data is skewed</p></li>
 <li><p>will increase variance if sparse data points</p></li>
 <li><p>variance will be masked if data points are dense</p></li>
 </ul>
 </div>
-<p><strong>Adaptive distance weight matrix</strong></p></li>
-<li><div>
+<p><strong>Adaptive distance weight matrix</strong></p>
+<div>
 <ul>
 <li><p>changes bandwidth based on density</p></li>
 <li><p>find nearest neighbour</p></li>
 </ul>
-</div></li>
-</ul>
+</div>
 </section>
 <section id="deriving-the-centroid" class="level2">
 <h2 class="anchored" data-anchor-id="deriving-the-centroid">Deriving the centroid</h2>

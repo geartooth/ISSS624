@@ -362,25 +362,25 @@ Firstly we will need to set what constitutes a neighbour using distance. There a
 
 **Fixed distance weight matrix**
 
--   <div>
+<div>
 
-    -   requires 1 or more neighbours and 8 neighbours if the data is skewed
+-   requires 1 or more neighbours and 8 neighbours if the data is skewed
 
-    -   will increase variance if sparse data points
+-   will increase variance if sparse data points
 
-    -   variance will be masked if data points are dense
+-   variance will be masked if data points are dense
 
-    </div>
+</div>
 
-    **Adaptive distance weight matrix**
+**Adaptive distance weight matrix**
 
--   <div>
+<div>
 
-    -   changes bandwidth based on density
+-   changes bandwidth based on density
 
-    -   find nearest neighbour
+-   find nearest neighbour
 
-    </div>
+</div>
 
 ## Deriving the centroid
 

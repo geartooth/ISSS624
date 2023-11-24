@@ -98,9 +98,7 @@ Here we use the *moran.test()* for calculating the Moran I value.
 Null hypothesis or H0:
 
 -   observed pattern are equally likely as other pattern
-
 -   the value of one location is not dependent on neighbours
-
 -   changing the value of one region does not affect another
 
 ```{r}
@@ -149,9 +147,7 @@ abline(v=0,
 Geary's C test describes how features differ from their immediate neighbours. It uses a Geary C(Z value).
 
 -   If the Geary C value is larger than 1: the features are dispersed and observations tend to be different.
-
 -   If the Geary C value is smaller than 1: the features are clustered and observations tend to be similar.
-
 -   If the Geary C value is close to 1: the features are randomly arranged.
 
 ## Relationship to Moran's I test

@@ -459,7 +459,7 @@
     "href": "Hands-on_Ex02/Hands-on_Ex2_3.html#deriving-distance-based-weight-matrix",
     "title": "Hands-on Exercise 2 part 3",
     "section": "Deriving distance-based weight matrix",
-    "text": "Deriving distance-based weight matrix\nFirstly we will need to set what constitutes a neighbour using distance. There are 2 types of distance-based proximity matrix:\nFixed distance weight matrix\n\n\n\nrequires 1 or more neighbours and 8 neighbours if the data is skewed\nwill increase variance if sparse data points\nvariance will be masked if data points are dense\n\n\nAdaptive distance weight matrix\n\n\nchanges bandwidth based on density\nfind nearest neighbour"
+    "text": "Deriving distance-based weight matrix\nFirstly we will need to set what constitutes a neighbour using distance. There are 2 types of distance-based proximity matrix:\nFixed distance weight matrix\n\n\nrequires 1 or more neighbours and 8 neighbours if the data is skewed\nwill increase variance if sparse data points\nvariance will be masked if data points are dense\n\n\nAdaptive distance weight matrix\n\n\nchanges bandwidth based on density\nfind nearest neighbour"
   },
   {
     "objectID": "Hands-on_Ex02/Hands-on_Ex2_3.html#deriving-the-centroid",
