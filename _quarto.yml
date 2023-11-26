@@ -27,6 +27,8 @@ website:
             href: In-class_Ex/Ex1/In-class_Ex2.html
           - text: In-class Exercise 2 GLSA 
             href: In-class_Ex/Ex1/In-class_Ex2_LISA.html
+          - text: In-class Exercise 2 EHSA 
+            href: In-class_Ex/Ex1/In-class_Ex2_EHSA.html
     right:
       - href: index.qmd
         text: Home

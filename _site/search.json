@@ -754,5 +754,68 @@
     "title": "In-class_Ex2_LISA",
     "section": "Visualisation of hot and cold spots",
     "text": "Visualisation of hot and cold spots\nFinally we will visualist the hot and cold spots using the significance.\n\nHCSA_sig &lt;- HCSA  %&gt;%\n  filter(p_sim &lt; 0.05)\ntmap_mode(\"plot\")\n\ntmap mode set to plotting\n\ntm_shape(HCSA) +\n  tm_polygons() +\n  tm_borders(alpha = 0.5) +\ntm_shape(HCSA_sig) +\n  tm_fill(\"gi_star\") + \n  tm_borders(alpha = 0.4)\n\nWarning: One tm layer group has duplicated layer types, which are omitted. To\ndraw multiple layers of the same type, use multiple layer groups (i.e. specify\ntm_shape prior to each of them).\n\n\nVariable(s) \"gi_star\" contains positive and negative values, so midpoint is set to 0. Set midpoint = NA to show the full spectrum of the color palette."
+  },
+  {
+    "objectID": "In-class_Ex/Ex2/In-class_Ex2_EHSA.html",
+    "href": "In-class_Ex/Ex2/In-class_Ex2_EHSA.html",
+    "title": "In-class_Ex2_EHSA",
+    "section": "",
+    "text": "Here we will explore emerging hot spot analysis(EHSA) which represents a the change in hot and cold spots over time if there is any.\nThe steps needed can be summarised as the following: - Building a space-time cube - Calculate Getis-Ord local Gi* statistic using FDR correction - Use Mann-Kendall trend test to evaluate each hot and cold spot - categorise each region by referring to the z-score and p-value for each area and bin"
+  },
+  {
+    "objectID": "In-class_Ex/Ex2/In-class_Ex2_EHSA.html#loading-packages",
+    "href": "In-class_Ex/Ex2/In-class_Ex2_EHSA.html#loading-packages",
+    "title": "In-class_Ex2_EHSA",
+    "section": "Loading packages",
+    "text": "Loading packages\n\npacman::p_load(sf, sfdep, tmap, plotly, tidyverse, Kendall)"
+  },
+  {
+    "objectID": "In-class_Ex/Ex2/In-class_Ex2_EHSA.html#loading-data",
+    "href": "In-class_Ex/Ex2/In-class_Ex2_EHSA.html#loading-data",
+    "title": "In-class_Ex2_EHSA",
+    "section": "Loading data",
+    "text": "Loading data\n\nGeospatial data\nThe following uses the st_read() function from the sf package to read the geospatial data.\n\nhunan &lt;- st_read(dsn = \"data/geospatial\", \n                 layer = \"Hunan\")\n\nReading layer `Hunan' from data source \n  `C:\\Users\\Lian Khye\\Desktop\\MITB\\Geospatial\\geartooth\\ISSS624\\In-class_Ex\\Ex2\\data\\geospatial' \n  using driver `ESRI Shapefile'\nSimple feature collection with 88 features and 7 fields\nGeometry type: POLYGON\nDimension:     XY\nBounding box:  xmin: 108.7831 ymin: 24.6342 xmax: 114.2544 ymax: 30.12812\nGeodetic CRS:  WGS 84\n\n\n\n\nImport attribute table\nHere we will import the Hunan_GDPPC csv file.\n\nGDPPC &lt;- read_csv(\"data/aspatial/Hunan_GDPPC.csv\")"
+  },
+  {
+    "objectID": "In-class_Ex/Ex2/In-class_Ex2_EHSA.html#derive-spatial-weights",
+    "href": "In-class_Ex/Ex2/In-class_Ex2_EHSA.html#derive-spatial-weights",
+    "title": "In-class_Ex2_EHSA",
+    "section": "Derive Spatial Weights",
+    "text": "Derive Spatial Weights\nHere we will use the inverse distance weights for identifying neighbours.\n\nGDPPC_nb &lt;- GDPPC_st %&gt;%\n  activate(\"geometry\") %&gt;%\n  mutate(nb = include_self(st_contiguity(geometry)),\n         wt = st_inverse_distance(nb, geometry,\n                                  scale = 1,\n                                  alpha = 1),\n         .before = 1) %&gt;%\n  set_nbs(\"nb\") %&gt;%\n  set_wts(\"wt\")\n\nWe will use activate() function to activate the geometry context and the mutate() to create 2 new columns named nb and wt. We will then use set_nbs() and set_wts() to copy the nb and wt columns."
+  },
+  {
+    "objectID": "In-class_Ex/Ex2/In-class_Ex2_EHSA.html#gi-calculation",
+    "href": "In-class_Ex/Ex2/In-class_Ex2_EHSA.html#gi-calculation",
+    "title": "In-class_Ex2_EHSA",
+    "section": "Gi* calculation",
+    "text": "Gi* calculation\nNext we will calculate the local Gi* for each county by grouping the year and using the local_gstar_perm() fucntion and use the unnest() function to unnest the gi_star column of the new gi_stars dataframe.\n\ngi_stars &lt;- GDPPC_nb %&gt;% \n  group_by(Year) %&gt;% \n  mutate(gi_star = local_gstar_perm(\n    GDPPC, nb, wt)) %&gt;% \n  tidyr::unnest(gi_star)"
+  },
+  {
+    "objectID": "In-class_Ex/Ex2/In-class_Ex2_EHSA.html#mann-kendall-test",
+    "href": "In-class_Ex/Ex2/In-class_Ex2_EHSA.html#mann-kendall-test",
+    "title": "In-class_Ex2_EHSA",
+    "section": "Mann-Kendall Test",
+    "text": "Mann-Kendall Test\nHere we will be using the Gi* values for calculating the Mann-Kendall test. This test will test for changes but not the magnitude of change.\nThe following code uses Changsha county.\n\ncbg &lt;- gi_stars %&gt;% \n  ungroup() %&gt;% \n  filter(County == \"Changsha\") |&gt; \n  select(County, Year, gi_star)\n\nNext we can then plot the change using ggplot package.\n\nggplot(data = cbg, \n       aes(x = Year, \n           y = gi_star)) +\n  geom_line() +\n  theme_light()\n\n\n\n\nHere we can make the graph more interactive.\n\np &lt;- ggplot(data = cbg, \n       aes(x = Year, \n           y = gi_star)) +\n  geom_line() +\n  theme_light()\n\nggplotly(p)\n\n\n\n\n\nFinally we can calculate the p-value, signify by the sl column.\n\ncbg %&gt;%\n  summarise(mk = list(\n    unclass(\n      Kendall::MannKendall(gi_star)))) %&gt;% \n  tidyr::unnest_wider(mk)\n\n# A tibble: 1 × 5\n    tau      sl     S     D  varS\n  &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n1 0.485 0.00742    66  136.  589.\n\n\nWe can apply this to all of the locations using a group_by() function.\n\nehsa &lt;- gi_stars %&gt;%\n  group_by(County) %&gt;%\n  summarise(mk = list(\n    unclass(\n      Kendall::MannKendall(gi_star)))) %&gt;%\n  tidyr::unnest_wider(mk)"
+  },
+  {
+    "objectID": "In-class_Ex/Ex2/In-class_Ex2_EHSA.html#emerging-hotspot-analysis",
+    "href": "In-class_Ex/Ex2/In-class_Ex2_EHSA.html#emerging-hotspot-analysis",
+    "title": "In-class_Ex2_EHSA",
+    "section": "Emerging hotspot analysis",
+    "text": "Emerging hotspot analysis\nFinally we will perform EHSA analysis using emerging_hotspot_analysis() function. It takes a spacetime object and the variable of interest as the .var argument. The k argument refers to the time lags specified and the nsim refers to the number of simulation to be performed.\n\nehsa &lt;- emerging_hotspot_analysis(\n  x = GDPPC_st, \n  .var = \"GDPPC\", \n  k = 1, \n  nsim = 99\n)"
+  },
+  {
+    "objectID": "In-class_Ex/Ex2/In-class_Ex2_EHSA.html#visualisation-of-ehsa-classes",
+    "href": "In-class_Ex/Ex2/In-class_Ex2_EHSA.html#visualisation-of-ehsa-classes",
+    "title": "In-class_Ex2_EHSA",
+    "section": "Visualisation of EHSA classes",
+    "text": "Visualisation of EHSA classes\nWe can the plot the EHSA using a bar chart by using ggplot2 package.\n\nggplot(data = ehsa,\n       aes(x = classification)) +\n  geom_bar()"
+  },
+  {
+    "objectID": "In-class_Ex/Ex2/In-class_Ex2_EHSA.html#visualisation-of-ehsa",
+    "href": "In-class_Ex/Ex2/In-class_Ex2_EHSA.html#visualisation-of-ehsa",
+    "title": "In-class_Ex2_EHSA",
+    "section": "Visualisation of EHSA",
+    "text": "Visualisation of EHSA\nWe can also visualise the distribution of EHSA using a choropleth map.\n\nhunan_ehsa &lt;- hunan %&gt;%\n  left_join(ehsa,\n            by = join_by(County == location))\nehsa_sig &lt;- hunan_ehsa  %&gt;%\n  filter(p_value &lt; 0.05)\ntmap_mode(\"plot\")\ntm_shape(hunan_ehsa) +\n  tm_polygons() +\n  tm_borders(alpha = 0.5) +\ntm_shape(ehsa_sig) +\n  tm_fill(\"classification\") + \n  tm_borders(alpha = 0.4)"
   }
 ]

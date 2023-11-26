@@ -1,5 +1,13 @@
 ---
 title: "In-class_Ex2"
+date: "18 Nov 2023"
+date-modified: "last-modified"
+format: html
+execute: 
+  echo: true
+  eval: true
+  warning: false
+editor: visual
 ---
 
 # OVerview
@@ -41,7 +49,7 @@ hunan_GDPPC <- left_join(hunan,hunan2012)%>%
   select(1:4, 7, 15)
 ```
 
-### 
+### Choropleth Map
 
 Here we will be plotting the choropleth map of the hunan_GDPPC joint data from the previous step.
 
