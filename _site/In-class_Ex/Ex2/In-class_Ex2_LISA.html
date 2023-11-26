@@ -6,6 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="dcterms.date" content="2023-11-18">
 
 <title>ISSS624 - In-class_Ex2_LISA</title>
 <style>
@@ -154,6 +155,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../../In-class_Ex/Ex1/In-class_Ex2.html" rel="" target="">
  <span class="dropdown-text">In-class Exercise 2 Spatial Weights</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../../In-class_Ex/Ex1/In-class_Ex2_LISA.html" rel="" target="">
+ <span class="dropdown-text">In-class Exercise 2 GLSA</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../In-class_Ex/Ex1/In-class_Ex2_EHSA.html" rel="" target="">
+ <span class="dropdown-text">In-class Exercise 2 EHSA</span></a>
+  </li>  
     </ul>
   </li>
 </ul>
@@ -238,7 +247,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="quarto-title-meta">
 
     
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">November 18, 2023</p>
+    </div>
+  </div>
   
+    <div>
+    <div class="quarto-title-meta-heading">Modified</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date-modified">November 26, 2023</p>
+    </div>
+  </div>
     
   </div>
   
@@ -281,52 +302,36 @@ Geodetic CRS:  WGS 84</code></pre>
 <h3 class="anchored" data-anchor-id="import-attributable-table">Import attributable table</h3>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>hunan2012 <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/aspatial/Hunan_2012.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Rows: 88 Columns: 29
-── Column specification ────────────────────────────────────────────────────────
-Delimiter: ","
-chr  (2): County, City
-dbl (27): avg_wage, deposite, FAI, Gov_Rev, Gov_Exp, GDP, GDPPC, GIO, Loan, ...
-
-ℹ Use `spec()` to retrieve the full column specification for this data.
-ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-</div>
 </div>
 </section>
 <section id="combining-the-tables" class="level3">
 <h3 class="anchored" data-anchor-id="combining-the-tables">Combining the tables</h3>
 <p>Left join because of joining different data types. Here we retain the <em>hunan</em> dataframe and append the hunan table in order to save the geometry data automatically due to the nature of it being a spatial data.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>hunan_GDPPC <span class="ot">&lt;-</span> <span class="fu">left_join</span>(hunan,hunan2012)<span class="sc">%&gt;%</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>, <span class="dv">7</span>, <span class="dv">15</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Joining with `by = join_by(County)`</code></pre>
-</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>hunan_GDPPC <span class="ot">&lt;-</span> <span class="fu">left_join</span>(hunan,hunan2012)<span class="sc">%&gt;%</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>, <span class="dv">7</span>, <span class="dv">15</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="choropleth-map" class="level3">
 <h3 class="anchored" data-anchor-id="choropleth-map">Choropleth Map</h3>
 <p>Here we will be plotting the choropleth map of the hunan_GDPPC joint data from the previous step.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>tmap mode set to plotting</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(hunan_GDPPC) <span class="sc">+</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"GDPPC"</span>, </span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">style =</span> <span class="st">"quantile"</span>, </span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">palette =</span> <span class="st">"Blues"</span>,</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"GDPPC"</span>) <span class="sc">+</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"Distribution of GDP per capita by district, Hunan Province"</span>,</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">main.title.position =</span> <span class="st">"center"</span>,</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">main.title.size =</span> <span class="fl">1.2</span>,</span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.height =</span> <span class="fl">0.45</span>, </span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.width =</span> <span class="fl">0.35</span>,</span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>            <span class="at">frame =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_compass</span>(<span class="at">type=</span><span class="st">"8star"</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_scale_bar</span>() <span class="sc">+</span></span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_grid</span>(<span class="at">alpha =</span><span class="fl">0.2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(hunan_GDPPC) <span class="sc">+</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"GDPPC"</span>, </span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">style =</span> <span class="st">"quantile"</span>, </span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>          <span class="at">palette =</span> <span class="st">"Blues"</span>,</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>          <span class="at">title =</span> <span class="st">"GDPPC"</span>) <span class="sc">+</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"Distribution of GDP per capita by district, Hunan Province"</span>,</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">main.title.position =</span> <span class="st">"center"</span>,</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">main.title.size =</span> <span class="fl">1.2</span>,</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.height =</span> <span class="fl">0.45</span>, </span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.width =</span> <span class="fl">0.35</span>,</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>            <span class="at">frame =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_compass</span>(<span class="at">type=</span><span class="st">"8star"</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_scale_bar</span>() <span class="sc">+</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_grid</span>(<span class="at">alpha =</span><span class="fl">0.2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="In-class_Ex2_LISA_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -344,12 +349,12 @@ dbl (27): avg_wage, deposite, FAI, Gov_Rev, Gov_Exp, GDP, GDPPC, GIO, Loan, ...
 <h3 class="anchored" data-anchor-id="queens-method">Queen’s method</h3>
 <p>Here we will be using the Queen’s method.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>wm_q <span class="ot">&lt;-</span> hunan_GDPPC <span class="sc">%&gt;%</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">nb =</span> <span class="fu">st_contiguity</span>(geometry),</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">wt =</span> <span class="fu">st_weights</span>(nb,</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>                         <span class="at">style =</span> <span class="st">"W"</span>),</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">.before =</span> <span class="dv">1</span>)</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(wm_q)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>wm_q <span class="ot">&lt;-</span> hunan_GDPPC <span class="sc">%&gt;%</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">nb =</span> <span class="fu">st_contiguity</span>(geometry),</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">wt =</span> <span class="fu">st_weights</span>(nb,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>                         <span class="at">style =</span> <span class="st">"W"</span>),</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">.before =</span> <span class="dv">1</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(wm_q)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Neighbour list object:
 Number of regions: 88 
@@ -645,10 +650,10 @@ Link number distribution:
 <h2 class="anchored" data-anchor-id="global-morans-i">Global Moran’s I</h2>
 <p>Here we will calculate using the <em>global_moran()</em> using the <strong>sfdep</strong> package, where the output will be a data frame.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>moranI <span class="ot">&lt;-</span> <span class="fu">global_moran</span>(wm_q<span class="sc">$</span>GDPPC,</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>                       wm_q<span class="sc">$</span>nb,</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>                       wm_q<span class="sc">$</span>wt)</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(moranI)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>moranI <span class="ot">&lt;-</span> <span class="fu">global_moran</span>(wm_q<span class="sc">$</span>GDPPC,</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>                       wm_q<span class="sc">$</span>nb,</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>                       wm_q<span class="sc">$</span>wt)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(moranI)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>List of 2
  $ I: num 0.301
@@ -660,11 +665,11 @@ Link number distribution:
 <h2 class="anchored" data-anchor-id="global-morans-i-permutation">Global Moran’s I permutation</h2>
 <p>Here will be using the Monte Carlo simulation to perform the statistical test. We will be using the <em>global_moran_perm()</em>. The randomisation will also be seeded to ensure reproducibility.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">global_moran_perm</span>(wm_q<span class="sc">$</span>GDPPC,</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>                       wm_q<span class="sc">$</span>nb,</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>                       wm_q<span class="sc">$</span>wt,</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">nsim =</span> <span class="dv">99</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">global_moran_perm</span>(wm_q<span class="sc">$</span>GDPPC,</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>                       wm_q<span class="sc">$</span>nb,</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>                       wm_q<span class="sc">$</span>wt,</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">nsim =</span> <span class="dv">99</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
     Monte-Carlo simulation of Moran I
@@ -686,11 +691,11 @@ alternative hypothesis: two.sided</code></pre>
 <h2 class="anchored" data-anchor-id="local-morans-i">Local Moran’s I</h2>
 <p>Here we will be using the <em>local_moran()</em> function to calculate the local Moran’s I for each region or county.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>lisa <span class="ot">&lt;-</span> wm_q <span class="sc">%&gt;%</span> </span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">local_moran =</span> <span class="fu">local_moran</span>(</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    GDPPC, nb, wt, <span class="at">nsim =</span> <span class="dv">99</span>),</span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">.before =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(local_moran)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>lisa <span class="ot">&lt;-</span> wm_q <span class="sc">%&gt;%</span> </span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">local_moran =</span> <span class="fu">local_moran</span>(</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    GDPPC, nb, wt, <span class="at">nsim =</span> <span class="dv">99</span>),</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">.before =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(local_moran)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>The output will be a data fram containing the ii, eii, var_ii, z_ii, p_ii, p_ii_sim and p_folded_sum.</p>
 </section>
@@ -698,19 +703,13 @@ alternative hypothesis: two.sided</code></pre>
 <h2 class="anchored" data-anchor-id="visualisation-of-local-morans-i">Visualisation of local Moran’s I</h2>
 <p>Here we will utilise the ii field for visualisation on a choropleth map.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>tmap mode set to plotting</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(lisa) <span class="sc">+</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"ii"</span>) <span class="sc">+</span> </span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_view</span>(<span class="at">set.zoom.limits =</span> <span class="fu">c</span>(<span class="dv">6</span>,<span class="dv">8</span>)) <span class="sc">+</span></span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"local Moran's I of GDPPC"</span>,</span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">main.title.size =</span> <span class="fl">0.8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Variable(s) "ii" contains positive and negative values, so midpoint is set to 0. Set midpoint = NA to show the full spectrum of the color palette.</code></pre>
-</div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(lisa) <span class="sc">+</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"ii"</span>) <span class="sc">+</span> </span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_view</span>(<span class="at">set.zoom.limits =</span> <span class="fu">c</span>(<span class="dv">6</span>,<span class="dv">8</span>)) <span class="sc">+</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"local Moran's I of GDPPC"</span>,</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">main.title.size =</span> <span class="fl">0.8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="In-class_Ex2_LISA_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -720,15 +719,12 @@ alternative hypothesis: two.sided</code></pre>
 <h2 class="anchored" data-anchor-id="visualisation-of-local-morans-i-with-p-value">Visualisation of local Moran’s I with p-value</h2>
 <p>Here we will utilise the p_ii_sim field for visualisation on a choropleth map.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>tmap mode set to plotting</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(lisa) <span class="sc">+</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"p_ii_sim"</span>) <span class="sc">+</span> </span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>   <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"p-value of local Moran's I"</span>,</span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">main.title.size =</span> <span class="fl">0.8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(lisa) <span class="sc">+</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"p_ii_sim"</span>) <span class="sc">+</span> </span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>   <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"p-value of local Moran's I"</span>,</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">main.title.size =</span> <span class="fl">0.8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="In-class_Ex2_LISA_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -738,29 +734,23 @@ alternative hypothesis: two.sided</code></pre>
 <h2 class="anchored" data-anchor-id="combined-visualisation">Combined visualisation</h2>
 <p>Here we will place the maps next to each other.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>tmap mode set to plotting</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>map1 <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(lisa) <span class="sc">+</span></span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"ii"</span>) <span class="sc">+</span> </span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_view</span>(<span class="at">set.zoom.limits =</span> <span class="fu">c</span>(<span class="dv">6</span>,<span class="dv">8</span>)) <span class="sc">+</span></span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"local Moran's I of GDPPC"</span>,</span>
-<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">main.title.size =</span> <span class="fl">0.8</span>)</span>
-<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>map2 <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(lisa) <span class="sc">+</span></span>
-<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"p_ii"</span>,</span>
-<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>          <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.001</span>, <span class="fl">0.01</span>, <span class="fl">0.05</span>, <span class="dv">1</span>),</span>
-<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>              <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"0.001"</span>, <span class="st">"0.01"</span>, <span class="st">"0.05"</span>, <span class="st">"Not sig"</span>)) <span class="sc">+</span> </span>
-<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"p-value of local Moran's I"</span>,</span>
-<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>            <span class="at">main.title.size =</span> <span class="fl">0.8</span>)</span>
-<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_arrange</span>(map1, map2, <span class="at">ncol =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Variable(s) "ii" contains positive and negative values, so midpoint is set to 0. Set midpoint = NA to show the full spectrum of the color palette.</code></pre>
-</div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>map1 <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(lisa) <span class="sc">+</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"ii"</span>) <span class="sc">+</span> </span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_view</span>(<span class="at">set.zoom.limits =</span> <span class="fu">c</span>(<span class="dv">6</span>,<span class="dv">8</span>)) <span class="sc">+</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"local Moran's I of GDPPC"</span>,</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">main.title.size =</span> <span class="fl">0.8</span>)</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>map2 <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(lisa) <span class="sc">+</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"p_ii"</span>,</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>          <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.001</span>, <span class="fl">0.01</span>, <span class="fl">0.05</span>, <span class="dv">1</span>),</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>              <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"0.001"</span>, <span class="st">"0.01"</span>, <span class="st">"0.05"</span>, <span class="st">"Not sig"</span>)) <span class="sc">+</span> </span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"p-value of local Moran's I"</span>,</span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>            <span class="at">main.title.size =</span> <span class="fl">0.8</span>)</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_arrange</span>(map1, map2, <span class="at">ncol =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="In-class_Ex2_LISA_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -770,23 +760,15 @@ alternative hypothesis: two.sided</code></pre>
 <h2 class="anchored" data-anchor-id="visualisation-of-lisa">Visualisation of LISA</h2>
 <p>Here will will visualise LISA where we can see the presence of outliers and clusters. More information can be found <a href="https://isss624-liankhye.netlify.app/hands-on_ex02/hands-on_ex2_3#lisa-cluster-map">here</a>. The following is a newer method for calculating LISA, and require shorter and more concise steps such as not having to manually form the high-high, high-low, low-high and low-low quadrants. Just make sure that if the data is skewed, we will have to use the median for forming the quadrant.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>lisa_sig <span class="ot">&lt;-</span> lisa  <span class="sc">%&gt;%</span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(p_ii <span class="sc">&lt;</span> <span class="fl">0.05</span>)</span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>tmap mode set to plotting</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(lisa) <span class="sc">+</span></span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>() <span class="sc">+</span></span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(lisa_sig) <span class="sc">+</span></span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"mean"</span>) <span class="sc">+</span> </span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: One tm layer group has duplicated layer types, which are omitted. To
-draw multiple layers of the same type, use multiple layer groups (i.e. specify
-tm_shape prior to each of them).</code></pre>
-</div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>lisa_sig <span class="ot">&lt;-</span> lisa  <span class="sc">%&gt;%</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(p_ii <span class="sc">&lt;</span> <span class="fl">0.05</span>)</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(lisa) <span class="sc">+</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>() <span class="sc">+</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(lisa_sig) <span class="sc">+</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"mean"</span>) <span class="sc">+</span> </span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="In-class_Ex2_LISA_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -801,30 +783,21 @@ tm_shape prior to each of them).</code></pre>
 <p>Here we will utilise the inverse distance weight matrix for calculating the Gi* statistics.</p>
 <p>The inverse distance weight matrix is as follow.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>wm_idw <span class="ot">&lt;-</span> hunan_GDPPC <span class="sc">%&gt;%</span></span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">nb =</span> <span class="fu">st_contiguity</span>(geometry),</span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">wts =</span> <span class="fu">st_inverse_distance</span>(nb, geometry,</span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">scale =</span> <span class="dv">1</span>,</span>
-<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">alpha =</span> <span class="dv">1</span>),</span>
-<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">.before =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>! Polygon provided. Using point on surface.</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: There was 1 warning in `stopifnot()`.
-ℹ In argument: `wts = st_inverse_distance(nb, geometry, scale = 1, alpha = 1)`.
-Caused by warning in `st_point_on_surface.sfc()`:
-! st_point_on_surface may not give correct results for longitude/latitude data</code></pre>
-</div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>wm_idw <span class="ot">&lt;-</span> hunan_GDPPC <span class="sc">%&gt;%</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">nb =</span> <span class="fu">st_contiguity</span>(geometry),</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">wts =</span> <span class="fu">st_inverse_distance</span>(nb, geometry,</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">scale =</span> <span class="dv">1</span>,</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">alpha =</span> <span class="dv">1</span>),</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">.before =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>We will then use <em>local_gstar_perm()</em> for calculating Gi* statistics.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>HCSA <span class="ot">&lt;-</span> wm_idw <span class="sc">%&gt;%</span> </span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">local_Gi =</span> <span class="fu">local_gstar_perm</span>(</span>
-<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>    GDPPC, nb, wt, <span class="at">nsim =</span> <span class="dv">99</span>),</span>
-<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">.before =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(local_Gi)</span>
-<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>HCSA</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>HCSA <span class="ot">&lt;-</span> wm_idw <span class="sc">%&gt;%</span> </span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">local_Gi =</span> <span class="fu">local_gstar_perm</span>(</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    GDPPC, nb, wt, <span class="at">nsim =</span> <span class="dv">99</span>),</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">.before =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(local_Gi)</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>HCSA</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Simple feature collection with 88 features and 16 fields
 Geometry type: POLYGON
@@ -854,17 +827,11 @@ Geodetic CRS:  WGS 84
 <h2 class="anchored" data-anchor-id="visualisation-of-gi">Visualisation of Gi*</h2>
 <p>Next we will visualise the Gi* on a choropleth map.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>tmap mode set to plotting</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(HCSA) <span class="sc">+</span></span>
-<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"gi_star"</span>) <span class="sc">+</span> </span>
-<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_view</span>(<span class="at">set.zoom.limits =</span> <span class="fu">c</span>(<span class="dv">6</span>,<span class="dv">8</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Variable(s) "gi_star" contains positive and negative values, so midpoint is set to 0. Set midpoint = NA to show the full spectrum of the color palette.</code></pre>
-</div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(HCSA) <span class="sc">+</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"gi_star"</span>) <span class="sc">+</span> </span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_view</span>(<span class="at">set.zoom.limits =</span> <span class="fu">c</span>(<span class="dv">6</span>,<span class="dv">8</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="In-class_Ex2_LISA_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -874,13 +841,10 @@ Geodetic CRS:  WGS 84
 <h2 class="anchored" data-anchor-id="visualisation-of-gi-p-value">Visualisation of Gi* p-value</h2>
 <p>Here we will visualise the p-value of HCSA</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>tmap mode set to plotting</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(HCSA) <span class="sc">+</span></span>
-<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"p_sim"</span>) <span class="sc">+</span> </span>
-<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(HCSA) <span class="sc">+</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"p_sim"</span>) <span class="sc">+</span> </span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="In-class_Ex2_LISA_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -890,38 +854,23 @@ Geodetic CRS:  WGS 84
 <h2 class="anchored" data-anchor-id="combined-visualisation-1">Combined visualisation</h2>
 <p>Here we will combined both maps.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>tmap mode set to plotting</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>map1 <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(HCSA) <span class="sc">+</span></span>
-<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"gi_star"</span>) <span class="sc">+</span> </span>
-<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_view</span>(<span class="at">set.zoom.limits =</span> <span class="fu">c</span>(<span class="dv">6</span>,<span class="dv">8</span>)) <span class="sc">+</span></span>
-<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"Gi* of GDPPC"</span>,</span>
-<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">main.title.size =</span> <span class="fl">0.8</span>)</span>
-<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>map2 <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(HCSA) <span class="sc">+</span></span>
-<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"p_value"</span>,</span>
-<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a>          <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.001</span>, <span class="fl">0.01</span>, <span class="fl">0.05</span>, <span class="dv">1</span>),</span>
-<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a>          <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"0.001"</span>, <span class="st">"0.01"</span>, <span class="st">"0.05"</span>, <span class="st">"Not sig"</span>)) <span class="sc">+</span> </span>
-<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"p-value of Gi*"</span>,</span>
-<span id="cb48-14"><a href="#cb48-14" aria-hidden="true" tabindex="-1"></a>            <span class="at">main.title.size =</span> <span class="fl">0.8</span>)</span>
-<span id="cb48-15"><a href="#cb48-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-16"><a href="#cb48-16" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_arrange</span>(map1, map2, <span class="at">ncol =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Variable(s) "gi_star" contains positive and negative values, so midpoint is set to 0. Set midpoint = NA to show the full spectrum of the color palette.</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Values have found that are less than the lowest break</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Values have found that are higher than the highest break</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Variable(s) "p_value" contains positive and negative values, so midpoint is set to 0. Set midpoint = NA to show the full spectrum of the color palette.</code></pre>
-</div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>map1 <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(HCSA) <span class="sc">+</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"gi_star"</span>) <span class="sc">+</span> </span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_view</span>(<span class="at">set.zoom.limits =</span> <span class="fu">c</span>(<span class="dv">6</span>,<span class="dv">8</span>)) <span class="sc">+</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"Gi* of GDPPC"</span>,</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">main.title.size =</span> <span class="fl">0.8</span>)</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>map2 <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(HCSA) <span class="sc">+</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"p_value"</span>,</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>          <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.001</span>, <span class="fl">0.01</span>, <span class="fl">0.05</span>, <span class="dv">1</span>),</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"0.001"</span>, <span class="st">"0.01"</span>, <span class="st">"0.05"</span>, <span class="st">"Not sig"</span>)) <span class="sc">+</span> </span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"p-value of Gi*"</span>,</span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>            <span class="at">main.title.size =</span> <span class="fl">0.8</span>)</span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_arrange</span>(map1, map2, <span class="at">ncol =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="In-class_Ex2_LISA_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -931,26 +880,15 @@ Geodetic CRS:  WGS 84
 <h2 class="anchored" data-anchor-id="visualisation-of-hot-and-cold-spots">Visualisation of hot and cold spots</h2>
 <p>Finally we will visualist the hot and cold spots using the significance.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>HCSA_sig <span class="ot">&lt;-</span> HCSA  <span class="sc">%&gt;%</span></span>
-<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(p_sim <span class="sc">&lt;</span> <span class="fl">0.05</span>)</span>
-<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>tmap mode set to plotting</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(HCSA) <span class="sc">+</span></span>
-<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>() <span class="sc">+</span></span>
-<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(HCSA_sig) <span class="sc">+</span></span>
-<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"gi_star"</span>) <span class="sc">+</span> </span>
-<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: One tm layer group has duplicated layer types, which are omitted. To
-draw multiple layers of the same type, use multiple layer groups (i.e. specify
-tm_shape prior to each of them).</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Variable(s) "gi_star" contains positive and negative values, so midpoint is set to 0. Set midpoint = NA to show the full spectrum of the color palette.</code></pre>
-</div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>HCSA_sig <span class="ot">&lt;-</span> HCSA  <span class="sc">%&gt;%</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(p_sim <span class="sc">&lt;</span> <span class="fl">0.05</span>)</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(HCSA) <span class="sc">+</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>() <span class="sc">+</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(HCSA_sig) <span class="sc">+</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"gi_star"</span>) <span class="sc">+</span> </span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="In-class_Ex2_LISA_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid" width="672"></p>
 </div>

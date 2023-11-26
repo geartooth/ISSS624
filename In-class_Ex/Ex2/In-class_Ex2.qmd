@@ -165,10 +165,11 @@ geo <- sf::st_geometry(hunan_GDPPC)
 nb <- st_knn(geo, longlat = TRUE)
 dists <- unlist(st_nb_dists(geo, nb))
 ```
-*st_nb_dists()* is used for calculating the nearest neighbour, the output will be the distance to each neighbour for each region.
-*unlist()* is from the base R function and returns the output as a vector.
+
+*st_nb_dists()* is used for calculating the nearest neighbour, the output will be the distance to each neighbour for each region. *unlist()* is from the base R function and returns the output as a vector.
 
 Next we will derive the statistical summary of the nearest neighbour distances.
+
 ```{r}
 summary(dists)
 ```
@@ -176,6 +177,7 @@ summary(dists)
 This shows that the max distance for the nearest neigh bour is 65.8km, and when we round up to 66km, each region would have at least 1 neighbour.
 
 With that we can then compute the fixed distance weights.
+
 ```{r}
 wm_fd <- hunan_GDPPC %>%
   mutate(nb = st_dist_band(geometry,
@@ -185,12 +187,13 @@ wm_fd <- hunan_GDPPC %>%
 summary(wm_fd)
 
 ```
+
 Here we can see that there are 4 regions with only 1 neighbour and 5 regions with 7 neighbours.
 
-*st_dists_band()* can be used to identify neighbours and the fixed distance selected.
-*st_weights()* uses the W style and the allow_zero to be TRUE as default.
+*st_dists_band()* can be used to identify neighbours and the fixed distance selected. *st_weights()* uses the W style and the allow_zero to be TRUE as default.
 
 ### Adaptive distance weights
+
 Here we will use adaptive distance weights where the distance used is dependent on the data density.
 
 ```{r}
@@ -200,8 +203,8 @@ wm_ad <- hunan_GDPPC %>%
          wt = st_weights(nb),
                .before = 1)
 ```
-*st_knn()* is used to determine the number of neighbours to be used for calculating distance.
-*st_weights()* is used for calculaing the polygon spatial weights of the list of neightbours. It uses the W style and the allow_zero to be TRUE as default.
+
+*st_knn()* is used to determine the number of neighbours to be used for calculating distance. *st_weights()* is used for calculaing the polygon spatial weights of the list of neightbours. It uses the W style and the allow_zero to be TRUE as default.
 
 ### Inverse distance weights
 
@@ -215,6 +218,5 @@ wm_idw <- hunan_GDPPC %>%
                                    alpha = 1),
          .before = 1)
 ```
-*st_contiguity()* is used to identify the neighbours using a common border criteria.
-*st_inverse_distance()* is then used for calculating the inverse distance weights of the neighbours in the list.
 
+*st_contiguity()* is used to identify the neighbours using a common border criteria. *st_inverse_distance()* is then used for calculating the inverse distance weights of the neighbours in the list.
