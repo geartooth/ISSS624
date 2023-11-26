@@ -289,7 +289,7 @@ tmap_arrange(lag_gdppc, w_avg_gdppc, asp=1, ncol=2)
 ```
 
 ## Spatial window sum
-The spatial window sum is the opposite of the average and we will not be using thr row-standardized weights.
+The spatial window sum is the opposite of the average and we will not be using the row-standardized weights.
 
 ```{r}
 wm_qs <- include.self(wm_q)

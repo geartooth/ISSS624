@@ -1,0 +1,212 @@
+---
+title: "In-class_Ex2"
+---
+
+# OVerview
+
+# Getting started
+
+For the purpose of this in-class exercise, the Hunan datasets will be used. There are 2 data sets in this case, they are: - Hunan, a geospatial data set in ESRI shapefile format, and - Hunan_2012, an attribute data set in csv format
+
+## Loading packages and data
+
+```{r}
+pacman::p_load(sf, spdep, tmap, tidyverse, knitr,sfdep, plotly, zoo)
+```
+
+## Loading data
+
+### Geospatial data
+
+The following uses the *st_read()* function from the ***sf*** package to read the geospatial data.
+
+```{r}
+hunan <- st_read(dsn = "data/geospatial", 
+                 layer = "Hunan")
+
+```
+
+### Import attributable table
+
+```{r}
+hunan2012 <- read_csv("data/aspatial/Hunan_2012.csv")
+```
+
+### Combining the tables
+
+Left join because of joining different data types. Here we retain the *hunan* dataframe and append the hunan table in order to save the geometry data automatically due to the nature of it being a spatial data.
+
+```{r}
+hunan_GDPPC <- left_join(hunan,hunan2012)%>%
+  select(1:4, 7, 15)
+```
+
+### 
+
+Here we will be plotting the choropleth map of the hunan_GDPPC joint data from the previous step.
+
+```{r}
+tmap_mode("plot")
+tm_shape(hunan_GDPPC) +
+  tm_fill("GDPPC", 
+          style = "quantile", 
+          palette = "Blues",
+          title = "GDPPC") +
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "Distribution of GDP per capita by district, Hunan Province",
+            main.title.position = "center",
+            main.title.size = 1.2,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            frame = TRUE) +
+  tm_compass(type="8star", size = 2) +
+  tm_scale_bar() +
+  tm_grid(alpha =0.2)
+```
+
+# Spatial Weights
+
+There are 2 types of spatial weights, contiguity and distance based. Contiguity spatial weights refer to having a common border and distance based spatial weights are based on a distance.
+
+## Contiguity Spatial Weights
+
+Here we will first try the contiguity weights using *st_contiguity()* to obtain the number of neighbours, followed by *st_weights()* to obtain the the contiguity spatial weights.
+
+### Queen's method
+
+Here we will be using the Queen's method.
+
+```{r}
+nb_queen <- hunan_GDPPC %>% 
+  mutate(nb = st_contiguity(geometry),
+         .before = 1)
+summary(nb_queen$nb)
+```
+
+The report shows that there are 88 area units or regions in the Hunan province and the area with the most number of connected neighbours is 11 and the least is 1.
+
+One advantage of using **sfdep** is the output being in a table format.
+
+```{r}
+kable(head(nb_queen,
+           n=10))
+```
+
+### Rook's method
+
+Here we will be using the Rook's method.
+
+```{r}
+nb_rook <- hunan_GDPPC %>% 
+  mutate(nb = st_contiguity(geometry,
+                            queen = FALSE),
+         .before = 1)
+summary(nb_rook$nb)
+```
+
+Here we see the region with the highest number of neighbours has dropped to 10 due to loss of point or corner neighbours.
+
+### Higher order neighbours
+
+Higher order neighbours refer to secondary neighbours that are not directly connected to the region of interest. Depending on the order number, it is how many neighbours away.
+
+We will use \*\*st_nb_lag_cumul()\* for calculating.
+
+```{r}
+nb2_queen <-  hunan_GDPPC %>% 
+  mutate(nb = st_contiguity(geometry),
+         nb2 = st_nb_lag_cumul(nb, 2),
+         .before = 1)
+summary(nb2_queen)
+```
+
+Here we see the number of neighbours increasing with the highest number of neighbours reaching 33 for 1 region.
+
+### Deriving contiguity weights
+
+After calculating the number of neighbours, we can then compute the contiguity weights using *st_weights()*.
+
+```{r}
+wm_q <- hunan_GDPPC %>% 
+  mutate(nb = st_contiguity(geometry),
+         wt = st_weights(nb, style = "W"),
+         .before = 1)
+wm_q
+```
+
+The 3 arguments used are
+
+-   nb - list of neighbours
+-   style - Default will be W style, repsenting row standardisation. Others include C, global standardisation, U, C style divided by number of neighbours, and S, sums of all links to n.
+-   allow_zero - if TRUE, it assigns 0 to regions without neighbours
+
+## Distance based weights
+
+There are 3 difference distance based weights:
+
+-   Fixed distance weights
+-   Adaptive distance weights
+-   inverse distance weights
+
+### Fixed distance weights
+
+As the name suggest, this method uses a fixed distance for measuring the number of neighbours. We will first determine the upper limit using the following steps.
+
+```{r}
+geo <- sf::st_geometry(hunan_GDPPC)
+nb <- st_knn(geo, longlat = TRUE)
+dists <- unlist(st_nb_dists(geo, nb))
+```
+*st_nb_dists()* is used for calculating the nearest neighbour, the output will be the distance to each neighbour for each region.
+*unlist()* is from the base R function and returns the output as a vector.
+
+Next we will derive the statistical summary of the nearest neighbour distances.
+```{r}
+summary(dists)
+```
+
+This shows that the max distance for the nearest neigh bour is 65.8km, and when we round up to 66km, each region would have at least 1 neighbour.
+
+With that we can then compute the fixed distance weights.
+```{r}
+wm_fd <- hunan_GDPPC %>%
+  mutate(nb = st_dist_band(geometry,
+                           upper = 66),
+               wt = st_weights(nb),
+               .before = 1)
+summary(wm_fd)
+
+```
+Here we can see that there are 4 regions with only 1 neighbour and 5 regions with 7 neighbours.
+
+*st_dists_band()* can be used to identify neighbours and the fixed distance selected.
+*st_weights()* uses the W style and the allow_zero to be TRUE as default.
+
+### Adaptive distance weights
+Here we will use adaptive distance weights where the distance used is dependent on the data density.
+
+```{r}
+wm_ad <- hunan_GDPPC %>% 
+  mutate(nb = st_knn(geometry,
+                     k=8),
+         wt = st_weights(nb),
+               .before = 1)
+```
+*st_knn()* is used to determine the number of neighbours to be used for calculating distance.
+*st_weights()* is used for calculaing the polygon spatial weights of the list of neightbours. It uses the W style and the allow_zero to be TRUE as default.
+
+### Inverse distance weights
+
+This method will create proportional weights.
+
+```{r}
+wm_idw <- hunan_GDPPC %>%
+  mutate(nb = st_contiguity(geometry),
+         wts = st_inverse_distance(nb, geometry,
+                                   scale = 1,
+                                   alpha = 1),
+         .before = 1)
+```
+*st_contiguity()* is used to identify the neighbours using a common border criteria.
+*st_inverse_distance()* is then used for calculating the inverse distance weights of the neighbours in the list.
+

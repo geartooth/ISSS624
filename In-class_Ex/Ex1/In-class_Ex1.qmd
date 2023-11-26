@@ -25,14 +25,16 @@ pacman::p_load(tmap,sf,tidyverse)
 ```
 
 ## Preparing the Flow data
+
 ### Importing the OD data
+
 Firstly, we will import the *Passenger Volume by Origin Destination* data set downloaded from LTA DataMall by using `read_csv()` of **readr** package.
 
 ```{r}
 odbus <-read_csv("data/aspatial/origin_destination_bus_202308.csv")
 ```
-A quick check of odbus tibble data frame
 
+A quick check of odbus tibble data frame
 
 ```{r}
 odbus$ORIGIN_PT_CODE<-as.factor(odbus$ORIGIN_PT_CODE)
