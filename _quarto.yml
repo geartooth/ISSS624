@@ -25,6 +25,8 @@ website:
             href: In-class_Ex/Ex1/In-class_Ex1.html
           - text: In-class Exercise 2 Spatial Weights
             href: In-class_Ex/Ex1/In-class_Ex2.html
+          - text: In-class Exercise 2 GLSA 
+            href: In-class_Ex/Ex1/In-class_Ex2_LISA.html
     right:
       - href: index.qmd
         text: Home

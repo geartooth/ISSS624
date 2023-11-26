@@ -1,0 +1,290 @@
+---
+title: "In-class_Ex2_LISA"
+---
+
+# Overview
+
+Here we will learn how to use *sfdep()* to calculate the Global and Local measures of spatial association
+
+# Loading packages and data
+
+## Loading packages
+
+```{r}
+pacman::p_load(sf, spdep, tmap, tidyverse, knitr,sfdep, plotly, zoo)
+```
+
+## Loading data
+
+### Geospatial data
+
+The following uses the *st_read()* function from the ***sf*** package to read the geospatial data.
+
+```{r}
+hunan <- st_read(dsn = "data/geospatial", 
+                 layer = "Hunan")
+
+```
+
+### Import attributable table
+
+```{r}
+hunan2012 <- read_csv("data/aspatial/Hunan_2012.csv")
+```
+
+### Combining the tables
+
+Left join because of joining different data types. Here we retain the *hunan* dataframe and append the hunan table in order to save the geometry data automatically due to the nature of it being a spatial data.
+
+```{r}
+hunan_GDPPC <- left_join(hunan,hunan2012)%>%
+  select(1:4, 7, 15)
+```
+
+### Choropleth Map
+
+Here we will be plotting the choropleth map of the hunan_GDPPC joint data from the previous step.
+
+```{r}
+tmap_mode("plot")
+tm_shape(hunan_GDPPC) +
+  tm_fill("GDPPC", 
+          style = "quantile", 
+          palette = "Blues",
+          title = "GDPPC") +
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "Distribution of GDP per capita by district, Hunan Province",
+            main.title.position = "center",
+            main.title.size = 1.2,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            frame = TRUE) +
+  tm_compass(type="8star", size = 2) +
+  tm_scale_bar() +
+  tm_grid(alpha =0.2)
+```
+
+# Spatial Weights
+
+Here we will only be using Contiguity Spatial weights
+
+## Contiguity Spatial Weights
+
+Here we will first try the contiguity weights using *st_contiguity()* to obtain the number of neighbours, followed by *st_weights()* to obtain the the contiguity spatial weights.
+
+### Queen's method
+
+Here we will be using the Queen's method.
+
+```{r}
+wm_q <- hunan_GDPPC %>%
+  mutate(nb = st_contiguity(geometry),
+         wt = st_weights(nb,
+                         style = "W"),
+         .before = 1)
+summary(wm_q)
+```
+
+The report shows that there are 88 area units or regions in the Hunan province and the area with the most number of connected neighbours is 11 and the least is 1.
+
+# Global spatial computing
+
+## Global Moran's I
+
+Here we will calculate using the *global_moran()* using the **sfdep** package, where the output will be a data frame.
+
+```{r}
+moranI <- global_moran(wm_q$GDPPC,
+                       wm_q$nb,
+                       wm_q$wt)
+glimpse(moranI)
+
+```
+
+## Global Moran's I permutation
+
+Here will be using the Monte Carlo simulation to perform the statistical test. We will be using the *global_moran_perm()*. The randomisation will also be seeded to ensure reproducibility.
+
+```{r}
+set.seed(1234)
+global_moran_perm(wm_q$GDPPC,
+                       wm_q$nb,
+                       wm_q$wt,
+                  nsim = 99)
+```
+
+As the p-value is smaller than 0.05, we reject the null hypothesis that spatial patterns are independent and together with the Moran's I value being larger than 0, we can infer that there is clustering.
+
+# Local spatial computing
+
+## Local Moran's I
+
+Here we will be using the *local_moran()* function to calculate the local Moran's I for each region or county.
+
+```{r}
+lisa <- wm_q %>% 
+  mutate(local_moran = local_moran(
+    GDPPC, nb, wt, nsim = 99),
+         .before = 1) %>%
+  unnest(local_moran)
+```
+
+The output will be a data fram containing the ii, eii, var_ii, z_ii, p_ii, p_ii_sim and p_folded_sum.
+
+## Visualisation of local Moran's I
+
+Here we will utilise the ii field for visualisation on a choropleth map.
+
+```{r}
+tmap_mode("plot")
+tm_shape(lisa) +
+  tm_fill("ii") + 
+  tm_borders(alpha = 0.5) +
+  tm_view(set.zoom.limits = c(6,8)) +
+  tm_layout(main.title = "local Moran's I of GDPPC",
+            main.title.size = 0.8)
+```
+
+## Visualisation of local Moran's I with p-value
+
+Here we will utilise the p_ii_sim field for visualisation on a choropleth map.
+
+```{r}
+tmap_mode("plot")
+tm_shape(lisa) +
+  tm_fill("p_ii_sim") + 
+  tm_borders(alpha = 0.5) +
+   tm_layout(main.title = "p-value of local Moran's I",
+            main.title.size = 0.8)
+```
+
+## Combined visualisation
+
+Here we will place the maps next to each other.
+
+```{r}
+tmap_mode("plot")
+map1 <- tm_shape(lisa) +
+  tm_fill("ii") + 
+  tm_borders(alpha = 0.5) +
+  tm_view(set.zoom.limits = c(6,8)) +
+  tm_layout(main.title = "local Moran's I of GDPPC",
+            main.title.size = 0.8)
+
+map2 <- tm_shape(lisa) +
+  tm_fill("p_ii",
+          breaks = c(0, 0.001, 0.01, 0.05, 1),
+              labels = c("0.001", "0.01", "0.05", "Not sig")) + 
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "p-value of local Moran's I",
+            main.title.size = 0.8)
+
+tmap_arrange(map1, map2, ncol = 2)
+```
+
+## Visualisation of LISA
+
+Here will will visualise LISA where we can see the presence of outliers and clusters. More information can be found [here](https://isss624-liankhye.netlify.app/hands-on_ex02/hands-on_ex2_3#lisa-cluster-map).
+The following is a newer method for calculating LISA, and require shorter and more concise steps such as not having to manually form the high-high, high-low, low-high and low-low quadrants. Just make sure that if the data is skewed, we will have to use the median for forming the quadrant.
+
+```{r}
+lisa_sig <- lisa  %>%
+  filter(p_ii < 0.05)
+tmap_mode("plot")
+tm_shape(lisa) +
+  tm_polygons() +
+  tm_borders(alpha = 0.5) +
+tm_shape(lisa_sig) +
+  tm_fill("mean") + 
+  tm_borders(alpha = 0.4)
+```
+
+# Hot and cold spot area analysis(HCSA)
+
+HCSA utilise spatial weights to identify hot and cold spots. They refer to areas that have higher or lower value and if they are clustering in relative to their neighbours.
+
+## Compute local Gi* 
+
+Here we will utilise the inverse distance weight matrix for calculating the Gi* statistics.
+
+The inverse distance weight matrix is as follow.
+```{r}
+wm_idw <- hunan_GDPPC %>%
+  mutate(nb = st_contiguity(geometry),
+         wts = st_inverse_distance(nb, geometry,
+                                   scale = 1,
+                                   alpha = 1),
+         .before = 1)
+```
+
+We will then use *local_gstar_perm()* for calculating Gi* statistics.
+```{r}
+HCSA <- wm_idw %>% 
+  mutate(local_Gi = local_gstar_perm(
+    GDPPC, nb, wt, nsim = 99),
+         .before = 1) %>%
+  unnest(local_Gi)
+HCSA
+```
+
+## Visualisation of Gi*
+Next we will visualise the Gi* on a choropleth map.
+
+```{r}
+tmap_mode("plot")
+tm_shape(HCSA) +
+  tm_fill("gi_star") + 
+  tm_borders(alpha = 0.5) +
+  tm_view(set.zoom.limits = c(6,8))
+```
+
+## Visualisation of Gi* p-value
+Here we will visualise the p-value of HCSA
+
+```{r}
+tmap_mode("plot")
+tm_shape(HCSA) +
+  tm_fill("p_sim") + 
+  tm_borders(alpha = 0.5)
+```
+
+## Combined visualisation
+
+Here we will combined both maps.
+
+```{r}
+tmap_mode("plot")
+map1 <- tm_shape(HCSA) +
+  tm_fill("gi_star") + 
+  tm_borders(alpha = 0.5) +
+  tm_view(set.zoom.limits = c(6,8)) +
+  tm_layout(main.title = "Gi* of GDPPC",
+            main.title.size = 0.8)
+
+map2 <- tm_shape(HCSA) +
+  tm_fill("p_value",
+          breaks = c(0, 0.001, 0.01, 0.05, 1),
+          labels = c("0.001", "0.01", "0.05", "Not sig")) + 
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "p-value of Gi*",
+            main.title.size = 0.8)
+
+tmap_arrange(map1, map2, ncol = 2)
+```
+
+## Visualisation of hot and cold spots
+
+Finally we will visualist the hot and cold spots using the significance.
+
+```{r}
+HCSA_sig <- HCSA  %>%
+  filter(p_sim < 0.05)
+tmap_mode("plot")
+tm_shape(HCSA) +
+  tm_polygons() +
+  tm_borders(alpha = 0.5) +
+tm_shape(HCSA_sig) +
+  tm_fill("gi_star") + 
+  tm_borders(alpha = 0.4)
+```
+
