@@ -232,8 +232,8 @@ mapD <- tm_shape(finalD) +
   tm_layout(title = "Hexagonal Grid with Total Trips")
 
 # Display the map
-tmap_leaflet(mapA)
-tmap_leaflet(mapB)
-tmap_leaflet(mapC)
-tmap_leaflet(mapD)
+# tmap_leaflet(mapA)
+# tmap_leaflet(mapB)
+# tmap_leaflet(mapC)
+# tmap_leaflet(mapD)
 ```
