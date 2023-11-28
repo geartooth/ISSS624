@@ -1,0 +1,239 @@
+---
+title: "Take_home_Ex1"
+Author: "Mah Lian Khye"
+date-modified: "last-modified"
+format: html
+execute: 
+  echo: true
+  eval: true
+  warning: false
+editor: visual
+---
+
+# Overview
+
+The recent shift in payment being made more digital, companies and organisations can more easily collect data and information that are linked to consumer habits. The transportation industry including public transport such as buses has also lean into this phenomenon. The information collected include travelling patterns that can help companies plan for more efficient routes or where heavy ridership is to be expected.
+
+# Objectives
+
+Exploratory Spatial Data Analysis (ESDA) hold tremendous potential to address complex problems facing society. In this study, you are tasked to apply appropriate Local Indicators of Spatial Association (GLISA) and Emerging Hot Spot Analysis (EHSA) to undercover the spatial and spatio-temporal mobility patterns of public bus passengers in Singapore.
+
+# Task
+
+Here we will utilise bus travelling data at different time duration for plotting out geospatial data and analysing them using various statistical tools.
+
+## Geovisualisation and Analysis
+
+Computing passenger trips at the hexagonal level for the following time intervals:
+
+-   Weekday morning peak, 6am to 9am
+-   Weekday afternoon peak, 5pm to 8pm
+-   Weekend/holiday morning peak, 11am to 2pm
+-   Weekend/holiday evening peak, 4pm to 7pm
+
+Display the geographical distribution using choropleth maps of the hexagons.
+
+Combine all of the passenger trips made by all of the bus stops within a hexagon together
+
+## Local Indicators of Spatial Association(LISA) Analysis
+
+Utilise Queen's contiguity for performing LISA of the passenger trips by origin at hexagonal level Displat the LISA maps of the passenger trips at hexagonal level.
+
+# Load Packages and Data
+
+## Load packages
+
+Here we will load the packages needed for this exercise and their respective functions - **sf**: - **tmap**: - **spdep**: - **tidyverse**: - **dplyr**: - **mapview**: - **sfdep**:
+
+```{r}
+pacman::p_load(sf,tmap,spdep,tidyverse, dplyr, mapview, sfdep)
+```
+
+## Loading data
+
+### Loading aspatial table
+
+Here we will read all of the ridership from different bus stops in Oct 2023 and assign it to the variable.
+
+```{r}
+odbus <- read_csv("data/aspatial/origin_destination_bus_202310.csv")
+```
+
+We will then extract the information from the following and assign them to different variables.
+
+| Day               | Duration   | Variable name   |
+|-------------------|------------|-----------------|
+| Weekdays          | 6am - 9am  | weekdayAM_6_9   |
+| Weekdays          | 5pm - 8pm  | weekdayPM_5_8   |
+| Weekends/Holidays | 11am - 2pm | weekendAM_11_14 |
+| Weekends/Holidays | 4pm - 7pm  | weekendPM_4_7   |
+
+```{r}
+# Filter data for weekday morning hours
+weekdayAM_6_9 <- odbus %>% 
+  filter(DAY_TYPE == "WEEKDAY") %>%
+  filter(TIME_PER_HOUR >= 6 & TIME_PER_HOUR <= 9) %>%
+  group_by(ORIGIN_PT_CODE) %>%
+  summarise(TRIPS = sum(TOTAL_TRIPS))
+
+weekdayPM_5_8 <- odbus %>% 
+  filter(DAY_TYPE == "WEEKDAY") %>%
+  filter(TIME_PER_HOUR >= 17 & TIME_PER_HOUR <= 20) %>%
+  group_by(ORIGIN_PT_CODE) %>%
+  summarise(TRIPS = sum(TOTAL_TRIPS))
+
+weekendAM_11_14 <- odbus %>% 
+  filter(DAY_TYPE == "WEEKENDS/HOLIDAY") %>%
+  filter(TIME_PER_HOUR >= 11 & TIME_PER_HOUR <= 14) %>%
+  group_by(ORIGIN_PT_CODE) %>%
+  summarise(TRIPS = sum(TOTAL_TRIPS))
+
+weekendPM_16_19 <- odbus %>% 
+  filter(DAY_TYPE == "WEEKENDS/HOLIDAY") %>%
+  filter(TIME_PER_HOUR >= 17 & TIME_PER_HOUR <= 19) %>%
+  group_by(ORIGIN_PT_CODE) %>%
+  summarise(TRIPS = sum(TOTAL_TRIPS))
+```
+
+### Loading Geospatial data
+
+Next we will import the all of the bus stops and their coordinates and attached it to the *busstop* variable.
+
+```{r}
+# Import geospatial data
+busstop <- st_read(dsn = "data/geospatial", layer = "BusStop") %>%
+  st_transform(crs = 3414)
+```
+
+After that we will create the hexagons that will create the map layout. The hexagons will be shaped 250 x 250 cell size. All of the hexagons will also be given a grid id name that can be used for identifying each individual grid.
+
+```{r}
+area_honeycomb_grid <- st_make_grid(busstop, c(250, 250), what = "polygons", square = FALSE)
+honeycomb_grid_sf <- st_sf(area_honeycomb_grid) %>%
+  mutate(grid_id = 1:length(lengths(area_honeycomb_grid)))
+
+```
+
+# Data processing
+
+## Assigning individual bus stop to hexagons
+
+First we will assign the bus stop point geometry data to each polygon using *st_intersection()*. The function assigns all of the points to a polygon and then join both tables together.
+
+```{r}
+busstop_hex <- st_intersection(busstop, honeycomb_grid_sf) %>%
+  st_drop_geometry()
+
+```
+
+We will first rename the bus stop column title for easier data joining.
+
+```{r}
+# Rename column for joining
+colnames(busstop_hex)[colnames(busstop_hex) == "BUS_STOP_N"] <- "ORIGIN_PT_CODE"
+# weekdayAM_6_9_trips <- left_join(busstop, weekdayAM_6_9)
+# test_points <- weekdayAM_6_9_trips %>%
+#   filter(!is.na(TRIPS)) %>%
+#   st_as_sf(coords = c("geometry"), crs = 3414, remove = FALSE) %>%
+#   select(1, 4)
+#colnames(busstop)[colnames(busstop) == "BUS_STOP_N"] <- "ORIGIN_PT_CODE"
+```
+
+
+## Join tables
+
+Next we will then join the variables that we created earlier that contains the total number of trips at different time intervals and the *busstop_hex* variable together using **BUS_STOP_N** column title that we have in common. We will then also restore the polygonal data back to each time duration and filter for grid ids that do not have trips taken on them.
+
+```{r}
+
+origin_weekdayAM_6_9 <- left_join(weekdayAM_6_9 , busstop_hex)
+origin_weekdayPM_5_8 <- left_join(weekdayPM_5_8 , busstop_hex)
+origin_weekendAM_11_14 <- left_join(weekendAM_11_14 , busstop_hex)
+origin_weekendPM_16_19 <- left_join(weekendPM_16_19 , busstop_hex)
+  #           by = c("ORIGIN_PT_CODE" = "BUS_STOP_N")) %>%
+  # rename(ORIGIN_BS = ORIGIN_PT_CODE,
+  #        ORIGIN_SZ = SUBZONE_C) %>%
+  # group_by(ORIGIN_SZ) %>%
+  # summarise(TOT_TRIPS = sum(TRIPS))
+
+a <- left_join(honeycomb_grid_sf, origin_weekdayAM_6_9)
+b <- left_join(honeycomb_grid_sf, origin_weekdayPM_5_8)
+c <- left_join(honeycomb_grid_sf, origin_weekendAM_11_14)
+d <- left_join(honeycomb_grid_sf, origin_weekendPM_16_19)
+
+finalA <- a %>%
+  filter(TRIPS > 0)
+finalB <- b %>%
+  filter(TRIPS > 0)
+finalC <- c %>%
+  filter(TRIPS > 0)
+finalD <- d %>%
+  filter(TRIPS > 0)
+
+```
+## Duplication check
+
+Here we will check for the presence of any duplication before we further process the data.
+```{r}
+duplicate1 <- finalA %>%
+  group_by_all() %>%
+  filter(n()>1) %>%
+  ungroup()
+
+duplicate2 <- finalB %>%
+  group_by_all() %>%
+  filter(n()>1) %>%
+  ungroup()
+
+duplicate3 <- finalC %>%
+  group_by_all() %>%
+  filter(n()>1) %>%
+  ungroup()
+
+duplicate4 <- finalD %>%
+  group_by_all() %>%
+  filter(n()>1) %>%
+  ungroup()
+```
+
+We can see which data points are duplicated here.
+```{r}
+c(duplicate1,duplicate2,duplicate3,duplicate4)
+```
+
+Finally we only keep data points that are unique using the *unique()* function.
+```{r}
+finalA <- unique(finalA)
+finalB <- unique(finalB)
+finalC <- unique(finalC)
+finalD <- unique(finalD)
+```
+
+
+# Choropleth map
+
+
+```{r}
+mapA <- tm_shape(finalA) +
+  tm_borders() +
+  tm_fill("TRIPS", style = "quantile", palette = "Blues", title = "Total Trips") +
+  tm_layout(title = "Hexagonal Grid with Total Trips")
+mapB <- tm_shape(finalB) +
+  tm_borders() +
+  tm_fill("TRIPS", style = "quantile", palette = "Blues", title = "Total Trips") +
+  tm_layout(title = "Hexagonal Grid with Total Trips")
+mapC <- tm_shape(finalC) +
+  tm_borders() +
+  tm_fill("TRIPS", style = "quantile", palette = "Blues", title = "Total Trips") +
+  tm_layout(title = "Hexagonal Grid with Total Trips")
+mapD <- tm_shape(finalD) +
+  tm_borders() +
+  tm_fill("TRIPS", style = "quantile", palette = "Blues", title = "Total Trips") +
+  tm_layout(title = "Hexagonal Grid with Total Trips")
+
+# Display the map
+tmap_leaflet(mapA)
+tmap_leaflet(mapB)
+tmap_leaflet(mapC)
+tmap_leaflet(mapD)
+```
