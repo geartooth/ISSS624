@@ -231,7 +231,7 @@ mapD <- tm_shape(finalD) +
   tm_fill("TRIPS", style = "quantile", palette = "Blues", title = "Total Trips") +
   tm_layout(title = "Hexagonal Grid with Total Trips")
 
-# Display the map
+# Display the map 
 # tmap_leaflet(mapA)
 # tmap_leaflet(mapB)
 # tmap_leaflet(mapC)
