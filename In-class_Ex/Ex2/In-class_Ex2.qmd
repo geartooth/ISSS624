@@ -10,7 +10,7 @@ execute:
 editor: visual
 ---
 
-# OVerview
+# Overview
 
 # Getting started
 
@@ -90,6 +90,7 @@ nb_queen <- hunan_GDPPC %>%
          .before = 1)
 summary(nb_queen$nb)
 ```
+
 
 The report shows that there are 88 area units or regions in the Hunan province and the area with the most number of connected neighbours is 11 and the least is 1.
 

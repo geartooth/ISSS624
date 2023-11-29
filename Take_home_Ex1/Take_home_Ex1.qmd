@@ -105,16 +105,20 @@ busstop <- st_read(dsn = "data/geospatial", layer = "BusStop") %>%
   st_transform(crs = 3414)
 ```
 
+```{r}
+center <- st_centroid(busstop)
+```
+
 After that we will create the hexagons that will create the map layout. The hexagons will be shaped 250 x 250 cell size. All of the hexagons will also be given a grid id name that can be used for identifying each individual grid.
 
 ```{r}
-area_honeycomb_grid <- st_make_grid(busstop, c(250, 250), what = "polygons", square = FALSE)
+area_honeycomb_grid <- st_make_grid(center, cellsize = c(250 * sqrt(3), 250 * 2), what = "polygons", square = FALSE)
 honeycomb_grid_sf <- st_sf(area_honeycomb_grid) %>%
   mutate(grid_id = 1:length(lengths(area_honeycomb_grid)))
 
 ```
 
-# Data processing
+# Data processing 
 
 ## Assigning individual bus stop to hexagons
 
@@ -139,7 +143,6 @@ colnames(busstop_hex)[colnames(busstop_hex) == "BUS_STOP_N"] <- "ORIGIN_PT_CODE"
 #colnames(busstop)[colnames(busstop) == "BUS_STOP_N"] <- "ORIGIN_PT_CODE"
 ```
 
-
 ## Join tables
 
 Next we will then join the variables that we created earlier that contains the total number of trips at different time intervals and the *busstop_hex* variable together using **BUS_STOP_N** column title that we have in common. We will then also restore the polygonal data back to each time duration and filter for grid ids that do not have trips taken on them.
@@ -150,11 +153,7 @@ origin_weekdayAM_6_9 <- left_join(weekdayAM_6_9 , busstop_hex)
 origin_weekdayPM_5_8 <- left_join(weekdayPM_5_8 , busstop_hex)
 origin_weekendAM_11_14 <- left_join(weekendAM_11_14 , busstop_hex)
 origin_weekendPM_16_19 <- left_join(weekendPM_16_19 , busstop_hex)
-  #           by = c("ORIGIN_PT_CODE" = "BUS_STOP_N")) %>%
-  # rename(ORIGIN_BS = ORIGIN_PT_CODE,
-  #        ORIGIN_SZ = SUBZONE_C) %>%
-  # group_by(ORIGIN_SZ) %>%
-  # summarise(TOT_TRIPS = sum(TRIPS))
+
 
 a <- left_join(honeycomb_grid_sf, origin_weekdayAM_6_9)
 b <- left_join(honeycomb_grid_sf, origin_weekdayPM_5_8)
@@ -171,9 +170,11 @@ finalD <- d %>%
   filter(TRIPS > 0)
 
 ```
+
 ## Duplication check
 
 Here we will check for the presence of any duplication before we further process the data.
+
 ```{r}
 duplicate1 <- finalA %>%
   group_by_all() %>%
@@ -197,11 +198,13 @@ duplicate4 <- finalD %>%
 ```
 
 We can see which data points are duplicated here.
+
 ```{r}
 c(duplicate1,duplicate2,duplicate3,duplicate4)
 ```
 
 Finally we only keep data points that are unique using the *unique()* function.
+
 ```{r}
 finalA <- unique(finalA)
 finalB <- unique(finalB)
@@ -209,31 +212,437 @@ finalC <- unique(finalC)
 finalD <- unique(finalD)
 ```
 
-
 # Choropleth map
 
+Here we will plot the choropleth map for the different time intervals. We will be using *tmap_mode("plot")* to create an interactive map. Although we will be coding in accessories such as the compass, they will not be displayed in the interactive map. However by writing them first, we can display them in subsequent maps once we view them in **plot** mode.
+
+## Weekday 6am to 9am
 
 ```{r}
-mapA <- tm_shape(finalA) +
-  tm_borders() +
-  tm_fill("TRIPS", style = "quantile", palette = "Blues", title = "Total Trips") +
-  tm_layout(title = "Hexagonal Grid with Total Trips")
-mapB <- tm_shape(finalB) +
-  tm_borders() +
-  tm_fill("TRIPS", style = "quantile", palette = "Blues", title = "Total Trips") +
-  tm_layout(title = "Hexagonal Grid with Total Trips")
-mapC <- tm_shape(finalC) +
-  tm_borders() +
-  tm_fill("TRIPS", style = "quantile", palette = "Blues", title = "Total Trips") +
-  tm_layout(title = "Hexagonal Grid with Total Trips")
-mapD <- tm_shape(finalD) +
-  tm_borders() +
-  tm_fill("TRIPS", style = "quantile", palette = "Blues", title = "Total Trips") +
-  tm_layout(title = "Hexagonal Grid with Total Trips")
+tmap_mode("view")
+mapA <- tm_shape(finalA)+
+  tm_fill("TRIPS", 
+          style = "quantile", 
+          palette = "Blues",
+          title = "Passenger trips") +
+  tm_layout(main.title = "Passenger trips generated Weekday 6am-9am",
+            main.title.position = "center",
+            main.title.size = 0.7,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            frame = TRUE) +
+  tm_borders(alpha = 0.5) +
+  tm_compass(type="8star", size = 1) +
+  tm_scale_bar() +
+  tm_grid(alpha =0.2) +
+  tm_credits("Source: Planning Sub-zone boundary from URA\n and Passenger trips data from LTA", 
+             position = c("left", "bottom"))
+mapA
+```
 
-# Display the map 
-# tmap_leaflet(mapA)
-# tmap_leaflet(mapB)
-# tmap_leaflet(mapC)
-# tmap_leaflet(mapD)
+The total number of ridership range from 1 to 357043 per hexagon.
+
+## Weekday 5pm to 8pm
+
+```{r}
+mapB <- tm_shape(finalB)+
+  tm_fill("TRIPS", 
+          style = "quantile", 
+          palette = "Reds",
+          title = "Passenger trips") +
+  tm_layout(main.title = "Passenger trips generated Weekday 5pm-8pm",
+            main.title.position = "center",
+            main.title.size = 0.7,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            frame = TRUE) +
+  tm_borders(alpha = 0.5) +
+  tm_compass(type="8star", size = 1) +
+  tm_scale_bar() +
+  tm_grid(alpha =0.2) +
+  tm_credits("Source: Planning Sub-zone boundary from URA\n and Passenger trips data from LTA", 
+             position = c("left", "bottom"))
+mapB
+```
+
+The total number of ridership range from 1 to 529081 per hexagon.
+
+## Weekend/Holidays 11am to 2pm
+
+```{r}
+mapC <- tm_shape(finalC)+
+  tm_fill("TRIPS", 
+          style = "quantile", 
+          palette = "Greens",
+          title = "Passenger trips") +
+  tm_layout(main.title = "Passenger trips generated Weekend/holidays 11am-2pm",
+            main.title.position = "center",
+            main.title.size = 0.7,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            frame = TRUE) +
+  tm_borders(alpha = 0.5) +
+  tm_compass(type="8star", size = 1) +
+  tm_scale_bar() +
+  tm_grid(alpha =0.2) +
+  tm_credits("Source: Planning Sub-zone boundary from URA\n and Passenger trips data from LTA", 
+             position = c("left", "bottom"))
+mapC
+```
+
+The total number of ridership range from 1 to 103358 per hexagon.
+
+## Weekend/Holidays 4pm to 7pm
+
+```{r}
+mapD <- tm_shape(finalD)+
+  tm_fill("TRIPS", 
+          style = "quantile", 
+          palette = "Purples",
+          title = "Passenger trips") +
+  tm_layout(main.title = "Passenger trips generated Weekend/holidays 4pm-7pm",
+            main.title.position = "center",
+            main.title.size = 0.7,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            frame = TRUE) +
+  tm_borders(alpha = 0.5) +
+  tm_compass(type="8star", size = 1) +
+  tm_scale_bar() +
+  tm_grid(alpha =0.2) +
+  tm_credits("Source: Planning Sub-zone boundary from URA\n and Passenger trips data from LTA", 
+             position = c("left", "bottom"))
+mapD
+
+```
+
+The total number of ridership range from 1 to 113321 per hexagon.
+
+## Plot maps
+
+We can also utilise a plot mode by using *tmap_mode("plot")*.
+
+```{r}
+tmap_mode("plot")
+mapA
+```
+
+This allows for other accessories to be added such as compass and scales which might be useful depending on the application or use of the map.
+
+## Choropleth map discussion
+
+# LISA
+
+```{r}
+# finalA$nb <- st_contiguity(finalA)
+# finale <- finalA %>%
+#   filter(!purrr::map_lgl(nb, ~ all(. == 0)))
+#  
+#  wm_q <- finale %>%
+#    mutate(nb = st_contiguity(area_honeycomb_grid),
+#           wt = st_weights(nb,
+#                           style = "W"),
+#           .before = 1) 
+
+```
+
+Before we calculate LISA, we will add the number of neighbours to each dataset for the various grids. We will use *st_contiguity()* and add a neighbour column to the data points under a new variable name. By default, the Queen method of contiguity will be used for calculating the neighbours.
+
+```{r}
+
+wm_qA <- finalA %>%
+    mutate(nb = st_contiguity(area_honeycomb_grid),
+
+         .before = 1)
+wm_qB <- finalB %>%
+  mutate(nb = st_contiguity(area_honeycomb_grid),
+
+         .before = 1)
+wm_qC <- finalC %>%
+  mutate(nb = st_contiguity(area_honeycomb_grid),
+
+         .before = 1)
+wm_qD <- finalD %>%
+  mutate(nb = st_contiguity(area_honeycomb_grid),
+
+         .before = 1)
+```
+
+Here we can use the *summary()* function to take a look at the different regions and the neighbours that they have.
+
+```{r}
+summary(wm_qA$nb)
+```
+
+We see that there are 4985 data points and they have an average of 5.85 neighbours. There are 35 bus stops with 0 neighbours and 6 bus stops with 17 neighbours.
+
+Next we will have to remove all of the data points with 0 neighbours using *filter* and **purrr** package.
+
+```{r}
+wm_qA_process <- wm_qA %>%
+   filter(!purrr::map_lgl(nb, ~ all(. == 0)))
+wm_qB_process <- wm_qB %>%
+   filter(!purrr::map_lgl(nb, ~ all(. == 0)))
+wm_qC_process <- wm_qC %>%
+   filter(!purrr::map_lgl(nb, ~ all(. == 0)))
+wm_qD_process <- wm_qD %>%
+   filter(!purrr::map_lgl(nb, ~ all(. == 0)))
+```
+
+## Spatial weights
+
+```{r}
+wm_qA_weighted <- wm_qA_process %>% 
+  mutate(nb = st_contiguity(area_honeycomb_grid),
+         wt = st_weights(nb, style = "W"),
+         .before = 1)
+wm_qB_weighted <- wm_qB_process %>% 
+  mutate(nb = st_contiguity(area_honeycomb_grid),
+         wt = st_weights(nb, style = "W"),
+         .before = 1)
+wm_qC_weighted <- wm_qC_process %>% 
+  mutate(nb = st_contiguity(area_honeycomb_grid),
+         wt = st_weights(nb, style = "W"),
+         .before = 1)
+wm_qD_weighted <- wm_qD_process %>% 
+  mutate(nb = st_contiguity(area_honeycomb_grid),
+         wt = st_weights(nb, style = "W"),
+         .before = 1)
+```
+
+## Local Moran's I
+
+Here we will be using the *local_moran()* function to calculate the local Moran's I for each region or county.
+
+```{r}
+lisaA <- wm_qA_weighted %>% 
+  mutate(local_moran = local_moran(
+    TRIPS, nb, wt, nsim = 99),
+         .before = 1) %>%
+  unnest(local_moran)
+lisaB <- wm_qB_weighted %>% 
+  mutate(local_moran = local_moran(
+    TRIPS, nb, wt, nsim = 99),
+         .before = 1) %>%
+  unnest(local_moran)
+lisaC <- wm_qC_weighted %>% 
+  mutate(local_moran = local_moran(
+    TRIPS, nb, wt, nsim = 99),
+         .before = 1) %>%
+  unnest(local_moran)
+lisaD <- wm_qD_weighted %>% 
+  mutate(local_moran = local_moran(
+    TRIPS, nb, wt, nsim = 99),
+         .before = 1) %>%
+  unnest(local_moran)
+```
+
+The output will be a data fram containing the ii, eii, var_ii, z_ii, p_ii, p_ii_sim and p_folded_sum.
+
+## Combined visualisation of local Moran's I and p-value
+
+Here we will place the maps next to each other.
+
+### Weekday 6am to 9am
+
+```{r}
+tmap_mode("plot")
+map1A <- tm_shape(lisaA) +
+  tm_fill("ii") + 
+  tm_borders(alpha = 0.5) +
+  tm_view(set.zoom.limits = c(6,8)) +
+  tm_layout(main.title = "local Moran's I of the total number of trips",
+            main.title.size = 0.8)
+
+map2A <- tm_shape(lisaA) +
+  tm_fill("p_ii",
+          breaks = c(0, 0.001, 0.01, 0.05, 1),
+              labels = c("0.001", "0.01", "0.05", "Not sig")) + 
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "p-value of local Moran's I",
+            main.title.size = 0.8)
+
+tmap_arrange(map1A, map2A, ncol = 2)
+```
+
+### Weekday 5pm to 8pm
+
+```{r}
+tmap_mode("plot")
+map1B <- tm_shape(lisaB) +
+  tm_fill("ii") + 
+  tm_borders(alpha = 0.5) +
+  tm_view(set.zoom.limits = c(6,8)) +
+  tm_layout(main.title = "local Moran's I of the total number of trips",
+            main.title.size = 0.8)
+
+map2B <- tm_shape(lisaB) +
+  tm_fill("p_ii",
+          breaks = c(0, 0.001, 0.01, 0.05, 1),
+              labels = c("0.001", "0.01", "0.05", "Not sig")) + 
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "p-value of local Moran's I",
+            main.title.size = 0.8)
+
+tmap_arrange(map1B, map2B, ncol = 2)
+```
+
+### Weekday 6am to 9am
+
+```{r}
+tmap_mode("plot")
+map1C <- tm_shape(lisaC) +
+  tm_fill("ii") + 
+  tm_borders(alpha = 0.5) +
+  tm_view(set.zoom.limits = c(6,8)) +
+  tm_layout(main.title = "local Moran's I of the total number of trips",
+            main.title.size = 0.8)
+
+map2C <- tm_shape(lisaC) +
+  tm_fill("p_ii",
+          breaks = c(0, 0.001, 0.01, 0.05, 1),
+              labels = c("0.001", "0.01", "0.05", "Not sig")) + 
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "p-value of local Moran's I",
+            main.title.size = 0.8)
+
+tmap_arrange(map1C, map2C, ncol = 2)
+```
+
+### Weekday 6am to 9am
+
+```{r}
+tmap_mode("plot")
+map1D <- tm_shape(lisaD) +
+  tm_fill("ii") + 
+  tm_borders(alpha = 0.5) +
+  tm_view(set.zoom.limits = c(6,8)) +
+  tm_layout(main.title = "local Moran's I of the total number of trips",
+            main.title.size = 0.8)
+
+map2D <- tm_shape(lisaD) +
+  tm_fill("p_ii",
+          breaks = c(0, 0.001, 0.01, 0.05, 1),
+              labels = c("0.001", "0.01", "0.05", "Not sig")) + 
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "p-value of local Moran's I",
+            main.title.size = 0.8)
+
+tmap_arrange(map1D, map2D, ncol = 2)
+```
+
+## Visualisation of LISA
+
+Here will will visualise LISA where we can see the presence of outliers and clusters. More information can be found [here](https://isss624-liankhye.netlify.app/hands-on_ex02/hands-on_ex2_3#lisa-cluster-map). The following is a newer method for calculating LISA, and require shorter and more concise steps such as not having to manually form the high-high, high-low, low-high and low-low quadrants. Just make sure that if the data is skewed, we will have to use the median for forming the quadrant.
+
+### Weekday 6am to 9am
+
+```{r}
+lisa_sigA <- lisaA  %>%
+  filter(p_ii < 0.05)
+tmap_mode("view")
+tm_shape(lisaA) +
+  tm_polygons() +
+  tm_borders(alpha = 0.5) +
+tm_shape(lisa_sigA) +
+  tm_fill("mean") + 
+  tm_borders(alpha = 0.4)
+```
+
+### Weekday 5pm to 9pm
+
+```{r}
+lisa_sigB <- lisaB  %>%
+  filter(p_ii < 0.05)
+tmap_mode("view")
+tm_shape(lisaB) +
+  tm_polygons() +
+  tm_borders(alpha = 0.5) +
+tm_shape(lisa_sigB) +
+  tm_fill("mean") + 
+  tm_borders(alpha = 0.4)
+```
+
+### Weekends/Holidays 11am to 2pm
+
+```{r}
+lisa_sigC <- lisaC  %>%
+  filter(p_ii < 0.05)
+tmap_mode("view")
+tm_shape(lisaC) +
+  tm_polygons() +
+  tm_borders(alpha = 0.5) +
+tm_shape(lisa_sigC) +
+  tm_fill("mean") + 
+  tm_borders(alpha = 0.4)
+```
+
+### Weekeneds/Holidays 11am to 2pm
+
+```{r}
+lisa_sigD <- lisaD  %>%
+  filter(p_ii < 0.05)
+tmap_mode("view")
+tm_shape(lisaD) +
+  tm_polygons() +
+  tm_borders(alpha = 0.5) +
+tm_shape(lisa_sigD) +
+  tm_fill("mean") + 
+  tm_borders(alpha = 0.4)
+```
+
+# Checking consistency
+
+```{r}
+lisaA_test <- lisaA %>%
+  select(10, 15) %>%
+  st_drop_geometry()
+colnames(lisaA_test)[colnames(lisaA_test) == "mean"] <- "Weekday AM"
+
+
+lisaC_test <- lisaC %>%
+  select(10, 15) %>%
+  st_drop_geometry()
+colnames(lisaC_test)[colnames(lisaC_test) == "mean"] <- "Weekend AM"
+
+AM <-  left_join(lisaA_test , lisaC_test) 
+AM <- mutate(AM, is_equal = `Weekday AM` == `Weekend AM`)
+
+colnames(AM)[4] = "equality"
+
+AM_diff<-AM$grid_id[AM[4] == FALSE]
+AM_diff_unique<-unique(AM_diff)
+p <- data.frame(AM_diff_unique)
+
+#origin_SZ <- left_join(origin7_9 , busstop_mpsz,
+#            by = c("ORIGIN_PT_CODE" = "BUS_STOP_N"))
+```
+
+```{r}
+p$diff <- "TRUE"
+colnames(p)[colnames(p) == "AM_diff_unique"] <- "grid_id"
+pp <- left_join(honeycomb_grid_sf, p)
+ppp <- pp[!is.na(pp$diff), ]
+```
+
+```{r}
+
+mapA <- tm_shape(ppp) +
+  tm_fill(fill = "Blues",
+          title = "Passenger trips") +
+  tm_layout(main.title = "Passenger trips generated Weekday 6am-9am",
+            main.title.position = "center",
+            main.title.size = 0.7,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            frame = TRUE) +
+  tm_borders(alpha = 0.5) +
+  tm_compass(type = "8star", size = 1) +
+  tm_scale_bar() +
+  tm_grid(alpha = 0.2) +
+  tm_credits("Source: Planning Sub-zone boundary from URA\n and Passenger trips data from LTA", 
+             position = c("left", "bottom"))
+
+tmap_mode("view")
+mapA
 ```

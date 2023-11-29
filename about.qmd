@@ -1,8 +1,5 @@
 ---
 title: "About"
-about:
-  template: sandstone
-  image: adventure-compass.gif
 ---
 
 About this site

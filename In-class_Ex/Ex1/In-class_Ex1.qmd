@@ -46,7 +46,7 @@ odbus$DESTINATION_PT_CODE<-as.factor(odbus$DESTINATION_PT_CODE)
 For the purpose of this exercise, we will extract commuting flows on weekday and between 7 and 9 o'clock
 
 ```{r}
-origtrip_7_9<-odbus %>% 
+origin7_9<-odbus %>% 
   filter(DAY_TYPE == "WEEKDAY") %>%
   filter(TIME_PER_HOUR >= 7 &
            TIME_PER_HOUR <= 9) %>%
@@ -63,4 +63,24 @@ busstop <- st_read(dsn = "data/geospatial", layer = "BusStop")%>%
 mpsz <- st_read(dsn = "data/geospatial", layer = "MPSZ-2019") %>%
   st_transform(crs=3414)
 mpsz
+```
+
+```{r}
+busstop_mpsz <- st_intersection(busstop, mpsz) %>%
+   select(BUS_STOP_N, SUBZONE_C) %>%
+   st_drop_geometry()
+```
+```{r}
+origin_SZ <- left_join(origin7_9 , busstop_mpsz,
+            by = c("ORIGIN_PT_CODE" = "BUS_STOP_N")) %>%
+  rename(ORIGIN_BS = ORIGIN_PT_CODE,
+         ORIGIN_SZ = SUBZONE_C) %>%
+  group_by(ORIGIN_SZ) %>%
+  summarise(TOT_TRIPS = sum(TRIPS))
+```
+
+```{r}
+origintrip_SZ <- left_join(mpsz, 
+                           origin_SZ,
+                           by = c("SUBZONE_C" = "ORIGIN_SZ"))
 ```
