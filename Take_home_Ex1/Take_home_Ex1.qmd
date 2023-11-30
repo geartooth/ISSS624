@@ -126,7 +126,7 @@ honeycomb_grid_sf <- st_sf(area_honeycomb_grid) %>%
 
 ## Assigning individual bus stop to hexagons
 
-First we will assign the bus stop point geometry data to each polygon using *st_intersection()*. The function assigns all of the points to a polygon and then join both tables together.
+First we will assign the bus stop point geometry data to each polygon using *st_intersection()*. The function assigns all of the points to a polygon by the point-set intersection of two geometries. Additional information [here](https://postgis.net/docs/ST_Intersection.html).
 
 ```{r}
 busstop_hex <- st_intersection(busstop, honeycomb_grid_sf) %>%
@@ -175,9 +175,9 @@ unique_weekendAM <- unique(weekendAM_11_14)
 unique_weekendPM <- unique(weekendPM_16_19)
 ```
 
-## Join tables
+## Trip tabulation
 
-Next we will then join the variables that we created earlier that contains the total number of trips at different time intervals and the *busstop_hex* variable together using **BUS_STOP_N** column title that we have in common.
+Next we will then join the variables that we created earlier that contains the total number of trips at different time intervals and the *busstop_hex* variable together using **grid_id** column title that they have in common. The total number of trips made from each hexagon is then summed up together and placed under a new column named **TOT_TRIPS**.
 
 ```{r}
 count_weekdayAM_6_9 <- left_join(unique_weekdayAM , busstop_hex) %>%
@@ -199,15 +199,21 @@ count_weekendPM_16_19 <- left_join(unique_weekendPM , busstop_hex) %>%
 
 ```
 
+
+## Reassign polygon information
+
+We will the reassign the polygon information from the hexagonal map that we have created earlier.
+
 ```{r}
 poly_weekdayAM_6_9 <- left_join(honeycomb_grid_sf,count_weekdayAM_6_9)
 poly_weekdayPM_5_8 <- left_join(honeycomb_grid_sf,count_weekdayPM_5_8)
 poly_weekendAM_11_14 <- left_join(honeycomb_grid_sf,count_weekendAM_11_14)
 poly_weekendPM_16_19 <- left_join(honeycomb_grid_sf,count_weekendPM_16_19)
-
-
-
 ```
+
+## Filter for empty trips
+
+Following that we will filter hexagons that have no trips to obtain only valid hexagons for mapping.
 
 ```{r}
 grid_weekdayAM <- poly_weekdayAM_6_9 %>%
@@ -278,6 +284,8 @@ mapB <- tm_shape(grid_weekdayPM)+
 mapB
 ```
 
+The total number of ridership range from 1 to 568845 per hexagon.
+
 ## **Weekend/Holidays 11am to 2pm**
 
 ```{r}
@@ -302,108 +310,9 @@ mapC
 
 ```
 
-## **Weekend/Holidays 4pm to 7pm**
-
-```{r}
-mapD <- tm_shape(grid_weekendPM)+
-  tm_fill("TOT_TRIPS", 
-          style = "quantile", 
-          palette = "Purples",
-          title = "Passenger trips") +
-  tm_layout(main.title = "Passenger trips generated Weekend/holidays 4pm-7pm",
-            main.title.position = "center",
-            main.title.size = 0.7,
-            legend.height = 0.45, 
-            legend.width = 0.35,
-            frame = TRUE) +
-  tm_borders(alpha = 0.5) +
-  tm_compass(type="8star", size = 1) +
-  tm_scale_bar() +
-  tm_grid(alpha =0.2) +
-  tm_credits("Source: Planning Sub-zone boundary from URA\n and Passenger trips data from LTA", 
-             position = c("left", "bottom"))
-mapD
-
-```
-:::
-
-## Weekday 6am to 9am
-
-```{r}
-tmap_mode("view")
-mapA <- tm_shape(grid_weekdayAM)+
-  tm_fill("TOT_TRIPS", 
-          style = "quantile", 
-          palette = "Blues",
-          title = "Passenger trips") +
-  tm_layout(main.title = "Passenger trips generated Weekday 6am-9am",
-            main.title.position = "center",
-            main.title.size = 0.7,
-            legend.height = 0.45, 
-            legend.width = 0.35,
-            frame = TRUE) +
-  tm_borders(alpha = 0.5) +
-  tm_compass(type="8star", size = 1) +
-  tm_scale_bar() +
-  tm_grid(alpha =0.2) +
-  tm_credits("Source: Planning Sub-zone boundary from URA\n and Passenger trips data from LTA", 
-             position = c("left", "bottom"))
-mapA
-```
-
-The total number of ridership range from 1 to 357043 per hexagon. The range of the data are divided to quantile range bands for clearer distinction between ridership of each hexagon.
-
-## Weekday 5pm to 8pm
-
-```{r}
-mapB <- tm_shape(grid_weekdayPM)+
-  tm_fill("TOT_TRIPS", 
-          style = "quantile", 
-          palette = "Reds",
-          title = "Passenger trips") +
-  tm_layout(main.title = "Passenger trips generated Weekday 5pm-8pm",
-            main.title.position = "center",
-            main.title.size = 0.7,
-            legend.height = 0.45, 
-            legend.width = 0.35,
-            frame = TRUE) +
-  tm_borders(alpha = 0.5) +
-  tm_compass(type="8star", size = 1) +
-  tm_scale_bar() +
-  tm_grid(alpha =0.2) +
-  tm_credits("Source: Planning Sub-zone boundary from URA\n and Passenger trips data from LTA", 
-             position = c("left", "bottom"))
-mapB
-```
-
-The total number of ridership range from 1 to 568845 per hexagon.
-
-## Weekend/Holidays 11am to 2pm
-
-```{r}
-mapC <- tm_shape(grid_weekendAM)+
-  tm_fill("TOT_TRIPS", 
-          style = "quantile", 
-          palette = "Greens",
-          title = "Passenger trips") +
-  tm_layout(main.title = "Passenger trips generated Weekend/holidays 11am-2pm",
-            main.title.position = "center",
-            main.title.size = 0.7,
-            legend.height = 0.45, 
-            legend.width = 0.35,
-            frame = TRUE) +
-  tm_borders(alpha = 0.5) +
-  tm_compass(type="8star", size = 1) +
-  tm_scale_bar() +
-  tm_grid(alpha =0.2) +
-  tm_credits("Source: Planning Sub-zone boundary from URA\n and Passenger trips data from LTA", 
-             position = c("left", "bottom"))
-mapC
-```
-
 The total number of ridership range from 1 to 117609 per hexagon.
 
-## Weekend/Holidays 4pm to 7pm
+## **Weekend/Holidays 4pm to 7pm**
 
 ```{r}
 mapD <- tm_shape(grid_weekendPM)+
@@ -428,6 +337,7 @@ mapD
 ```
 
 The total number of ridership range from 1 to 114410 per hexagon.
+:::
 
 ## Plot maps
 
@@ -445,6 +355,8 @@ This allows for other accessories to be added such as compass and scales which m
 We can see that the total ridership over the weekends is lower than the weekday counterparts despite both being classified as peak hours. This difference is likely due to people travelling to or from work on the weekdays as compared to the weekends where there will be less traffic as people choose to stay at home or electing to travel to districts where it may be more accessible by other transportations such as trains.
 
 # LISA
+
+## Creating neighbour count column
 
 Before we calculate LISA, we will add the number of neighbours to each dataset for the various grids. We will use *st_contiguity()* and add a neighbour column to the data points under a new variable name. By default, the Queen method of contiguity will be used for calculating the neighbours.
 
@@ -468,11 +380,129 @@ wm_qD <- grid_weekendPM %>%
 
 Here we can use the *summary()* function to take a look at the different regions and the neighbours that they have.
 
+::: panel-tabset
+## **Weekday 6am to 9am**
+
 ```{r}
 summary(wm_qA$nb)
+
+
 ```
 
 We see that there are 1779 data points and they have an average of 4.3 neighbours. There are 14 hexagons with 0 neighbours and 450 hexagons with 6 neighbours.
+
+## **Weekday 6am to 9am**
+
+```{r}
+summary(wm_qB$nb)
+```
+
+We see that there are 1780 data points and they have an average of 4.3 neighbours. There are 14 hexagons with 0 neighbours and 450 hexagons with 6 neighbours.
+
+## **Weekday 6am to 9am**
+
+```{r}
+summary(wm_qC$nb)
+```
+
+We see that there are 1786 data points and they have an average of 4.3 neighbours. There are 13 hexagons with 0 neighbours and 454 hexagons with 6 neighbours.
+
+## **Weekday 6am to 9am**
+
+```{r}
+summary(wm_qD$nb)
+```
+
+We see that there are 1775 data points and they have an average of 4.3 neighbours. There are 12 hexagons with 0 neighbours and 446 hexagons with 6 neighbours.
+:::
+
+## Neighbour count
+
+Here we can convert the above neighbour count data into a variable dataframe for more direct comparison
+
+```{r}
+df_countsA <- wm_qA %>%
+  summarise(vector_length = map_dbl(nb, ~length(.))) %>%
+  group_by(vector_length) %>%
+  summarise(count = n()) %>%
+  st_drop_geometry()
+
+df_countsB <- wm_qB %>%
+  summarise(vector_length = map_dbl(nb, ~length(.))) %>%
+  group_by(vector_length) %>%
+  summarise(count = n())%>%
+  st_drop_geometry()
+
+df_countsC <- wm_qC %>%
+  summarise(vector_length = map_dbl(nb, ~length(.))) %>%
+  group_by(vector_length) %>%
+  summarise(count = n())%>%
+  st_drop_geometry()
+
+df_countsD <- wm_qD %>%
+  summarise(vector_length = map_dbl(nb, ~length(.))) %>%
+  group_by(vector_length) %>%
+  summarise(count = n())%>%
+  st_drop_geometry()
+
+result <- bind_rows(
+  mutate(df_countsA, dataset = "Weekday 6am to 9am"),
+  mutate(df_countsB, dataset = "Weekday 5pm to 8pm"),
+  mutate(df_countsC, dataset = "Weekends/holidays 11am to 2pm"),
+  mutate(df_countsD, dataset = "Weekends/holidays 4pm to 7pm")
+) %>%
+  rename("number of neighbours" = vector_length, count = count)
+
+
+```
+## Compiling neighbour count
+
+We will use the *bind_rows()* function to group all of the neighbour count data together and rearrange them.
+
+```{r}
+
+result <- bind_rows(
+  mutate(df_countsA, dataset = "Weekday 6am to 9am"),
+  mutate(df_countsB, dataset = "Weekday 5pm to 8pm"),
+  mutate(df_countsC, dataset = "Weekends/holidays 11am to 2pm"),
+  mutate(df_countsD, dataset = "Weekends/holidays 4pm to 7pm")
+) %>%
+  rename("number_of_neighbours" = vector_length, count = count)
+
+
+
+
+result <- result %>%
+  group_by(dataset) %>%
+  arrange(desc(number_of_neighbours)) %>%
+  mutate(number_of_neighbours = factor(number_of_neighbours, levels = unique(number_of_neighbours)))
+```
+
+
+
+## Plotting neighbour count bar chart
+
+Next we will use ggplot to plot the bar chart for the number of hexagons with differing neighbour count and the different time interval. 
+```{r}
+
+
+ggplot(result, aes(x = number_of_neighbours, y = count, fill = dataset)) +
+  stat_summary(fun = "sum", geom = "bar", position = "dodge") +
+  scale_fill_manual(values = c(
+                   "Weekday 6am to 9am" = "blue4",
+                   "Weekday 5pm to 8pm" = "brown2",
+                   "Weekends/holidays 11am to 2pm" = "palegreen",
+                   "Weekends/holidays 4pm to 7pm" = "mediumpurple1")) 
+  labs(title = "Number of Neighbours Counts",
+       x = "Number of Neighbours",
+       y = "Count") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+
+Overall we see a decrease in ridership between weekdays and weekends however the number of bus stops that are utilised remains fairly the same. This may mean an overall decrease in ridership for all bus stops but the bus stops that are utilised for boarding remain the same.
 
 Next we will have to remove all of the data points with 0 neighbours using *filter* and **purrr** package.
 
@@ -541,7 +571,8 @@ The output will be a data fram containing the ii, eii, var_ii, z_ii, p_ii, p_ii_
 
 Here we will place the maps next to each other.
 
-### Weekday 6am to 9am
+::: panel-tabset
+## **Weekday 6am to 9am**
 
 ```{r}
 tmap_mode("plot")
@@ -563,7 +594,7 @@ map2A <- tm_shape(lisaA) +
 tmap_arrange(map1A, map2A, ncol = 2)
 ```
 
-### Weekday 5pm to 8pm
+## **Weekday 5pm to 8pm**
 
 ```{r}
 tmap_mode("plot")
@@ -585,7 +616,7 @@ map2B <- tm_shape(lisaB) +
 tmap_arrange(map1B, map2B, ncol = 2)
 ```
 
-### Weekday 6am to 9am
+## **Weekend/Holidays 11am to 2pm**
 
 ```{r}
 tmap_mode("plot")
@@ -607,7 +638,7 @@ map2C <- tm_shape(lisaC) +
 tmap_arrange(map1C, map2C, ncol = 2)
 ```
 
-### Weekday 6am to 9am
+## **Weekend/Holidays 4pm to 7pm**
 
 ```{r}
 tmap_mode("plot")
@@ -628,12 +659,14 @@ map2D <- tm_shape(lisaD) +
 
 tmap_arrange(map1D, map2D, ncol = 2)
 ```
+:::
 
 ## Visualisation of LISA
 
 Here will will visualise LISA where we can see the presence of outliers and clusters. More information can be found [here](https://isss624-liankhye.netlify.app/hands-on_ex02/hands-on_ex2_3#lisa-cluster-map). The following is a newer method for calculating LISA, and require shorter and more concise steps such as not having to manually form the high-high, high-low, low-high and low-low quadrants. Just make sure that if the data is skewed, we will have to use the median for forming the quadrant.
 
-### Weekday 6am to 9am
+::: panel-tabset
+## **Weekday 6am to 9am**
 
 ```{r}
 lisa_sigA <- lisaA  %>%
@@ -647,7 +680,7 @@ tm_shape(lisa_sigA) +
   tm_borders(alpha = 0.4)
 ```
 
-### Weekday 5pm to 9pm
+## **Weekday 5pm to 9pm**
 
 ```{r}
 lisa_sigB <- lisaB  %>%
@@ -661,7 +694,7 @@ tm_shape(lisa_sigB) +
   tm_borders(alpha = 0.4)
 ```
 
-### Weekends/Holidays 11am to 2pm
+## **Weekends/Holidays 11am to 2pm**
 
 ```{r}
 lisa_sigC <- lisaC  %>%
@@ -675,7 +708,7 @@ tm_shape(lisa_sigC) +
   tm_borders(alpha = 0.4)
 ```
 
-### Weekends/Holidays 11am to 2pm
+## **Weekends/Holidays 11am to 2pm**
 
 ```{r}
 lisa_sigD <- lisaD  %>%
@@ -688,6 +721,7 @@ tm_shape(lisa_sigD) +
   tm_fill("mean") + 
   tm_borders(alpha = 0.4)
 ```
+:::
 
 # Checking consistency
 
