@@ -1,0 +1,239 @@
+---
+title: "Hands_on_Ex3"
+---
+
+# Overview
+
+In this exercise we will explore the movements
+
+# Loading packages & data
+
+## Load packages
+```{r}
+pacman::p_load(tmap, sf, DT, stplanr,
+               performance,
+               ggpubr, tidyverse)
+```
+
+## Load data
+
+
+
+```{r}
+odbus <- read_csv("data/aspatial/origin_destination_bus_202310.csv")
+odbus$ORIGIN_PT_CODE <- as.factor(odbus$ORIGIN_PT_CODE)
+odbus$DESTINATION_PT_CODE <- as.factor(odbus$DESTINATION_PT_CODE)
+
+```
+
+Next we will specifically utilise the data for weekdays and only from 6am to 9am. We will also be retaining the destination bus stop this time so that we can see the flow of riders.
+
+```{r}
+odbus6_9 <- odbus %>%
+  filter(DAY_TYPE == "WEEKDAY") %>%
+  filter(TIME_PER_HOUR >= 6 &
+           TIME_PER_HOUR <= 9) %>%
+  group_by(ORIGIN_PT_CODE,
+           DESTINATION_PT_CODE) %>%
+  summarise(TRIPS = sum(TOTAL_TRIPS))
+```
+
+We can also showcase the data as a datatable.
+
+```{r}
+datatable(odbus6_9)
+
+```
+
+## rds format
+
+We can save the output file as rds format using the *write_rds()* function.
+
+```{r}
+write_rds(odbus6_9, "data/rds/odbus6_9.rds")
+```
+
+When we need the data, we can use the *read_rds()* function.
+
+```{r}
+odbus6_9 <- read_rds("data/rds/odbus6_9.rds")
+```
+
+## Load Geospatial data
+
+We will utilise the busstop location data from Q4 of 2022 and the layout of Singapore using the URA Master Plan from 2019.
+
+```{r}
+busstop <- st_read(dsn = "data/geospatial",
+                   layer = "BusStop") %>%
+  st_transform(crs = 3414)
+
+mpsz <- st_read(dsn = "data/geospatial",
+                   layer = "MPSZ-2019") %>%
+  st_transform(crs = 3414)
+
+```
+
+# Geospatial data processing
+
+## Combine busstop and subzone layout
+
+Firstly we will need to combine the bus stop data and the subzone data together. We will use the *st_intersection()* function that will allocate the bus stops to the subzones of the masterplan. We will then use *select()* function to obtain only the bus stop numbers and the subzone regions to keep the data more compact.
+
+```{r}
+busstop_mpsz <- st_intersection(busstop, mpsz) %>%
+  select(BUS_STOP_N, SUBZONE_C) %>%
+  st_drop_geometry()
+
+```
+
+We can also visualist this using *datatable()* function.
+
+```{r}
+datatable(busstop_mpsz)
+
+```
+
+Once again we will save this into rds format using the *write_rds()* function.
+
+```{r}
+write_rds(busstop_mpsz, "data/rds/busstop_mpsz.rds") 
+
+```
+
+## Combine busstop-subzone data and ridership info
+
+Next we will then combine the busstop and subzone information together with the ridership information for weekdays, 6am to 9am. This will allow us to allocate the ridership to each subzone. We will use the bus stop number to join the data using *left_join()* function. 
+
+
+
+```{r}
+od_data <- left_join(odbus6_9 , busstop_mpsz,
+            by = c("ORIGIN_PT_CODE" = "BUS_STOP_N")) %>%
+  rename(ORIGIN_BS = ORIGIN_PT_CODE,
+         ORIGIN_SZ = SUBZONE_C,
+         DESTIN_BS = DESTINATION_PT_CODE)
+```
+
+To prevent over adding of data, we will check for duplicates.
+
+```{r}
+duplicate <- od_data %>%
+  group_by_all() %>%
+  filter(n()>1) %>%
+  ungroup()
+duplicate
+
+```
+
+If there is any output from the duplicate function that we just perform, we can use the *unique()* function to keep only unique data points.
+
+```{r}
+od_data <- unique(od_data)
+
+```
+
+We can then finally add the subzone polygonal information back using *left_join()* function.
+
+```{r}
+od_data <- left_join(od_data , busstop_mpsz,
+            by = c("DESTIN_BS" = "BUS_STOP_N"))
+
+```
+
+We can also check for duplication once more using the same steps that we did earlier.
+
+```{r}
+duplicate <- od_data %>%
+  group_by_all() %>%
+  filter(n()>1) %>%
+  ungroup()
+duplicate
+
+od_data <- unique(od_data)
+
+```
+
+## Sum total trips
+
+To count the total number of trips made from a bus stop of origin to the destination, we can use *group_by()* for sorting. Putting multiple arguments into the function allows for the sub categorising the data. This way we can track the drop off point of the passengers.
+
+```{r}
+od_data <- od_data %>%
+  rename(DESTIN_SZ = SUBZONE_C) %>%
+  drop_na() %>%
+  group_by(ORIGIN_SZ, DESTIN_SZ) %>%
+  summarise(MORNING_PEAK = sum(TRIPS))
+
+```
+
+
+We will then save the data into rds format again
+```{r}
+write_rds(od_data, "data/rds/od_data.rds")
+
+od_data <- read_rds("data/rds/od_data.rds")
+```
+
+# Visualisation
+
+Here we will visualise the flow of passengers across subzones.
+
+## Removing intra-subzone travel
+
+We will remove the movement of passengers within subzones using the following code.
+
+```{r}
+od_data1 <- od_data[od_data$ORIGIN_SZ!=od_data$DESTIN_SZ,]
+
+```
+
+## Create desire lines
+
+Next we will visualise all of the flow or connections between different bus stops from a subzone to another using the *od2line()* function from the **stplanr** package.
+
+```{r}
+flowLine <- od2line(flow = od_data1, 
+                    zones = mpsz,
+                    zone_code = "SUBZONE_C")
+
+```
+
+
+## Visualise desire lines
+
+We can then visualise this flow using the following code. Since the passenger flow is high, it is better to limit the visualisation. Here we will use a flow passenger flow from subzone to subzone of 5000 or more.
+
+::: panel-tabset
+## **Passenger flow before limitation**
+
+```{r}
+tm_shape(mpsz) +
+  tm_polygons() +
+flowLine %>%  
+tm_shape() +
+  tm_lines(lwd = "MORNING_PEAK",
+           style = "quantile",
+           scale = c(0.1, 1, 3, 5, 7, 10),
+           n = 6,
+           alpha = 0.3)
+
+```
+
+## **Passenger flow after limitation**
+
+```{r}
+tm_shape(mpsz) +
+  tm_polygons() +
+flowLine %>%  
+  filter(MORNING_PEAK >= 5000) %>%
+tm_shape() +
+  tm_lines(lwd = "MORNING_PEAK",
+           style = "quantile",
+           scale = c(0.1, 1, 3, 5, 7, 10),
+           n = 6,
+           alpha = 0.3)
+
+```
+
+:::

@@ -69,7 +69,6 @@ We will then extract the information from the following and assign them to diffe
 | Weekends/Holidays | 4pm - 7pm  | weekendPM_4_7   |
 
 ```{r}
-# Filter data for weekday morning hours
 weekdayAM_6_9 <- odbus %>% 
   filter(DAY_TYPE == "WEEKDAY") %>%
   filter(TIME_PER_HOUR >= 6 & TIME_PER_HOUR <= 9) %>%
@@ -100,7 +99,6 @@ weekendPM_16_19 <- odbus %>%
 Next we will import all of the bus stops and their coordinates and attached it to the *busstop* variable.
 
 ```{r}
-# Import geospatial data
 busstop <- st_read(dsn = "data/geospatial", layer = "BusStop") %>%
   st_transform(crs = 3414)
 ```
@@ -349,6 +347,12 @@ mapA
 ```
 
 This allows for other accessories to be added such as compass and scales which might be useful depending on the application or use of the map.
+
+
+
+
+
+
 
 ## Choropleth map discussion
 
@@ -722,6 +726,253 @@ tm_shape(lisa_sigD) +
   tm_borders(alpha = 0.4)
 ```
 :::
+
+# Additional processing
+
+## Passenger flow visualisation
+
+### Origin and destination grouping
+
+We can also take a look at passenger glow between the different hexes by plotting the desire lines. We will first need to obtain the total number of trips of each intervals that are grouped by their origin followed by their destination.
+```{r}
+des_weekdayAM_6_9 <- odbus %>% 
+  filter(DAY_TYPE == "WEEKDAY") %>%
+  filter(TIME_PER_HOUR >= 6 & TIME_PER_HOUR <= 9) %>%
+  group_by(ORIGIN_PT_CODE,
+           DESTINATION_PT_CODE) %>%
+  summarise(TRIPS = sum(TOTAL_TRIPS))
+
+des_weekdayPM_5_8 <- odbus %>% 
+  filter(DAY_TYPE == "WEEKDAY") %>%
+  filter(TIME_PER_HOUR >= 17 & TIME_PER_HOUR <= 20) %>%
+  group_by(ORIGIN_PT_CODE,
+           DESTINATION_PT_CODE) %>%
+  summarise(TRIPS = sum(TOTAL_TRIPS))
+
+des_weekendAM_11_14 <- odbus %>% 
+  filter(DAY_TYPE == "WEEKENDS/HOLIDAY") %>%
+  filter(TIME_PER_HOUR >= 11 & TIME_PER_HOUR <= 14) %>%
+  group_by(ORIGIN_PT_CODE,
+           DESTINATION_PT_CODE) %>%
+  summarise(TRIPS = sum(TOTAL_TRIPS))
+
+des_weekendPM_16_19 <- odbus %>% 
+  filter(DAY_TYPE == "WEEKENDS/HOLIDAY") %>%
+  filter(TIME_PER_HOUR >= 17 & TIME_PER_HOUR <= 19) %>%
+  group_by(ORIGIN_PT_CODE,
+           DESTINATION_PT_CODE) %>%
+  summarise(TRIPS = sum(TOTAL_TRIPS))
+
+```
+
+### Joining destination table and grid
+
+Since we have drop 
+
+Using the grid that we have created in the beginning, we will now join the data that contains the destination together with the grid.
+
+```{r}
+combn_des_weekdayAM_6_9 <- left_join(des_weekdayAM_6_9 , busstop_hex,
+            by = c("ORIGIN_PT_CODE" = "BUS_STOP_N")) %>%
+  rename(ORIGIN_BS = ORIGIN_PT_CODE,
+         ORIGIN_GRID = grid_id,
+         DESTIN_BS = DESTINATION_PT_CODE)
+
+combn_des_weekdayPM_5_8 <- left_join(des_weekdayPM_5_8 , busstop_hex,
+            by = c("ORIGIN_PT_CODE" = "BUS_STOP_N")) %>%
+  rename(ORIGIN_BS = ORIGIN_PT_CODE,
+         ORIGIN_GRID = grid_id,
+         DESTIN_BS = DESTINATION_PT_CODE)
+
+combn_des_weekendAM_11_14 <- left_join(des_weekendAM_11_14 , busstop_hex,
+            by = c("ORIGIN_PT_CODE" = "BUS_STOP_N")) %>%
+  rename(ORIGIN_BS = ORIGIN_PT_CODE,
+         ORIGIN_GRID = grid_id,
+         DESTIN_BS = DESTINATION_PT_CODE)
+
+combn_des_weekendPM_16_19 <- left_join(des_weekendPM_16_19 , busstop_hex,
+            by = c("ORIGIN_PT_CODE" = "BUS_STOP_N")) %>%
+  rename(ORIGIN_BS = ORIGIN_PT_CODE,
+         ORIGIN_GRID = grid_id,
+         DESTIN_BS = DESTINATION_PT_CODE)
+
+
+```
+
+### Removing duplicates
+
+We will then remove any duplicates using the *unique()* function.
+
+```{r}
+uni_des_weekdayAM_6_9 <- unique(combn_des_weekdayAM_6_9)
+uni_des_weekdayPM_5_8 <- unique(combn_des_weekdayPM_5_8)
+uni_des_weekendAM_11_14 <- unique(combn_des_weekendAM_11_14)
+uni_des_weekendPM_16_19 <- unique(combn_des_weekendPM_16_19)
+```
+
+### Rejoin hexagonal information
+
+We can then rejoin the hexagonal information back using *left_join()* function.
+
+```{r}
+poly_des_weekdayAM_6_9 <- left_join(uni_des_weekdayAM_6_9 , busstop_hex,
+            by = c("DESTIN_BS" = "BUS_STOP_N"))
+poly_des_weekdayPM_5_8 <- left_join(uni_des_weekdayPM_5_8 , busstop_hex,
+            by = c("DESTIN_BS" = "BUS_STOP_N"))
+poly_des_weekendAM_11_14 <- left_join(uni_des_weekendAM_11_14 , busstop_hex,
+            by = c("DESTIN_BS" = "BUS_STOP_N"))
+poly_des_weekendPM_16_19 <- left_join(uni_des_weekendPM_16_19 , busstop_hex,
+            by = c("DESTIN_BS" = "BUS_STOP_N"))
+
+```
+### Recheck unique data
+
+We will then recheck for unique data points by running *unique()* again.
+
+```{r}
+uniP_des_weekdayAM_6_9 <- unique(poly_des_weekdayAM_6_9)
+uniP_des_weekdayPM_5_8 <- unique(poly_des_weekdayPM_5_8)
+uniP_des_weekendAM_11_14 <- unique(poly_des_weekendAM_11_14)
+uniP_des_weekendPM_16_19 <- unique(poly_des_weekendPM_16_19)
+
+```
+
+### Sum total trips
+
+We will then sum up the total number of trips made from a bus stop of origin to the destination using *group_by()* for sorting. Putting multiple arguments into the function allows for the sub categorising the data. This way we can track the drop off point of the passengers.
+
+```{r}
+ori_des_weekdayAM_6_9 <- uniP_des_weekdayAM_6_9 %>%
+  rename(DESTIN_GRID = grid_id) %>%
+  drop_na() %>%
+  group_by(ORIGIN_GRID, DESTIN_GRID) %>%
+  summarise(PEAK = sum(TRIPS))
+
+ori_des_weekdayPM_5_8 <- uniP_des_weekdayPM_5_8 %>%
+  rename(DESTIN_GRID = grid_id) %>%
+  drop_na() %>%
+  group_by(ORIGIN_GRID, DESTIN_GRID) %>%
+  summarise(PEAK = sum(TRIPS))
+
+ori_des_weekendAM_11_14 <- uniP_des_weekendAM_11_14 %>%
+  rename(DESTIN_GRID = grid_id) %>%
+  drop_na() %>%
+  group_by(ORIGIN_GRID, DESTIN_GRID) %>%
+  summarise(PEAK = sum(TRIPS))
+
+ori_des_weekendPM_16_19 <- uniP_des_weekendPM_16_19 %>%
+  rename(DESTIN_GRID = grid_id) %>%
+  drop_na() %>%
+  group_by(ORIGIN_GRID, DESTIN_GRID) %>%
+  summarise(PEAK = sum(TRIPS))
+```
+
+## Visualisation
+
+We will first remove any intra-hexagonal travel
+```{r}
+R_weekdayAM_6_9 <- ori_des_weekdayAM_6_9[ori_des_weekdayAM_6_9$ORIGIN_GRID!=ori_des_weekdayAM_6_9$DESTIN_GRID,]
+R_weekdayPM_5_8 <- ori_des_weekdayPM_5_8[ori_des_weekdayPM_5_8$ORIGIN_GRID!=ori_des_weekdayPM_5_8$DESTIN_GRID,]
+R_weekendAM_11_14 <- ori_des_weekendAM_11_14[ori_des_weekendAM_11_14$ORIGIN_GRID!=ori_des_weekendAM_11_14$DESTIN_GRID,]
+R_weekendPM_16_19 <- ori_des_weekendPM_16_19[ori_des_weekendPM_16_19$ORIGIN_GRID!=ori_des_weekendPM_16_19$DESTIN_GRID,]
+```
+
+## Create desire lines
+
+Next we will visualise all of the flow or connections between different bus stops from a subzone to another using the *od2line()* function from the **stplanr** package.
+
+```{r}
+flow_weekdayAM_6_9 <- od2line(flow = R_weekdayAM_6_9, 
+                    zones = honeycomb_grid_sf,
+                    zone_code = "grid_id")
+
+flow_weekdayPM_5_8 <- od2line(flow = R_weekdayPM_5_8, 
+                    zones = honeycomb_grid_sf,
+                    zone_code = "grid_id")
+
+flow_weekendAM_11_14 <- od2line(flow = R_weekendAM_11_14, 
+                    zones = honeycomb_grid_sf,
+                    zone_code = "grid_id")
+
+flow_weekendPM_16_19 <- od2line(flow = R_weekendPM_16_19, 
+                    zones = honeycomb_grid_sf,
+                    zone_code = "grid_id")
+
+```
+
+
+## Visualise desire lines
+
+We can then visualise this flow using the following code. Since the passenger flow is high, it is better to limit the visualisation. Here we will use a flow passenger flow from subzone to subzone of 5000 or more.
+
+::: panel-tabset
+## **Weekday 6am to 9am**
+
+```{r}
+tm_shape(flow_weekdayAM_6_9) +
+  tm_polygons() +
+flowLine %>%  
+tm_shape() +
+  tm_lines(lwd = "PEAK",
+           style = "quantile",
+           scale = c(0.1, 1, 3, 5, 7, 10),
+           n = 6,
+           alpha = 0.3)
+
+```
+
+## **Weekday 5pm to 8pm**
+
+```{r}
+tm_shape(flow_weekdayPM_5_8) +
+  tm_polygons() +
+flowLine %>%  
+tm_shape() +
+  tm_lines(lwd = "PEAK",
+           style = "quantile",
+           scale = c(0.1, 1, 3, 5, 7, 10),
+           n = 6,
+           alpha = 0.3)
+
+```
+
+## **Weekday 11am to 2pm**
+
+```{r}
+tm_shape(flow_weekendAM_11_14) +
+  tm_polygons() +
+flowLine %>%  
+tm_shape() +
+  tm_lines(lwd = "PEAK",
+           style = "quantile",
+           scale = c(0.1, 1, 3, 5, 7, 10),
+           n = 6,
+           alpha = 0.3)
+
+```
+
+## **Weekday 4pm to 7pm**
+
+```{r}
+tm_shape(flow_weekendPM_16_19) +
+  tm_polygons() +
+flowLine %>%  
+tm_shape() +
+  tm_lines(lwd = "PEAK",
+           style = "quantile",
+           scale = c(0.1, 1, 3, 5, 7, 10),
+           n = 6,
+           alpha = 0.3)
+
+```
+
+
+:::
+
+left_join(unique_weekdayAM , busstop_hex) %>%
+  group_by(grid_id) %>%
+  summarise(TOT_TRIPS = sum(TRIPS))
+
 
 # Checking consistency
 

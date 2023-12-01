@@ -1013,5 +1013,82 @@
     "title": "Take_home_Ex1",
     "section": "Plotting neighbour count bar chart",
     "text": "Plotting neighbour count bar chart\nNext we will use ggplot to plot the bar chart for the number of hexagons with differing neighbour count and the different time interval.\n\nggplot(result, aes(x = number_of_neighbours, y = count, fill = dataset)) +\n  stat_summary(fun = \"sum\", geom = \"bar\", position = \"dodge\") +\n  scale_fill_manual(values = c(\n                   \"Weekday 6am to 9am\" = \"blue4\",\n                   \"Weekday 5pm to 8pm\" = \"brown2\",\n                   \"Weekends/holidays 11am to 2pm\" = \"palegreen\",\n                   \"Weekends/holidays 4pm to 7pm\" = \"mediumpurple1\")) \n\n\n\n  labs(title = \"Number of Neighbours Counts\",\n       x = \"Number of Neighbours\",\n       y = \"Count\") +\n  theme_minimal() +\n  theme(axis.text.x = element_text(angle = 45, hjust = 1))\n\nNULL\n\n\nOverall we see a decrease in ridership between weekdays and weekends however the number of bus stops that are utilised remains fairly the same. This may mean an overall decrease in ridership for all bus stops but the bus stops that are utilised for boarding remain the same.\nNext we will have to remove all of the data points with 0 neighbours using filter and purrr package.\n\nwm_qA_process &lt;- wm_qA %&gt;%\n   filter(!purrr::map_lgl(nb, ~ all(. == 0)))\nwm_qB_process &lt;- wm_qB %&gt;%\n   filter(!purrr::map_lgl(nb, ~ all(. == 0)))\nwm_qC_process &lt;- wm_qC %&gt;%\n   filter(!purrr::map_lgl(nb, ~ all(. == 0)))\nwm_qD_process &lt;- wm_qD %&gt;%\n   filter(!purrr::map_lgl(nb, ~ all(. == 0)))"
+  },
+  {
+    "objectID": "Hands-on_Ex03/Hands-on_Ex3.html",
+    "href": "Hands-on_Ex03/Hands-on_Ex3.html",
+    "title": "Hands_on_Ex3",
+    "section": "",
+    "text": "In this exercise we will explore the movements"
+  },
+  {
+    "objectID": "Hands-on_Ex03/Hands-on_Ex3.html#load-packages",
+    "href": "Hands-on_Ex03/Hands-on_Ex3.html#load-packages",
+    "title": "Hands_on_Ex3",
+    "section": "Load packages",
+    "text": "Load packages\n\npacman::p_load(tmap, sf, DT, stplanr,\n               performance,\n               ggpubr, tidyverse)"
+  },
+  {
+    "objectID": "Hands-on_Ex03/Hands-on_Ex3.html#load-data",
+    "href": "Hands-on_Ex03/Hands-on_Ex3.html#load-data",
+    "title": "Hands_on_Ex3",
+    "section": "Load data",
+    "text": "Load data\n\nodbus &lt;- read_csv(\"data/aspatial/origin_destination_bus_202310.csv\")\n\nRows: 5694297 Columns: 7\n── Column specification ────────────────────────────────────────────────────────\nDelimiter: \",\"\nchr (5): YEAR_MONTH, DAY_TYPE, PT_TYPE, ORIGIN_PT_CODE, DESTINATION_PT_CODE\ndbl (2): TIME_PER_HOUR, TOTAL_TRIPS\n\nℹ Use `spec()` to retrieve the full column specification for this data.\nℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.\n\nodbus$ORIGIN_PT_CODE &lt;- as.factor(odbus$ORIGIN_PT_CODE)\nodbus$DESTINATION_PT_CODE &lt;- as.factor(odbus$DESTINATION_PT_CODE)\n\nNext we will specifically utilise the data for weekdays and only from 6am to 9am. We will also be retaining the destination bus stop this time so that we can see the flow of riders.\n\nodbus6_9 &lt;- odbus %&gt;%\n  filter(DAY_TYPE == \"WEEKDAY\") %&gt;%\n  filter(TIME_PER_HOUR &gt;= 6 &\n           TIME_PER_HOUR &lt;= 9) %&gt;%\n  group_by(ORIGIN_PT_CODE,\n           DESTINATION_PT_CODE) %&gt;%\n  summarise(TRIPS = sum(TOTAL_TRIPS))\n\n`summarise()` has grouped output by 'ORIGIN_PT_CODE'. You can override using\nthe `.groups` argument.\n\n\nWe can also showcase the data as a datatable.\n\ndatatable(odbus6_9)\n\nWarning in instance$preRenderHook(instance): It seems your data is too big for\nclient-side DataTables. You may consider server-side processing:\nhttps://rstudio.github.io/DT/server.html"
+  },
+  {
+    "objectID": "Hands-on_Ex03/Hands-on_Ex3.html#rds-format",
+    "href": "Hands-on_Ex03/Hands-on_Ex3.html#rds-format",
+    "title": "Hands_on_Ex3",
+    "section": "rds format",
+    "text": "rds format\nWe can save the output file as rds format using the write_rds() function.\n\nwrite_rds(odbus6_9, \"data/rds/odbus6_9.rds\")\n\nWhen we need the data, we can use the read_rds() function.\n\nodbus6_9 &lt;- read_rds(\"data/rds/odbus6_9.rds\")"
+  },
+  {
+    "objectID": "Hands-on_Ex03/Hands-on_Ex3.html#load-geospatial-data",
+    "href": "Hands-on_Ex03/Hands-on_Ex3.html#load-geospatial-data",
+    "title": "Hands_on_Ex3",
+    "section": "Load Geospatial data",
+    "text": "Load Geospatial data\nWe will utilise the busstop location data from Q4 of 2022 and the layout of Singapore using the URA Master Plan from 2019.\n\nbusstop &lt;- st_read(dsn = \"data/geospatial\",\n                   layer = \"BusStop\") %&gt;%\n  st_transform(crs = 3414)\n\nReading layer `BusStop' from data source \n  `C:\\Users\\Lian Khye\\Desktop\\MITB\\Geospatial\\geartooth\\ISSS624\\Hands-on_Ex03\\data\\geospatial' \n  using driver `ESRI Shapefile'\nSimple feature collection with 5161 features and 3 fields\nGeometry type: POINT\nDimension:     XY\nBounding box:  xmin: 3970.122 ymin: 26482.1 xmax: 48284.56 ymax: 52983.82\nProjected CRS: SVY21\n\nmpsz &lt;- st_read(dsn = \"data/geospatial\",\n                   layer = \"MPSZ-2019\") %&gt;%\n  st_transform(crs = 3414)\n\nReading layer `MPSZ-2019' from data source \n  `C:\\Users\\Lian Khye\\Desktop\\MITB\\Geospatial\\geartooth\\ISSS624\\Hands-on_Ex03\\data\\geospatial' \n  using driver `ESRI Shapefile'\nSimple feature collection with 332 features and 6 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 103.6057 ymin: 1.158699 xmax: 104.0885 ymax: 1.470775\nGeodetic CRS:  WGS 84"
+  },
+  {
+    "objectID": "Hands-on_Ex03/Hands-on_Ex3.html#combine-busstop-and-subzone-layout",
+    "href": "Hands-on_Ex03/Hands-on_Ex3.html#combine-busstop-and-subzone-layout",
+    "title": "Hands_on_Ex3",
+    "section": "Combine busstop and subzone layout",
+    "text": "Combine busstop and subzone layout\nFirstly we will need to combine the bus stop data and the subzone data together. We will use the st_intersection() function that will allocate the bus stops to the subzones of the masterplan. We will then use select() function to obtain only the bus stop numbers and the subzone regions to keep the data more compact.\n\nbusstop_mpsz &lt;- st_intersection(busstop, mpsz) %&gt;%\n  select(BUS_STOP_N, SUBZONE_C) %&gt;%\n  st_drop_geometry()\n\nWarning: attribute variables are assumed to be spatially constant throughout\nall geometries\n\n\nWe can also visualist this using datatable() function.\n\ndatatable(busstop_mpsz)\n\n\n\n\n\n\nOnce again we will save this into rds format using the write_rds() function.\n\nwrite_rds(busstop_mpsz, \"data/rds/busstop_mpsz.rds\")"
+  },
+  {
+    "objectID": "Hands-on_Ex03/Hands-on_Ex3.html#combine-busstop-subzone-data-and-ridership-info",
+    "href": "Hands-on_Ex03/Hands-on_Ex3.html#combine-busstop-subzone-data-and-ridership-info",
+    "title": "Hands_on_Ex3",
+    "section": "Combine busstop-subzone data and ridership info",
+    "text": "Combine busstop-subzone data and ridership info\nNext we will then combine the busstop and subzone information together with the ridership information for weekdays, 6am to 9am. This will allow us to allocate the ridership to each subzone. We will use the bus stop number to join the data using left_join() function.\n\nod_data &lt;- left_join(odbus6_9 , busstop_mpsz,\n            by = c(\"ORIGIN_PT_CODE\" = \"BUS_STOP_N\")) %&gt;%\n  rename(ORIGIN_BS = ORIGIN_PT_CODE,\n         ORIGIN_SZ = SUBZONE_C,\n         DESTIN_BS = DESTINATION_PT_CODE)\n\nWarning in left_join(odbus6_9, busstop_mpsz, by = c(ORIGIN_PT_CODE = \"BUS_STOP_N\")): Detected an unexpected many-to-many relationship between `x` and `y`.\nℹ Row 25632 of `x` matches multiple rows in `y`.\nℹ Row 673 of `y` matches multiple rows in `x`.\nℹ If a many-to-many relationship is expected, set `relationship =\n  \"many-to-many\"` to silence this warning.\n\n\nTo prevent over adding of data, we will check for duplicates.\n\nduplicate &lt;- od_data %&gt;%\n  group_by_all() %&gt;%\n  filter(n()&gt;1) %&gt;%\n  ungroup()\nduplicate\n\n# A tibble: 1,186 × 4\n   ORIGIN_BS DESTIN_BS TRIPS ORIGIN_SZ\n   &lt;chr&gt;     &lt;fct&gt;     &lt;dbl&gt; &lt;chr&gt;    \n 1 11009     01341         1 QTSZ01   \n 2 11009     01341         1 QTSZ01   \n 3 11009     01411         4 QTSZ01   \n 4 11009     01411         4 QTSZ01   \n 5 11009     01421        17 QTSZ01   \n 6 11009     01421        17 QTSZ01   \n 7 11009     01511        19 QTSZ01   \n 8 11009     01511        19 QTSZ01   \n 9 11009     01521         2 QTSZ01   \n10 11009     01521         2 QTSZ01   \n# ℹ 1,176 more rows\n\n\nIf there is any output from the duplicate function that we just perform, we can use the unique() function to keep only unique data points.\n\nod_data &lt;- unique(od_data)\n\nWe can then finally add the subzone polygonal information back using left_join() function.\n\nod_data &lt;- left_join(od_data , busstop_mpsz,\n            by = c(\"DESTIN_BS\" = \"BUS_STOP_N\"))\n\nWarning in left_join(od_data, busstop_mpsz, by = c(DESTIN_BS = \"BUS_STOP_N\")): Detected an unexpected many-to-many relationship between `x` and `y`.\nℹ Row 167 of `x` matches multiple rows in `y`.\nℹ Row 672 of `y` matches multiple rows in `x`.\nℹ If a many-to-many relationship is expected, set `relationship =\n  \"many-to-many\"` to silence this warning.\n\n\nWe can also check for duplication once more using the same steps that we did earlier.\n\nduplicate &lt;- od_data %&gt;%\n  group_by_all() %&gt;%\n  filter(n()&gt;1) %&gt;%\n  ungroup()\nduplicate\n\n# A tibble: 1,350 × 5\n   ORIGIN_BS DESTIN_BS TRIPS ORIGIN_SZ SUBZONE_C\n   &lt;chr&gt;     &lt;chr&gt;     &lt;dbl&gt; &lt;chr&gt;     &lt;chr&gt;    \n 1 01013     51071         2 RCSZ10    CCSZ01   \n 2 01013     51071         2 RCSZ10    CCSZ01   \n 3 01112     51071        66 RCSZ10    CCSZ01   \n 4 01112     51071        66 RCSZ10    CCSZ01   \n 5 01112     53041         4 RCSZ10    BSSZ01   \n 6 01112     53041         4 RCSZ10    BSSZ01   \n 7 01121     51071         8 RCSZ04    CCSZ01   \n 8 01121     51071         8 RCSZ04    CCSZ01   \n 9 01121     82221         1 RCSZ04    GLSZ05   \n10 01121     82221         1 RCSZ04    GLSZ05   \n# ℹ 1,340 more rows\n\nod_data &lt;- unique(od_data)"
+  },
+  {
+    "objectID": "Hands-on_Ex03/Hands-on_Ex3.html#sum-total-trips",
+    "href": "Hands-on_Ex03/Hands-on_Ex3.html#sum-total-trips",
+    "title": "Hands_on_Ex3",
+    "section": "Sum total trips",
+    "text": "Sum total trips\nTo count the total number of trips made from a bus stop of origin to the destination, we can use group_by() for sorting. Putting multiple arguments into the function allows for the sub categorising the data. This way we can track the drop off point of the passengers.\n\nod_data &lt;- od_data %&gt;%\n  rename(DESTIN_SZ = SUBZONE_C) %&gt;%\n  drop_na() %&gt;%\n  group_by(ORIGIN_SZ, DESTIN_SZ) %&gt;%\n  summarise(MORNING_PEAK = sum(TRIPS))\n\n`summarise()` has grouped output by 'ORIGIN_SZ'. You can override using the\n`.groups` argument.\n\n\nWe will then save the data into rds format again\n\nwrite_rds(od_data, \"data/rds/od_data.rds\")\n\nod_data &lt;- read_rds(\"data/rds/od_data.rds\")"
+  },
+  {
+    "objectID": "Hands-on_Ex03/Hands-on_Ex3.html#removing-intra-subzone-travel",
+    "href": "Hands-on_Ex03/Hands-on_Ex3.html#removing-intra-subzone-travel",
+    "title": "Hands_on_Ex3",
+    "section": "Removing intra-subzone travel",
+    "text": "Removing intra-subzone travel\nWe will remove the movement of passengers within subzones using the following code.\n\nod_data1 &lt;- od_data[od_data$ORIGIN_SZ!=od_data$DESTIN_SZ,]"
+  },
+  {
+    "objectID": "Hands-on_Ex03/Hands-on_Ex3.html#create-desire-lines",
+    "href": "Hands-on_Ex03/Hands-on_Ex3.html#create-desire-lines",
+    "title": "Hands_on_Ex3",
+    "section": "Create desire lines",
+    "text": "Create desire lines\nNext we will visualise all of the flow or connections between different bus stops from a subzone to another using the od2line() function from the stplanr package.\n\nflowLine &lt;- od2line(flow = od_data1, \n                    zones = mpsz,\n                    zone_code = \"SUBZONE_C\")\n\nCreating centroids representing desire line start and end points."
+  },
+  {
+    "objectID": "Hands-on_Ex03/Hands-on_Ex3.html#visualise-desire-lines",
+    "href": "Hands-on_Ex03/Hands-on_Ex3.html#visualise-desire-lines",
+    "title": "Hands_on_Ex3",
+    "section": "Visualise desire lines",
+    "text": "Visualise desire lines\nWe can then visualise this flow using the following code. Since the passenger flow is high, it is better to limit the visualisation. Here we will use a flow passenger flow from subzone to subzone of 5000 or more.\n\nPassenger flow before limitationPassenger flow after limitation\n\n\n\ntm_shape(mpsz) +\n  tm_polygons() +\nflowLine %&gt;%  \ntm_shape() +\n  tm_lines(lwd = \"MORNING_PEAK\",\n           style = \"quantile\",\n           scale = c(0.1, 1, 3, 5, 7, 10),\n           n = 6,\n           alpha = 0.3)\n\nWarning in g$scale * (w_legend/maxW): longer object length is not a multiple of\nshorter object length\n\n\nWarning in g$scale * (x/maxW): longer object length is not a multiple of\nshorter object length\n\n\n\n\n\n\n\n\ntm_shape(mpsz) +\n  tm_polygons() +\nflowLine %&gt;%  \n  filter(MORNING_PEAK &gt;= 5000) %&gt;%\ntm_shape() +\n  tm_lines(lwd = \"MORNING_PEAK\",\n           style = \"quantile\",\n           scale = c(0.1, 1, 3, 5, 7, 10),\n           n = 6,\n           alpha = 0.3)\n\nWarning in g$scale * (w_legend/maxW): longer object length is not a multiple of\nshorter object length\n\n\nWarning in g$scale * (x/maxW): longer object length is not a multiple of\nshorter object length"
   }
 ]
