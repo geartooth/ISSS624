@@ -179,7 +179,7 @@ pop <- pop %>%
          SZ = SUBZONE_C)
 ```
 
-## Preparint origin attribute
+## Preparing origin attribute
 
 ```{r}
 flow_data1 <- flow_data1 %>%
@@ -210,7 +210,7 @@ We will then save the output as a rds file.
 write_rds(flow_data1, "data/rds/SIM_data")
 ```
 
-# Calibtating spatial interaction models
+# Calibrating spatial interaction models
 
 Here we will be using Poisson regression to calibrate the spatial interaction model.
 
@@ -422,7 +422,7 @@ The smaller the RMSE value the better the model is.
 
 ## Visualisation
 
-Here we will visualse the observed values and the fitted values. We can do that by extracting the fitted values from each model.
+Here we will visualise the observed values and the fitted values. We can do that by extracting the fitted values from each model.
 
 ```{r}
 df <- as.data.frame(uncSIM$fitted.values) %>%

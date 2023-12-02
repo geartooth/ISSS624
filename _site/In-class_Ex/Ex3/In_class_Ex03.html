@@ -167,7 +167,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="dropdown-text">In-class Exercise 2 EHSA</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../../In-class_Ex/Ex3/In-class_Ex3.html" rel="" target="">
+    <a class="dropdown-item" href="../../In-class_Ex/Ex3/In_class_Ex03.html" rel="" target="">
  <span class="dropdown-text">In-class Exercise 3</span></a>
   </li>  
     </ul>
@@ -229,10 +229,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#preparing-origin-and-destination-attributes" id="toc-preparing-origin-and-destination-attributes" class="nav-link" data-scroll-target="#preparing-origin-and-destination-attributes">Preparing origin and destination attributes</a>
   <ul class="collapse">
   <li><a href="#importing-population-data" id="toc-importing-population-data" class="nav-link" data-scroll-target="#importing-population-data">Importing population data</a></li>
-  <li><a href="#preparint-origin-attribute" id="toc-preparint-origin-attribute" class="nav-link" data-scroll-target="#preparint-origin-attribute">Preparint origin attribute</a></li>
+  <li><a href="#preparing-origin-attribute" id="toc-preparing-origin-attribute" class="nav-link" data-scroll-target="#preparing-origin-attribute">Preparing origin attribute</a></li>
   <li><a href="#preparing-destination-attribute" id="toc-preparing-destination-attribute" class="nav-link" data-scroll-target="#preparing-destination-attribute">Preparing destination attribute</a></li>
   </ul></li>
-  <li><a href="#calibtating-spatial-interaction-models" id="toc-calibtating-spatial-interaction-models" class="nav-link" data-scroll-target="#calibtating-spatial-interaction-models">Calibtating spatial interaction models</a>
+  <li><a href="#calibrating-spatial-interaction-models" id="toc-calibrating-spatial-interaction-models" class="nav-link" data-scroll-target="#calibrating-spatial-interaction-models">Calibrating spatial interaction models</a>
   <ul class="collapse">
   <li><a href="#import-modelling-data" id="toc-import-modelling-data" class="nav-link" data-scroll-target="#import-modelling-data">Import modelling data</a></li>
   <li><a href="#visualising-the-dependent-variable" id="toc-visualising-the-dependent-variable" class="nav-link" data-scroll-target="#visualising-the-dependent-variable">Visualising the dependent variable</a></li>
@@ -547,8 +547,8 @@ dbl (3): AGE7_12, AGE13_24, AGE25_64
 <span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">SZ =</span> SUBZONE_C)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="preparint-origin-attribute" class="level2">
-<h2 class="anchored" data-anchor-id="preparint-origin-attribute">Preparint origin attribute</h2>
+<section id="preparing-origin-attribute" class="level2">
+<h2 class="anchored" data-anchor-id="preparing-origin-attribute">Preparing origin attribute</h2>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>flow_data1 <span class="ot">&lt;-</span> flow_data1 <span class="sc">%&gt;%</span></span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(pop,</span>
@@ -576,8 +576,8 @@ dbl (3): AGE7_12, AGE13_24, AGE25_64
 </div>
 </section>
 </section>
-<section id="calibtating-spatial-interaction-models" class="level1">
-<h1>Calibtating spatial interaction models</h1>
+<section id="calibrating-spatial-interaction-models" class="level1">
+<h1>Calibrating spatial interaction models</h1>
 <p>Here we will be using Poisson regression to calibrate the spatial interaction model.</p>
 <section id="import-modelling-data" class="level2">
 <h2 class="anchored" data-anchor-id="import-modelling-data">Import modelling data</h2>
@@ -2012,7 +2012,7 @@ doublyConstrained      |   glm | 1487.111</code></pre>
 </section>
 <section id="visualisation" class="level2">
 <h2 class="anchored" data-anchor-id="visualisation">Visualisation</h2>
-<p>Here we will visualse the observed values and the fitted values. We can do that by extracting the fitted values from each model.</p>
+<p>Here we will visualise the observed values and the fitted values. We can do that by extracting the fitted values from each model.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(uncSIM<span class="sc">$</span>fitted.values) <span class="sc">%&gt;%</span></span>
 <span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="at">digits =</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
