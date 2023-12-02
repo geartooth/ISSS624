@@ -1,0 +1,232 @@
+---
+title: "In_class_Ex03"
+---
+
+
+
+
+# Overview
+
+# Loading packages and data
+
+## Loading packages
+```{r}
+
+pacman::p_load(tmap, sf, sp, DT, 
+               performance, reshape2,
+               ggpubr, tidyverse)
+```
+
+## Loading data
+
+We will utilise the data that we have created from hands on Ex 3.
+```{r}
+mpsz <- read_rds("data/rds/mpsz.rds")
+mpsz
+
+```
+
+# Calculate distance matrix
+
+Here we will convert the mpsz variable from a data frame to a spatial polygon dataframe.
+```{r}
+mpsz_sp <- as(mpsz, "Spatial")
+mpsz_sp
+
+```
+Next we will use *spDists()* function to calculate the Euclidean distance between centroids of different planning zones.
+```{r}
+dist <- spDists(mpsz_sp, 
+                longlat = FALSE)
+head(dist, n=c(10, 10))
+```
+
+## Labelling column and row headers
+
+We will create a list and then sort the distance by the planning sub-zones.
+```{r}
+sz_names <- mpsz$SUBZONE_C
+```
+
+We will then attach the sub-zones to row and column next.
+
+```{r}
+colnames(dist) <- paste0(sz_names)
+rownames(dist) <- paste0(sz_names)
+
+```
+
+
+## Pivoting distance value by sub-zone
+
+We will then pivot using the row and columns of the distance matrix into a table.
+```{r}
+distPair <- melt(dist) %>%
+  rename(dist = value)
+head(distPair, 10)
+```
+
+
+## Update intra-zonal distances
+
+Here we will change the intra-zone distances of 0 by a constant value. We will need to identify the smallest distance.
+```{r}
+distPair %>%
+  filter(dist > 0) %>%
+  summary()
+
+```
+
+We will then add a constant distance value of 50m.
+```{r}
+distPair$dist <- ifelse(distPair$dist == 0,
+                        50, distPair$dist)
+```
+
+We can check the data again.
+```{r}
+distPair %>%
+  summary()
+```
+
+After that we can rename the origin and destination fields.
+
+```{r}
+distPair <- distPair %>%
+  rename(orig = Var1,
+         dest = Var2)
+```
+
+Finally, we can save the file as rds format.
+```{r}
+write_rds(distPair, "data/rds/distPair.rds") 
+```
+
+# Preparing flow data
+
+We will then read the file that was created in hands on ex 3.
+```{r}
+od_data <- read_rds("data/rds/od_data.rds")
+```
+
+Next we will calculate the total ridership between and within planning subzones.
+
+```{r}
+flow_data <- od_data %>%
+  group_by(ORIGIN_SZ, DESTIN_SZ) %>% 
+  summarize(TRIPS = sum(MORNING_PEAK)) 
+```
+
+We can then use the following to check the first 10 entries.
+```{r}
+head(flow_data, 10)
+```
+
+## Separate intra-flow from passenger volume
+
+We will first add 3 new fields into the flow_data dataframe.
+
+```{r}
+flow_data$FlowNoIntra <- ifelse(
+  flow_data$ORIGIN_SZ == flow_data$DESTIN_SZ, 
+  0, flow_data$TRIPS)
+flow_data$offset <- ifelse(
+  flow_data$ORIGIN_SZ == flow_data$DESTIN_SZ, 
+  0.000001, 1)
+
+```
+
+## Combine passenger volume and distance value
+
+We will first convert the ORIGIN_SZ and DESTIN_SZ into fator data types.
+
+```{r}
+flow_data$ORIGIN_SZ <- as.factor(flow_data$ORIGIN_SZ)
+flow_data$DESTIN_SZ <- as.factor(flow_data$DESTIN_SZ)
+```
+
+After that we can join the data together using *left_join()*.
+
+```{r}
+flow_data1 <- flow_data %>%
+  left_join (distPair,
+             by = c("ORIGIN_SZ" = "orig",
+                    "DESTIN_SZ" = "dest"))
+```
+
+# Preparing origin and destination attributes
+
+## Importing population data
+
+We will first import the population data and select certain columns and renaming them.
+```{r}
+pop <- read_csv("data/aspatial/pop.csv")
+pop <- pop %>%
+  left_join(mpsz,
+            by = c("PA" = "PLN_AREA_N",
+                   "SZ" = "SUBZONE_N")) %>%
+  select(1:6) %>%
+  rename(SZ_NAME = SZ,
+         SZ = SUBZONE_C)
+```
+## Preparint origin attribute
+
+```{r}
+flow_data1 <- flow_data1 %>%
+  left_join(pop,
+            by = c(ORIGIN_SZ = "SZ")) %>%
+  rename(ORIGIN_AGE7_12 = AGE7_12,
+         ORIGIN_AGE13_24 = AGE13_24,
+         ORIGIN_AGE25_64 = AGE25_64) %>%
+  select(-c(PA, SZ_NAME))
+```
+
+## Preparing destination attribute
+```{r}
+flow_data1 <- flow_data1 %>%
+  left_join(pop,
+            by = c(DESTIN_SZ = "SZ")) %>%
+  rename(DESTIN_AGE7_12 = AGE7_12,
+         DESTIN_AGE13_24 = AGE13_24,
+         DESTIN_AGE25_64 = AGE25_64) %>%
+  select(-c(PA, SZ_NAME))
+
+```
+
+We will then save the output as a rds file.
+
+```{r}
+write_rds(flow_data1, "data/rds/SIM_data")
+```
+
+# Calibtating spatial interaction models
+
+Here we will be using Poisson regression to calibrate the spatial interaction model.
+
+## Import modelling data
+
+We will be using the SIM_data from earlier
+
+```{r}
+SIM_data <- read_rds("data/rds/SIM_data.rds")
+```
+
+## Visualising the dependent variable
+
+Here we will use **ggplot** for plotting the histogram.
+
+```{r}
+ggplot(data = SIM_data,
+       aes(x = TRIPS)) +
+  geom_histogram()
+```
+
+Next we will visualise the chart as a dot representing each variable.
+
+```{r}
+ggplot(data = SIM_data,
+       aes(x = dist,
+           y = TRIPS)) +
+  geom_point() +
+  geom_smooth(method = lm)
+```

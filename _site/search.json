@@ -1047,7 +1047,7 @@
     "href": "Hands-on_Ex03/Hands-on_Ex3.html#load-geospatial-data",
     "title": "Hands_on_Ex3",
     "section": "Load Geospatial data",
-    "text": "Load Geospatial data\nWe will utilise the busstop location data from Q4 of 2022 and the layout of Singapore using the URA Master Plan from 2019.\n\nbusstop &lt;- st_read(dsn = \"data/geospatial\",\n                   layer = \"BusStop\") %&gt;%\n  st_transform(crs = 3414)\n\nReading layer `BusStop' from data source \n  `C:\\Users\\Lian Khye\\Desktop\\MITB\\Geospatial\\geartooth\\ISSS624\\Hands-on_Ex03\\data\\geospatial' \n  using driver `ESRI Shapefile'\nSimple feature collection with 5161 features and 3 fields\nGeometry type: POINT\nDimension:     XY\nBounding box:  xmin: 3970.122 ymin: 26482.1 xmax: 48284.56 ymax: 52983.82\nProjected CRS: SVY21\n\nmpsz &lt;- st_read(dsn = \"data/geospatial\",\n                   layer = \"MPSZ-2019\") %&gt;%\n  st_transform(crs = 3414)\n\nReading layer `MPSZ-2019' from data source \n  `C:\\Users\\Lian Khye\\Desktop\\MITB\\Geospatial\\geartooth\\ISSS624\\Hands-on_Ex03\\data\\geospatial' \n  using driver `ESRI Shapefile'\nSimple feature collection with 332 features and 6 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 103.6057 ymin: 1.158699 xmax: 104.0885 ymax: 1.470775\nGeodetic CRS:  WGS 84"
+    "text": "Load Geospatial data\nWe will utilise the busstop location data from Q4 of 2022 and the layout of Singapore using the URA Master Plan from 2019.\n\nbusstop &lt;- st_read(dsn = \"data/geospatial\",\n                   layer = \"BusStop\") %&gt;%\n  st_transform(crs = 3414)\n\nReading layer `BusStop' from data source \n  `C:\\Users\\Lian Khye\\Desktop\\MITB\\Geospatial\\geartooth\\ISSS624\\Hands-on_Ex03\\data\\geospatial' \n  using driver `ESRI Shapefile'\nSimple feature collection with 5161 features and 3 fields\nGeometry type: POINT\nDimension:     XY\nBounding box:  xmin: 3970.122 ymin: 26482.1 xmax: 48284.56 ymax: 52983.82\nProjected CRS: SVY21\n\nmpsz &lt;- st_read(dsn = \"data/geospatial\",\n                   layer = \"MPSZ-2019\") %&gt;%\n  st_transform(crs = 3414)\n\nReading layer `MPSZ-2019' from data source \n  `C:\\Users\\Lian Khye\\Desktop\\MITB\\Geospatial\\geartooth\\ISSS624\\Hands-on_Ex03\\data\\geospatial' \n  using driver `ESRI Shapefile'\nSimple feature collection with 332 features and 6 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 103.6057 ymin: 1.158699 xmax: 104.0885 ymax: 1.470775\nGeodetic CRS:  WGS 84\n\n\n\nmpsz &lt;- write_rds(mpsz, \"data/rds/mpsz.rds\")"
   },
   {
     "objectID": "Hands-on_Ex03/Hands-on_Ex3.html#combine-busstop-and-subzone-layout",
@@ -1117,6 +1117,97 @@
     "href": "Take_home_Ex1/Take_home_Ex1.html#visualise-desire-lines",
     "title": "Take_home_Ex1",
     "section": "Visualise desire lines",
-    "text": "Visualise desire lines\nWe can then visualise this flow using the following code. Since the passenger flow is high, it is better to limit the visualisation. Here we will use a flow passenger flow from subzone to subzone of 1500 or more.\n\nWeekday 6am to 9amWeekday 5pm to 8pmWeekend 11am to 2pmWeekend 4pm to 7pm\n\n\n\ntm_shape(grid_weekdayAM) +\n  tm_polygons() +\nflow_weekdayAM_6_9 %&gt;%  \n  filter(PEAK &gt;= 1500) %&gt;%\ntm_shape() +\n  tm_lines(lwd = \"PEAK\",\n           style = \"quantile\",\n           scale = c(0.1, 1, 3, 5, 7, 10),\n           n = 6,\n           alpha = 0.3)\n\n\n\n\n\n\n\n\n\ntm_shape(grid_weekdayPM) +\n  tm_polygons() +\nflow_weekdayPM_5_8 %&gt;%  \n  filter(PEAK &gt;= 1500) %&gt;%\ntm_shape() +\n  tm_lines(lwd = \"PEAK\",\n           style = \"quantile\",\n           scale = c(0.1, 1, 3, 5, 7, 10),\n           n = 6,\n           alpha = 0.3)\n\n\n\n\n\n\n\n\n\ntm_shape(grid_weekendAM) +\n  tm_polygons() +\nflow_weekendAM_11_14 %&gt;%  \n  filter(PEAK &gt;= 1500) %&gt;%\ntm_shape() +\n  tm_lines(lwd = \"PEAK\",\n           style = \"quantile\",\n           scale = c(0.1, 1, 3, 5, 7, 10),\n           n = 6,\n           alpha = 0.3)\n\n\n\n\n\n\n\n\n\ntm_shape(grid_weekendPM) +\n  tm_polygons() +\nflow_weekendPM_16_19 %&gt;%  \n  filter(PEAK &gt;= 1500) %&gt;%\ntm_shape() +\n  tm_lines(lwd = \"PEAK\",\n           style = \"quantile\",\n           scale = c(0.1, 1, 3, 5, 7, 10),\n           n = 6,\n           alpha = 0.3)"
+    "text": "Visualise desire lines\nWe can then visualise this flow using the following code. Since the passenger flow is high, it is better to limit the visualisation. Here we will use a flow passenger flow from hexagons to hexagons of 1500 or more.\n\nWeekday 6am to 9amWeekday 5pm to 8pmWeekend 11am to 2pmWeekend 4pm to 7pm\n\n\n\ntm_shape(grid_weekdayAM) +\n  tm_polygons() +\nflow_weekdayAM_6_9 %&gt;%  \n  filter(PEAK &gt;= 1500) %&gt;%\ntm_shape() +\n  tm_lines(lwd = \"PEAK\",\n           style = \"quantile\",\n           scale = c(0.1, 1, 3, 5, 7, 10),\n           n = 6,\n           alpha = 0.3)\n\n\n\n\n\n\n\n\n\ntm_shape(grid_weekdayPM) +\n  tm_polygons() +\nflow_weekdayPM_5_8 %&gt;%  \n  filter(PEAK &gt;= 1500) %&gt;%\ntm_shape() +\n  tm_lines(lwd = \"PEAK\",\n           style = \"quantile\",\n           scale = c(0.1, 1, 3, 5, 7, 10),\n           n = 6,\n           alpha = 0.3)\n\n\n\n\n\n\n\n\n\ntm_shape(grid_weekendAM) +\n  tm_polygons() +\nflow_weekendAM_11_14 %&gt;%  \n  filter(PEAK &gt;= 1500) %&gt;%\ntm_shape() +\n  tm_lines(lwd = \"PEAK\",\n           style = \"quantile\",\n           scale = c(0.1, 1, 3, 5, 7, 10),\n           n = 6,\n           alpha = 0.3)\n\n\n\n\n\n\n\n\n\ntm_shape(grid_weekendPM) +\n  tm_polygons() +\nflow_weekendPM_16_19 %&gt;%  \n  filter(PEAK &gt;= 1500) %&gt;%\ntm_shape() +\n  tm_lines(lwd = \"PEAK\",\n           style = \"quantile\",\n           scale = c(0.1, 1, 3, 5, 7, 10),\n           n = 6,\n           alpha = 0.3)"
+  },
+  {
+    "objectID": "In-class_Ex/Ex3/In_class_Ex03.html#loading-packages",
+    "href": "In-class_Ex/Ex3/In_class_Ex03.html#loading-packages",
+    "title": "In_class_Ex03",
+    "section": "Loading packages",
+    "text": "Loading packages\n\npacman::p_load(tmap, sf, sp, DT, \n               performance, reshape2,\n               ggpubr, tidyverse)"
+  },
+  {
+    "objectID": "In-class_Ex/Ex3/In_class_Ex03.html#loading-data",
+    "href": "In-class_Ex/Ex3/In_class_Ex03.html#loading-data",
+    "title": "In_class_Ex03",
+    "section": "Loading data",
+    "text": "Loading data\nWe will utilise the data that we have created from hands on Ex 3.\n\nmpsz &lt;- read_rds(\"data/rds/mpsz.rds\")\nmpsz\n\nSimple feature collection with 332 features and 6 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 2667.538 ymin: 15748.72 xmax: 56396.44 ymax: 50256.33\nProjected CRS: SVY21 / Singapore TM\nFirst 10 features:\n                 SUBZONE_N SUBZONE_C       PLN_AREA_N PLN_AREA_C       REGION_N\n1              MARINA EAST    MESZ01      MARINA EAST         ME CENTRAL REGION\n2         INSTITUTION HILL    RVSZ05     RIVER VALLEY         RV CENTRAL REGION\n3           ROBERTSON QUAY    SRSZ01  SINGAPORE RIVER         SR CENTRAL REGION\n4  JURONG ISLAND AND BUKOM    WISZ01  WESTERN ISLANDS         WI    WEST REGION\n5             FORT CANNING    MUSZ02           MUSEUM         MU CENTRAL REGION\n6         MARINA EAST (MP)    MPSZ05    MARINE PARADE         MP CENTRAL REGION\n7                   SUDONG    WISZ03  WESTERN ISLANDS         WI    WEST REGION\n8                  SEMAKAU    WISZ02  WESTERN ISLANDS         WI    WEST REGION\n9           SOUTHERN GROUP    SISZ02 SOUTHERN ISLANDS         SI CENTRAL REGION\n10                 SENTOSA    SISZ01 SOUTHERN ISLANDS         SI CENTRAL REGION\n   REGION_C                       geometry\n1        CR MULTIPOLYGON (((33222.98 29...\n2        CR MULTIPOLYGON (((28481.45 30...\n3        CR MULTIPOLYGON (((28087.34 30...\n4        WR MULTIPOLYGON (((14557.7 304...\n5        CR MULTIPOLYGON (((29542.53 31...\n6        CR MULTIPOLYGON (((35279.55 30...\n7        WR MULTIPOLYGON (((15772.59 21...\n8        WR MULTIPOLYGON (((19843.41 21...\n9        CR MULTIPOLYGON (((30870.53 22...\n10       CR MULTIPOLYGON (((26879.04 26..."
+  },
+  {
+    "objectID": "In-class_Ex/Ex3/In_class_Ex03.html#labelling-column-and-row-headers",
+    "href": "In-class_Ex/Ex3/In_class_Ex03.html#labelling-column-and-row-headers",
+    "title": "In_class_Ex03",
+    "section": "Labelling column and row headers",
+    "text": "Labelling column and row headers\nWe will create a list and then sort the distance by the planning sub-zones.\n\nsz_names &lt;- mpsz$SUBZONE_C\n\nWe will then attach the sub-zones to row and column next.\n\ncolnames(dist) &lt;- paste0(sz_names)\nrownames(dist) &lt;- paste0(sz_names)"
+  },
+  {
+    "objectID": "In-class_Ex/Ex3/In_class_Ex03.html#pivoting-distance-value-by-sub-zone",
+    "href": "In-class_Ex/Ex3/In_class_Ex03.html#pivoting-distance-value-by-sub-zone",
+    "title": "In_class_Ex03",
+    "section": "Pivoting distance value by sub-zone",
+    "text": "Pivoting distance value by sub-zone\nWe will then pivot using the row and columns of the distance matrix into a table.\n\ndistPair &lt;- melt(dist) %&gt;%\n  rename(dist = value)\nhead(distPair, 10)\n\n     Var1   Var2      dist\n1  MESZ01 MESZ01     0.000\n2  RVSZ05 MESZ01  3926.003\n3  SRSZ01 MESZ01  3939.108\n4  WISZ01 MESZ01 20252.964\n5  MUSZ02 MESZ01  2989.984\n6  MPSZ05 MESZ01  1431.330\n7  WISZ03 MESZ01 19211.836\n8  WISZ02 MESZ01 14960.942\n9  SISZ02 MESZ01  7515.256\n10 SISZ01 MESZ01  6391.342"
+  },
+  {
+    "objectID": "In-class_Ex/Ex3/In_class_Ex03.html#update-intra-zonal-distances",
+    "href": "In-class_Ex/Ex3/In_class_Ex03.html#update-intra-zonal-distances",
+    "title": "In_class_Ex03",
+    "section": "Update intra-zonal distances",
+    "text": "Update intra-zonal distances\nHere we will change the intra-zone distances of 0 by a constant value. We will need to identify the smallest distance.\n\ndistPair %&gt;%\n  filter(dist &gt; 0) %&gt;%\n  summary()\n\n      Var1             Var2             dist        \n MESZ01 :   331   MESZ01 :   331   Min.   :  173.8  \n RVSZ05 :   331   RVSZ05 :   331   1st Qu.: 7149.5  \n SRSZ01 :   331   SRSZ01 :   331   Median :11890.0  \n WISZ01 :   331   WISZ01 :   331   Mean   :12229.4  \n MUSZ02 :   331   MUSZ02 :   331   3rd Qu.:16401.7  \n MPSZ05 :   331   MPSZ05 :   331   Max.   :49894.4  \n (Other):107906   (Other):107906                    \n\n\nWe will then add a constant distance value of 50m.\n\ndistPair$dist &lt;- ifelse(distPair$dist == 0,\n                        50, distPair$dist)\n\nWe can check the data again.\n\ndistPair %&gt;%\n  summary()\n\n      Var1             Var2             dist      \n MESZ01 :   332   MESZ01 :   332   Min.   :   50  \n RVSZ05 :   332   RVSZ05 :   332   1st Qu.: 7097  \n SRSZ01 :   332   SRSZ01 :   332   Median :11864  \n WISZ01 :   332   WISZ01 :   332   Mean   :12193  \n MUSZ02 :   332   MUSZ02 :   332   3rd Qu.:16388  \n MPSZ05 :   332   MPSZ05 :   332   Max.   :49894  \n (Other):108232   (Other):108232                  \n\n\nAfter that we can rename the origin and destination fields.\n\ndistPair &lt;- distPair %&gt;%\n  rename(orig = Var1,\n         dest = Var2)\n\nFinally, we can save the file as rds format.\n\nwrite_rds(distPair, \"data/rds/distPair.rds\")"
+  },
+  {
+    "objectID": "In-class_Ex/Ex3/In_class_Ex03.html#separate-intra-flow-from-passenger-volume",
+    "href": "In-class_Ex/Ex3/In_class_Ex03.html#separate-intra-flow-from-passenger-volume",
+    "title": "In_class_Ex03",
+    "section": "Separate intra-flow from passenger volume",
+    "text": "Separate intra-flow from passenger volume\nWe will first add 3 new fields into the flow_data dataframe.\n\nflow_data$FlowNoIntra &lt;- ifelse(\n  flow_data$ORIGIN_SZ == flow_data$DESTIN_SZ, \n  0, flow_data$TRIPS)\nflow_data$offset &lt;- ifelse(\n  flow_data$ORIGIN_SZ == flow_data$DESTIN_SZ, \n  0.000001, 1)"
+  },
+  {
+    "objectID": "In-class_Ex/Ex3/In_class_Ex03.html#combine-passenger-volume-and-distance-value",
+    "href": "In-class_Ex/Ex3/In_class_Ex03.html#combine-passenger-volume-and-distance-value",
+    "title": "In_class_Ex03",
+    "section": "Combine passenger volume and distance value",
+    "text": "Combine passenger volume and distance value\nWe will first convert the ORIGIN_SZ and DESTIN_SZ into fator data types.\n\nflow_data$ORIGIN_SZ &lt;- as.factor(flow_data$ORIGIN_SZ)\nflow_data$DESTIN_SZ &lt;- as.factor(flow_data$DESTIN_SZ)\n\nAfter that we can join the data together using left_join().\n\nflow_data1 &lt;- flow_data %&gt;%\n  left_join (distPair,\n             by = c(\"ORIGIN_SZ\" = \"orig\",\n                    \"DESTIN_SZ\" = \"dest\"))"
+  },
+  {
+    "objectID": "In-class_Ex/Ex3/In_class_Ex03.html#importing-population-data",
+    "href": "In-class_Ex/Ex3/In_class_Ex03.html#importing-population-data",
+    "title": "In_class_Ex03",
+    "section": "Importing population data",
+    "text": "Importing population data\nWe will first import the population data and select certain columns and renaming them.\n\npop &lt;- read_csv(\"data/aspatial/pop.csv\")\n\nRows: 332 Columns: 5\n── Column specification ────────────────────────────────────────────────────────\nDelimiter: \",\"\nchr (2): PA, SZ\ndbl (3): AGE7_12, AGE13_24, AGE25_64\n\nℹ Use `spec()` to retrieve the full column specification for this data.\nℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.\n\npop &lt;- pop %&gt;%\n  left_join(mpsz,\n            by = c(\"PA\" = \"PLN_AREA_N\",\n                   \"SZ\" = \"SUBZONE_N\")) %&gt;%\n  select(1:6) %&gt;%\n  rename(SZ_NAME = SZ,\n         SZ = SUBZONE_C)"
+  },
+  {
+    "objectID": "In-class_Ex/Ex3/In_class_Ex03.html#preparint-origin-attribute",
+    "href": "In-class_Ex/Ex3/In_class_Ex03.html#preparint-origin-attribute",
+    "title": "In_class_Ex03",
+    "section": "Preparint origin attribute",
+    "text": "Preparint origin attribute\n\nflow_data1 &lt;- flow_data1 %&gt;%\n  left_join(pop,\n            by = c(ORIGIN_SZ = \"SZ\")) %&gt;%\n  rename(ORIGIN_AGE7_12 = AGE7_12,\n         ORIGIN_AGE13_24 = AGE13_24,\n         ORIGIN_AGE25_64 = AGE25_64) %&gt;%\n  select(-c(PA, SZ_NAME))"
+  },
+  {
+    "objectID": "In-class_Ex/Ex3/In_class_Ex03.html#preparing-destination-attribute",
+    "href": "In-class_Ex/Ex3/In_class_Ex03.html#preparing-destination-attribute",
+    "title": "In_class_Ex03",
+    "section": "Preparing destination attribute",
+    "text": "Preparing destination attribute\n\nflow_data1 &lt;- flow_data1 %&gt;%\n  left_join(pop,\n            by = c(DESTIN_SZ = \"SZ\")) %&gt;%\n  rename(DESTIN_AGE7_12 = AGE7_12,\n         DESTIN_AGE13_24 = AGE13_24,\n         DESTIN_AGE25_64 = AGE25_64) %&gt;%\n  select(-c(PA, SZ_NAME))\n\nWe will then save the output as a rds file.\n\nwrite_rds(flow_data1, \"data/rds/SIM_data\")"
+  },
+  {
+    "objectID": "In-class_Ex/Ex3/In_class_Ex03.html#import-modelling-data",
+    "href": "In-class_Ex/Ex3/In_class_Ex03.html#import-modelling-data",
+    "title": "In_class_Ex03",
+    "section": "Import modelling data",
+    "text": "Import modelling data\nWe will be using the SIM_data from earlier\n\nSIM_data &lt;- read_rds(\"data/rds/SIM_data.rds\")"
+  },
+  {
+    "objectID": "In-class_Ex/Ex3/In_class_Ex03.html#visualising-the-dependent-variable",
+    "href": "In-class_Ex/Ex3/In_class_Ex03.html#visualising-the-dependent-variable",
+    "title": "In_class_Ex03",
+    "section": "Visualising the dependent variable",
+    "text": "Visualising the dependent variable\nHere we will use ggplot for plotting the histogram.\n\nggplot(data = SIM_data,\n       aes(x = TRIPS)) +\n  geom_histogram()\n\n`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.\n\n\n\n\n\nNext we will visualise the chart as a dot representing each variable.\n\nggplot(data = SIM_data,\n       aes(x = dist,\n           y = TRIPS)) +\n  geom_point() +\n  geom_smooth(method = lm)\n\n`geom_smooth()` using formula = 'y ~ x'"
+  },
+  {
+    "objectID": "In-class_Ex/Ex3/data/geospatial/MPSZ-2019.html",
+    "href": "In-class_Ex/Ex3/data/geospatial/MPSZ-2019.html",
+    "title": "ISSS624",
+    "section": "",
+    "text": "&lt;!DOCTYPE qgis PUBLIC ‘http://mrcc.com/qgis.dtd’ ‘SYSTEM’&gt;     dataset\n\n\n        0 0     false"
   }
 ]
