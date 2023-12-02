@@ -230,3 +230,261 @@ ggplot(data = SIM_data,
   geom_point() +
   geom_smooth(method = lm)
 ```
+
+We will need to log transformed both variables to make the linear relationship clearer. We will do that in the following code.
+
+```{r}
+ggplot(data = SIM_data,
+       aes(x = log(dist),
+           y = log(TRIPS))) +
+  geom_point() +
+  geom_smooth(method = lm)
+
+```
+
+## Check for zero
+
+Since Poisson regression is formed using log and log 0 will give an invalid data, we will have to make sure that there is no 0 values in the data.
+
+We can use *summary()* function to summarise the data to check for values with 0 value.
+
+```{r}
+summary(SIM_data)
+```
+
+Subsequently we will substitute the 0 values with a placeholder value such as 0.99
+
+```{R}
+SIM_data$DESTIN_AGE7_12 <- ifelse(
+  SIM_data$DESTIN_AGE7_12 == 0,
+  0.99, SIM_data$DESTIN_AGE7_12)
+SIM_data$DESTIN_AGE13_24 <- ifelse(
+  SIM_data$DESTIN_AGE13_24 == 0,
+  0.99, SIM_data$DESTIN_AGE13_24)
+SIM_data$DESTIN_AGE25_64 <- ifelse(
+  SIM_data$DESTIN_AGE25_64 == 0,
+  0.99, SIM_data$DESTIN_AGE25_64)
+SIM_data$ORIGIN_AGE7_12 <- ifelse(
+  SIM_data$ORIGIN_AGE7_12 == 0,
+  0.99, SIM_data$ORIGIN_AGE7_12)
+SIM_data$ORIGIN_AGE13_24 <- ifelse(
+  SIM_data$ORIGIN_AGE13_24 == 0,
+  0.99, SIM_data$ORIGIN_AGE13_24)
+SIM_data$ORIGIN_AGE25_64 <- ifelse(
+  SIM_data$ORIGIN_AGE25_64 == 0,
+  0.99, SIM_data$ORIGIN_AGE25_64)
+```
+
+## Unconstrained spatial interaction model
+
+Here we will calibrate an unconstrained spatial interaction model using *glm()*. The explanatory variables are as follows:
+- Origin population by different age range
+- Destination population by different age range
+- distance between origin and destination in km
+
+We can do that using the following code.
+```{r}
+uncSIM <- glm(formula = TRIPS ~ 
+                log(ORIGIN_AGE25_64) + 
+                log(DESTIN_AGE25_64) +
+                log(dist),
+              family = poisson(link = "log"),
+              data = SIM_data,
+              na.action = na.exclude)
+uncSIM
+```
+
+## R-squared function
+
+Next we will calculate the R-squared value to measure the variation of the trips from the linear line.
+
+```{r}
+CalcRSquared <- function(observed,estimated){
+  r <- cor(observed,estimated)
+  R2 <- r^2
+  R2
+}
+```
+
+Here we will calculate the R-squared of the unconstrained SIM.
+
+```{r}
+CalcRSquared(uncSIM$data$TRIPS, uncSIM$fitted.values)
+r2_mcfadden(uncSIM)
+```
+
+Here we see that the R-square value to be 0.446, this means that most points is different from the linear line.
+
+## Origin(Production) constained SIM
+
+Here we will fit an origin constrained SIM instead.
+
+```{r}
+orcSIM <- glm(formula = TRIPS ~ 
+                 ORIGIN_SZ +
+                 log(DESTIN_AGE25_64) +
+                 log(dist),
+              family = poisson(link = "log"),
+              data = SIM_data,
+              na.action = na.exclude)
+summary(orcSIM)
+
+```
+
+We can see how much constraints hold for the destinations.
+
+```{r}
+CalcRSquared(orcSIM$data$TRIPS, orcSIM$fitted.values)
+```
+
+## Destination constrained
+
+Here we will fit a destination constrained SIM.
+
+```{r}
+decSIM <- glm(formula = TRIPS ~ 
+                DESTIN_SZ + 
+                log(ORIGIN_AGE25_64) + 
+                log(dist),
+              family = poisson(link = "log"),
+              data = SIM_data,
+              na.action = na.exclude)
+summary(decSIM)
+```
+
+We can use the following to see the constraints hold for destinations.
+
+```{r}
+CalcRSquared(decSIM$data$TRIPS, decSIM$fitted.values)
+```
+
+## Doubly constrained
+
+Here we will fit a doubly constrained SIM.
+
+```{r}
+dbcSIM <- glm(formula = TRIPS ~ 
+                ORIGIN_SZ + 
+                DESTIN_SZ + 
+                log(dist),
+              family = poisson(link = "log"),
+              data = SIM_data,
+              na.action = na.exclude)
+summary(dbcSIM)
+```
+
+Next we can examine the constraints hold.
+
+```{r}
+CalcRSquared(dbcSIM$data$TRIPS, dbcSIM$fitted.values)
+```
+
+The improvement in R-square value means that there is an improvement in fitting of the variables to the linear line.
+
+## Model comparison
+
+We can use the Root Mean Squared Error for comparing the different models. We can use the *compare_performance()* from the **performance** package to do that.
+
+```{r}
+model_list <- list(unconstrained=uncSIM,
+                   originConstrained=orcSIM,
+                   destinationConstrained=decSIM,
+                   doublyConstrained=dbcSIM)
+
+```
+
+After that we will compute the RMSE of all of the models that we have assigned to the variable above.
+
+```{r}
+compare_performance(model_list,
+                    metrics = "RMSE")
+
+```
+
+The smaller the RMSE value the better the model is.
+
+## Visualisation
+
+Here we will visualse the observed values and the fitted values. We can do that by extracting the fitted values from each model.
+
+```{r}
+df <- as.data.frame(uncSIM$fitted.values) %>%
+  round(digits = 0)
+
+```
+
+After that we will join the values extracted to the *SIM_data* dataframe.
+```{r}
+SIM_data <- SIM_data %>%
+  cbind(df) %>%
+  rename(uncTRIPS = "uncSIM$fitted.values")
+```
+
+We will then do everything again for the Origin Constrained SIM, Destination Constrained and Doubly Constrained SIM.
+
+### Origin Constrained SIM
+
+```{r}
+df <- as.data.frame(orcSIM$fitted.values) %>%
+  round(digits = 0)
+SIM_data <- SIM_data %>%
+  cbind(df) %>%
+  rename(orcTRIPS = "orcSIM$fitted.values")
+
+```
+
+### Destination Constrained SIM
+
+```{r}
+df <- as.data.frame(decSIM$fitted.values) %>%
+  round(digits = 0)
+SIM_data <- SIM_data %>%
+  cbind(df) %>%
+  rename(decTRIPS = "decSIM$fitted.values")
+
+```
+
+### Doubly Constrained SIM
+
+```{r}
+df <- as.data.frame(dbcSIM$fitted.values) %>%
+  round(digits = 0)
+SIM_data <- SIM_data %>%
+  cbind(df) %>%
+  rename(dbcTRIPS = "dbcSIM$fitted.values")
+```
+
+### Plotting
+
+Here we will then plot all of the different models together. 
+
+```{r}
+unc_p <- ggplot(data = SIM_data,
+                aes(x = uncTRIPS,
+                    y = TRIPS)) +
+  geom_point() +
+  geom_smooth(method = lm)
+
+orc_p <- ggplot(data = SIM_data,
+                aes(x = orcTRIPS,
+                    y = TRIPS)) +
+  geom_point() +
+  geom_smooth(method = lm)
+
+dec_p <- ggplot(data = SIM_data,
+                aes(x = decTRIPS,
+                    y = TRIPS)) +
+  geom_point() +
+  geom_smooth(method = lm)
+
+dbc_p <- ggplot(data = SIM_data,
+                aes(x = dbcTRIPS,
+                    y = TRIPS)) +
+  geom_point() +
+  geom_smooth(method = lm)
+
+ggarrange(unc_p, orc_p, dec_p, dbc_p,
+          ncol = 2,
+          nrow = 2)
+
+```
