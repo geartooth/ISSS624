@@ -109,6 +109,14 @@ We will first rename the bus stop column title for easier data joining.
 colnames(busstop)[colnames(busstop) == "BUS_STOP_N"] <- "ORIGIN_PT_CODE"
 ```
 
+We will also import the layout of Singapore for excluding busstops that are not found in Singapore.
+```{r}
+mpsz <- st_read(dsn = "data/geospatial",
+                   layer = "MPSZ-2019") %>%
+  st_transform(crs = 3414)
+
+```
+
 After that we will create the hexagons that will create the map layout. The hexagons will be shaped 250 x 250 cell size. All of the hexagons will also be given a grid id name that can be used for identifying each individual grid.
 
 ```{r}
@@ -127,7 +135,9 @@ honeycomb_grid_sf <- st_sf(area_honeycomb_grid) %>%
 First we will assign the bus stop point geometry data to each polygon using *st_intersection()*. The function assigns all of the points to a polygon by the point-set intersection of two geometries. Additional information [here](https://postgis.net/docs/ST_Intersection.html).
 
 ```{r}
-busstop_hex <- st_intersection(busstop, honeycomb_grid_sf) %>%
+
+valid_busstop <- st_intersection(busstop, mpsz)
+busstop_hex <- st_intersection(valid_busstop, honeycomb_grid_sf) %>%
   st_drop_geometry()
 
 ```
@@ -257,6 +267,7 @@ mapA <- tm_shape(grid_weekdayAM)+
 mapA
 ```
 
+
 The total number of ridership range from 1 to 357043 per hexagon. The range of the data are divided to quantile range bands for clearer distinction between ridership of each hexagon.
 
 ## **Weekday 5pm to 8pm**
@@ -346,6 +357,7 @@ tmap_mode("plot")
 mapA
 ```
 
+
 This allows for other accessories to be added such as compass and scales which might be useful depending on the application or use of the map.
 
 
@@ -363,6 +375,7 @@ We can see that the total ridership over the weekends is lower than the weekday 
 ## Creating neighbour count column
 
 Before we calculate LISA, we will add the number of neighbours to each dataset for the various grids. We will use *st_contiguity()* and add a neighbour column to the data points under a new variable name. By default, the Queen method of contiguity will be used for calculating the neighbours.
+
 
 ```{r}
 wm_qA <- grid_weekdayAM %>%
@@ -393,7 +406,7 @@ summary(wm_qA$nb)
 
 ```
 
-We see that there are 1779 data points and they have an average of 4.3 neighbours. There are 14 hexagons with 0 neighbours and 450 hexagons with 6 neighbours.
+We see that there are 1779 data points and they have an average of 4.3 neighbours. There are 12 hexagons with 0 neighbours and 450 hexagons with 6 neighbours.
 
 ## **Weekday 6am to 9am**
 
@@ -401,7 +414,7 @@ We see that there are 1779 data points and they have an average of 4.3 neighbour
 summary(wm_qB$nb)
 ```
 
-We see that there are 1780 data points and they have an average of 4.3 neighbours. There are 14 hexagons with 0 neighbours and 450 hexagons with 6 neighbours.
+We see that there are 1780 data points and they have an average of 4.3 neighbours. There are 12 hexagons with 0 neighbours and 450 hexagons with 6 neighbours.
 
 ## **Weekday 6am to 9am**
 
@@ -409,7 +422,7 @@ We see that there are 1780 data points and they have an average of 4.3 neighbour
 summary(wm_qC$nb)
 ```
 
-We see that there are 1786 data points and they have an average of 4.3 neighbours. There are 13 hexagons with 0 neighbours and 454 hexagons with 6 neighbours.
+We see that there are 1786 data points and they have an average of 4.3 neighbours. There are 11 hexagons with 0 neighbours and 454 hexagons with 6 neighbours.
 
 ## **Weekday 6am to 9am**
 
@@ -417,7 +430,7 @@ We see that there are 1786 data points and they have an average of 4.3 neighbour
 summary(wm_qD$nb)
 ```
 
-We see that there are 1775 data points and they have an average of 4.3 neighbours. There are 12 hexagons with 0 neighbours and 446 hexagons with 6 neighbours.
+We see that there are 1775 data points and they have an average of 4.3 neighbours. There are 10 hexagons with 0 neighbours and 446 hexagons with 6 neighbours.
 :::
 
 ## Neighbour count
