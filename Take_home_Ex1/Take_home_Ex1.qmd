@@ -899,7 +899,7 @@ flow_weekendPM_16_19 <- od2line(flow = R_weekendPM_16_19,
 
 ## Visualise desire lines
 
-We can then visualise this flow using the following code. Since the passenger flow is high, it is better to limit the visualisation. Here we will use a flow passenger flow from subzone to subzone of 1500 or more.
+We can then visualise this flow using the following code. Since the passenger flow is high, it is better to limit the visualisation. Here we will use a flow passenger flow from hexagons to hexagons of 1500 or more.
 
 ::: panel-tabset
 ## **Weekday 6am to 9am**
