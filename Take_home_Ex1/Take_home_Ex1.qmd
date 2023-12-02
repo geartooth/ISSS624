@@ -228,7 +228,7 @@ grid_weekendPM <- poly_weekendPM_16_19 %>%
 
 ```
 
-# Choropleth map
+# Choropleth map 
 
 Here we will plot the choropleth map for the different time intervals. We will be using *tmap_mode("plot")* to create an interactive map. Although we will be coding in accessories such as the compass, they will not be displayed in the interactive map. However by writing them first, we can display them in subsequent maps once we view them in **plot** mode.
 
