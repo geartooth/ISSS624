@@ -683,7 +683,8 @@ dbl (3): AGE7_12, AGE13_24, AGE25_64
 </section>
 <section id="unconstrained-spatial-interaction-model" class="level2">
 <h2 class="anchored" data-anchor-id="unconstrained-spatial-interaction-model">Unconstrained spatial interaction model</h2>
-<p>Here we will calibrate an unconstrained spatial interaction model using <em>glm()</em>. The explanatory variables are as follows: - Origin population by different age range - Destination population by different age range - distance between origin and destination in km</p>
+<p>Here we will calibrate an unconstrained spatial interaction model using <em>glm()</em>. The explanatory variables are as follows: - Origin population by different age range - Destination population by different age range - distance between origin and destination in km.</p>
+<p><img src="images/1_unconstrain.jpg" class="img-fluid"></p>
 <p>We can do that using the following code.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>uncSIM <span class="ot">&lt;-</span> <span class="fu">glm</span>(<span class="at">formula =</span> TRIPS <span class="sc">~</span> </span>
@@ -740,6 +741,7 @@ Residual Deviance: 19960000     AIC: 20040000</code></pre>
 <section id="originproduction-constained-sim" class="level2">
 <h2 class="anchored" data-anchor-id="originproduction-constained-sim">Origin(Production) constained SIM</h2>
 <p>Here we will fit an origin constrained SIM instead.</p>
+<p><img src="images/2_origin.jpg" class="img-fluid"></p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>orcSIM <span class="ot">&lt;-</span> <span class="fu">glm</span>(<span class="at">formula =</span> TRIPS <span class="sc">~</span> </span>
 <span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>                 ORIGIN_SZ <span class="sc">+</span></span>
@@ -1061,6 +1063,7 @@ Number of Fisher Scoring iterations: 6</code></pre>
 <section id="destination-constrained" class="level2">
 <h2 class="anchored" data-anchor-id="destination-constrained">Destination constrained</h2>
 <p>Here we will fit a destination constrained SIM.</p>
+<p><img src="images/3_destination.jpg" class="img-fluid"></p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>decSIM <span class="ot">&lt;-</span> <span class="fu">glm</span>(<span class="at">formula =</span> TRIPS <span class="sc">~</span> </span>
 <span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>                DESTIN_SZ <span class="sc">+</span> </span>
@@ -1383,6 +1386,7 @@ Number of Fisher Scoring iterations: 7</code></pre>
 <section id="doubly-constrained" class="level2">
 <h2 class="anchored" data-anchor-id="doubly-constrained">Doubly constrained</h2>
 <p>Here we will fit a doubly constrained SIM.</p>
+<p><img src="images/4_doubly.jpg" class="img-fluid"></p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>dbcSIM <span class="ot">&lt;-</span> <span class="fu">glm</span>(<span class="at">formula =</span> TRIPS <span class="sc">~</span> </span>
 <span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>                ORIGIN_SZ <span class="sc">+</span> </span>

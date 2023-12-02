@@ -2,14 +2,12 @@
 title: "In_class_Ex03"
 ---
 
-
-
-
 # Overview
 
 # Loading packages and data
 
 ## Loading packages
+
 ```{r}
 
 pacman::p_load(tmap, sf, sp, DT, 
@@ -20,6 +18,7 @@ pacman::p_load(tmap, sf, sp, DT,
 ## Loading data
 
 We will utilise the data that we have created from hands on Ex 3.
+
 ```{r}
 mpsz <- read_rds("data/rds/mpsz.rds")
 mpsz
@@ -29,12 +28,15 @@ mpsz
 # Calculate distance matrix
 
 Here we will convert the mpsz variable from a data frame to a spatial polygon dataframe.
+
 ```{r}
 mpsz_sp <- as(mpsz, "Spatial")
 mpsz_sp
 
 ```
+
 Next we will use *spDists()* function to calculate the Euclidean distance between centroids of different planning zones.
+
 ```{r}
 dist <- spDists(mpsz_sp, 
                 longlat = FALSE)
@@ -44,6 +46,7 @@ head(dist, n=c(10, 10))
 ## Labelling column and row headers
 
 We will create a list and then sort the distance by the planning sub-zones.
+
 ```{r}
 sz_names <- mpsz$SUBZONE_C
 ```
@@ -56,20 +59,20 @@ rownames(dist) <- paste0(sz_names)
 
 ```
 
-
 ## Pivoting distance value by sub-zone
 
 We will then pivot using the row and columns of the distance matrix into a table.
+
 ```{r}
 distPair <- melt(dist) %>%
   rename(dist = value)
 head(distPair, 10)
 ```
 
-
 ## Update intra-zonal distances
 
 Here we will change the intra-zone distances of 0 by a constant value. We will need to identify the smallest distance.
+
 ```{r}
 distPair %>%
   filter(dist > 0) %>%
@@ -78,12 +81,14 @@ distPair %>%
 ```
 
 We will then add a constant distance value of 50m.
+
 ```{r}
 distPair$dist <- ifelse(distPair$dist == 0,
                         50, distPair$dist)
 ```
 
 We can check the data again.
+
 ```{r}
 distPair %>%
   summary()
@@ -98,6 +103,7 @@ distPair <- distPair %>%
 ```
 
 Finally, we can save the file as rds format.
+
 ```{r}
 write_rds(distPair, "data/rds/distPair.rds") 
 ```
@@ -105,6 +111,7 @@ write_rds(distPair, "data/rds/distPair.rds")
 # Preparing flow data
 
 We will then read the file that was created in hands on ex 3.
+
 ```{r}
 od_data <- read_rds("data/rds/od_data.rds")
 ```
@@ -118,6 +125,7 @@ flow_data <- od_data %>%
 ```
 
 We can then use the following to check the first 10 entries.
+
 ```{r}
 head(flow_data, 10)
 ```
@@ -159,6 +167,7 @@ flow_data1 <- flow_data %>%
 ## Importing population data
 
 We will first import the population data and select certain columns and renaming them.
+
 ```{r}
 pop <- read_csv("data/aspatial/pop.csv")
 pop <- pop %>%
@@ -169,6 +178,7 @@ pop <- pop %>%
   rename(SZ_NAME = SZ,
          SZ = SUBZONE_C)
 ```
+
 ## Preparint origin attribute
 
 ```{r}
@@ -182,6 +192,7 @@ flow_data1 <- flow_data1 %>%
 ```
 
 ## Preparing destination attribute
+
 ```{r}
 flow_data1 <- flow_data1 %>%
   left_join(pop,
@@ -277,12 +288,12 @@ SIM_data$ORIGIN_AGE25_64 <- ifelse(
 
 ## Unconstrained spatial interaction model
 
-Here we will calibrate an unconstrained spatial interaction model using *glm()*. The explanatory variables are as follows:
-- Origin population by different age range
-- Destination population by different age range
-- distance between origin and destination in km
+Here we will calibrate an unconstrained spatial interaction model using *glm()*. The explanatory variables are as follows: - Origin population by different age range - Destination population by different age range - distance between origin and destination in km.
+
+![](images/1_unconstrain.jpg)
 
 We can do that using the following code.
+
 ```{r}
 uncSIM <- glm(formula = TRIPS ~ 
                 log(ORIGIN_AGE25_64) + 
@@ -319,6 +330,8 @@ Here we see that the R-square value to be 0.446, this means that most points is 
 
 Here we will fit an origin constrained SIM instead.
 
+![](images/2_origin.jpg)
+
 ```{r}
 orcSIM <- glm(formula = TRIPS ~ 
                  ORIGIN_SZ +
@@ -341,6 +354,8 @@ CalcRSquared(orcSIM$data$TRIPS, orcSIM$fitted.values)
 
 Here we will fit a destination constrained SIM.
 
+![](images/3_destination.jpg)
+
 ```{r}
 decSIM <- glm(formula = TRIPS ~ 
                 DESTIN_SZ + 
@@ -361,6 +376,8 @@ CalcRSquared(decSIM$data$TRIPS, decSIM$fitted.values)
 ## Doubly constrained
 
 Here we will fit a doubly constrained SIM.
+
+![](images/4_doubly.jpg)
 
 ```{r}
 dbcSIM <- glm(formula = TRIPS ~ 
@@ -414,6 +431,7 @@ df <- as.data.frame(uncSIM$fitted.values) %>%
 ```
 
 After that we will join the values extracted to the *SIM_data* dataframe.
+
 ```{r}
 SIM_data <- SIM_data %>%
   cbind(df) %>%
@@ -456,7 +474,7 @@ SIM_data <- SIM_data %>%
 
 ### Plotting
 
-Here we will then plot all of the different models together. 
+Here we will then plot all of the different models together.
 
 ```{r}
 unc_p <- ggplot(data = SIM_data,
