@@ -46,7 +46,7 @@ Utilise Queen's contiguity for performing LISA of the passenger trips by origin 
 Here we will load the packages needed for this exercise and their respective functions - **sf**: - **tmap**: - **spdep**: - **tidyverse**: - **dplyr**: - **mapview**: - **sfdep**:
 
 ```{r}
-pacman::p_load(sf,tmap,spdep,tidyverse, dplyr, mapview, sfdep, stplanr, glue)
+pacman::p_load(sf,tmap,spdep,tidyverse, dplyr, mapview, sfdep, stplanr, glue, DT)
 ```
 
 ## Loading data
@@ -627,15 +627,12 @@ tm_shape(lisa_sig_weekdayAM) +
   tm_borders(alpha = 0.4)
 
 ```
+
 ```{r}
 highest_grid_weekdayAM <- lisa_weekdayAM %>%
   group_by(mean) %>%
   slice_max(TOT_TRIPS) %>%
   select(10, 15,16)
-
-```
-
-```{r}
 
 HL_weekdayAM <- busstop_hex %>%
   left_join(highest_grid_weekdayAM, by = "grid_id") %>%
@@ -661,13 +658,8 @@ LL_weekdayAM <- busstop_hex %>%
   select(3)%>%
   summarise(LL = paste(LOC_DESC, collapse = ", "))
 
-outliers_weekdayAM <- glue("The bus stops with high-low outliers are:\n {HL_weekdayAM}.\n\nThe bus stops with low-high outliers are:\n{LH_weekdayAM}")
+glue("The bus stops with high-low outliers are:\n {HL_weekdayAM}.\n\nThe bus stops with low-high outliers are:\n{LH_weekdayAM}\n\nThe bus stops with high-high clusters are:\n {HH_weekdayAM}.\n\nThe bus stops with low-low clusters are:\n{LL_weekdayAM}")
 
-clusters_weekdayAM <- glue("The bus stops with high-high clusters are:\n {HH_weekdayAM}.\n\nThe bus stops with low-low clusters are:\n{LL_weekdayAM}")
-
-summ <- glue("{outliers_weekdayAM} \n\n {clusters_weekdayAM}")
-
-summ
 ```
 
 
@@ -693,8 +685,6 @@ highest_grid_weekdayPM <- lisa_weekdayPM %>%
   slice_max(TOT_TRIPS) %>%
   select(10, 15,16)
 
-
-
 HL_weekdayPM <- busstop_hex %>%
   left_join(highest_grid_weekdayPM, by = "grid_id") %>%
   filter(grepl("High-Low", mean, ignore.case = TRUE)) %>%
@@ -719,14 +709,7 @@ LL_weekdayPM <- busstop_hex %>%
   select(3)%>%
   summarise(LL = paste(LOC_DESC, collapse = ", "))
 
-outliers_weekdayPM <- glue("The bus stops with high-low outliers are:\n {HL_weekdayPM}.\n\nThe bus stops with low-high outliers are:\n{LH_weekdayPM}")
-
-clusters_weekdayPM <- glue("The bus stops with high-high clusters are:\n {HH_weekdayPM}.\n\nThe bus stops with low-low clusters are:\n{LL_weekdayPM}")
-
-summ <- glue("{outliers_weekdayPM} \n\n {clusters_weekdayPM}")
-
-summ
-
+glue("The bus stops with high-low outliers are:\n {HL_weekdayPM}.\n\nThe bus stops with low-high outliers are:\n{LH_weekdayPM} \n\nThe bus stops with high-high clusters are:\n {HH_weekdayPM}.\n\nThe bus stops with low-low clusters are:\n{LL_weekdayPM}")
 ```
 
 ## **Weekend/Holidays 11am to 2pm**
@@ -750,8 +733,6 @@ highest_grid_weekendAM <- lisa_weekendAM %>%
   group_by(mean) %>%
   slice_max(TOT_TRIPS) %>%
   select(10, 15,16)
-
-
 
 HL_weekendAM <- busstop_hex %>%
   left_join(highest_grid_weekendAM, by = "grid_id") %>%
@@ -777,14 +758,7 @@ LL_weekendAM <- busstop_hex %>%
   select(3)%>%
   summarise(LL = paste(LOC_DESC, collapse = ", "))
 
-outliers_weekendAM <- glue("The bus stops with high-low outliers are:\n {HL_weekendAM}.\n\nThe bus stops with low-high outliers are:\n{LH_weekendAM}")
-
-clusters_weekendAM <- glue("The bus stops with high-high clusters are:\n {HH_weekendAM}.\n\nThe bus stops with low-low clusters are:\n{LL_weekendAM}")
-
-summ <- glue("{outliers_weekendAM} \n\n {clusters_weekendAM}")
-
-summ
-
+glue("The bus stops with high-low outliers are:\n {HL_weekendAM}.\n\nThe bus stops with low-high outliers are:\n{LH_weekendAM}\n\nThe bus stops with high-high clusters are:\n {HH_weekendAM}.\n\nThe bus stops with low-low clusters are:\n{LL_weekendAM}")
 ```
 
 ## **Weekend/Holidays 4pm to 7pm**
@@ -811,8 +785,6 @@ highest_grid_weekendPM <- lisa_weekendPM %>%
   slice_max(TOT_TRIPS) %>%
   select(10, 15,16)
 
-
-
 HL_weekendPM <- busstop_hex %>%
   left_join(highest_grid_weekendPM, by = "grid_id") %>%
   filter(grepl("High-Low", mean, ignore.case = TRUE)) %>%
@@ -837,16 +809,33 @@ LL_weekendPM <- busstop_hex %>%
   select(3)%>%
   summarise(LL = paste(LOC_DESC, collapse = ", "))
 
-outliers_weekendPM <- glue("The bus stops with high-low outliers are:\n {HL_weekendPM}.\n\nThe bus stops with low-high outliers are:\n{LH_weekendPM}")
-
-clusters_weekendPM <- glue("The bus stops with high-high clusters are:\n {HH_weekendPM}.\n\nThe bus stops with low-low clusters are:\n{LL_weekendPM}")
-
-summ <- glue("{outliers_weekendPM} \n\n {clusters_weekendPM}")
-
-summ
-
+glue("The bus stops with high-low outliers are:\n {HL_weekendPM}.\n\nThe bus stops with low-high outliers are:\n{LH_weekendPM}\n\nThe bus stops with high-high clusters are:\n {HH_weekendPM}.\n\nThe bus stops with low-low clusters are:\n{LL_weekendPM}")
 ```
 :::
+
+## Summarise outliers and clusters
+
+We will then compile all of the outliers and clusters from the different time intervals together for easier comparison.
+
+```{r}
+
+compiled_weekdayAM <-data.frame(HL_weekdayAM, LH_weekdayAM, HH_weekdayAM, LL_weekdayAM)
+compiled_weekdayPM <-data.frame(HL_weekdayPM, LH_weekdayPM, HH_weekdayPM, LL_weekdayPM)
+compiled_weekendAM <-data.frame(HL_weekendAM, LH_weekendAM, HH_weekendAM, LL_weekendAM)
+compiled_weekendPM <-data.frame(HL_weekendPM, LH_weekendPM, HH_weekendPM, LL_weekendPM)
+
+combined <- rbind(compiled_weekdayAM, compiled_weekdayPM, compiled_weekendAM, compiled_weekendPM) %>%
+  setNames(c("High-Low", "Low-High", "High-High", "Low-Low")) %>%
+  rownames_to_column("Time Period") %>%
+  mutate(`Time Period` = c("Weekdays 6am to 9am", "Weekdays 5pm to 8pm", "Weekends/Holidays 11am to 2pm", "Weekends/Holidays 5pm to 8pm")) %>%
+  column_to_rownames(var = "Time Period")
+
+datatable(combined)
+
+```
+We can see that the highest commuter volume can be seen at interchanges which makes sense as those bus stops cater to the most number of buses as compared to regular bus stops. Additionally they serve high passenger volume at across all intervals, likely due to the number of residential districts found near those interchanges. 
+
+There are 2 entries for Woodlands interchange as there are 2 bus stops with the same name found within the same hexagon. 
 
 
 # Additional processing
