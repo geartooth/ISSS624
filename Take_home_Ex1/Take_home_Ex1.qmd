@@ -827,7 +827,7 @@ glue("The highest volume of riders originating from bus stops with high-low outl
 
 ## Summarise outliers and clusters
 
-We will then compile all of the outliers and clusters from the different time intervals together for easier comparison. We will be using the highest ridership volume for high-low and high-high hexagons and lowest ridership volume for low-high and low-low hexagons.
+We will then compile all of the outliers and clusters from the different time intervals together for easier comparison. We will be using the highest ridership volume for high-low and high-high grids and lowest ridership volume for low-high and low-low grids.
 
 ```{r}
 
@@ -960,7 +960,7 @@ uniP_des_weekendPM_16_19 <- unique(poly_des_weekendPM_16_19)
 
 ### Sum total trips
 
-We will then sum up the total number of trips made from a bus stop of origin to the destination using *group_by()* for sorting. Putting multiple arguments into the function allows for the sub categorising the data. This way we can track the drop off point of the passengers.
+We will then sum up the total number of trips made from a bus stop of origin to the destination using *group_by()* for sorting. Putting multiple arguments into the function allows for the sub categorising of the data. This way we can track the drop off point of the passengers.
 
 ```{r}
 ori_des_weekdayAM_6_9 <- uniP_des_weekdayAM_6_9 %>%
@@ -1024,7 +1024,7 @@ flow_weekendPM_16_19 <- od2line(flow = R_weekendPM_16_19,
 
 ## Visualise desire lines
 
-We can then visualise this flow using the following code. Since the passenger flow is high, it is better to limit the visualisation. Here we will use a flow passenger flow from hexagons to hexagons of 1500 or more.
+We can then visualise this flow using the following code. Since the passenger flow is high, it is better to limit the visualisation. Here we will use a passenger flow from hexagons to hexagons of 1500 or more.
 
 ::: panel-tabset
 ## **Weekday 6am to 9am**
