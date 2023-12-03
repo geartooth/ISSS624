@@ -1062,7 +1062,7 @@ tm_shape() +
 
 ```
 
-## **Weekend 11am to 2pm**
+## **Weekend/Holidays 11am to 2pm**
 
 ```{r}
 tmap_mode("view")
@@ -1078,7 +1078,7 @@ tm_shape() +
            alpha = 0.3)
 ```
 
-## **Weekend 4pm to 7pm**
+## **Weekend/Holidays 4pm to 7pm**
 
 ```{r}
 tmap_mode("view")
