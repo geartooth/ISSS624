@@ -1,5 +1,5 @@
 ---
-title: "Take_home_Ex1"
+title: "Take Home Exercise 1"
 Author: "Mah Lian Khye"
 date-modified: "last-modified"
 format: html
