@@ -46,7 +46,7 @@ Utilise Queen's contiguity for performing LISA of the passenger trips by origin 
 Here we will load the packages needed for this exercise and their respective functions - **sf**: - **tmap**: - **spdep**: - **tidyverse**: - **dplyr**: - **mapview**: - **sfdep**:
 
 ```{r}
-pacman::p_load(sf,tmap,spdep,tidyverse, dplyr, mapview, sfdep, stplanr)
+pacman::p_load(sf,tmap,spdep,tidyverse, dplyr, mapview, sfdep, stplanr, glue)
 ```
 
 ## Loading data
@@ -219,6 +219,7 @@ poly_weekendAM_11_14 <- left_join(honeycomb_grid_sf,count_weekendAM_11_14)
 poly_weekendPM_16_19 <- left_join(honeycomb_grid_sf,count_weekendPM_16_19)
 ```
 
+
 ## Filter for empty trips
 
 Following that we will filter hexagons that have no trips to obtain only valid hexagons for mapping.
@@ -362,383 +363,491 @@ This allows for other accessories to be added such as compass and scales which m
 
 
 
-
-
-
-
 ## Choropleth map discussion
 
 We can see that the total ridership over the weekends is lower than the weekday counterparts despite both being classified as peak hours. This difference is likely due to people travelling to or from work on the weekdays as compared to the weekends where there will be less traffic as people choose to stay at home or electing to travel to districts where it may be more accessible by other transportations such as trains.
 
+
+
+
+
 # LISA
 
-## Creating neighbour count column
+## Determining the K-nearest neighbour
 
-Before we calculate LISA, we will add the number of neighbours to each dataset for the various grids. We will use *st_contiguity()* and add a neighbour column to the data points under a new variable name. By default, the Queen method of contiguity will be used for calculating the neighbours.
-
-
+As some of the data points are isolated or are far away from each other, it is better to use the adaptive distance weighting method to determine the number of neighbours. Here we will use 6 neighbours as a repesentative of 6 sides to a hexagon.
 ```{r}
-wm_qA <- grid_weekdayAM %>%
-    mutate(nb = st_contiguity(area_honeycomb_grid),
-         .before = 1)
+adap_weekdayAM <- grid_weekdayAM %>% 
+  mutate(nb = st_knn(area_honeycomb_grid,
+                     k=6),
+         wt = st_weights(nb),
+               .before = 1)
 
-wm_qB <- grid_weekdayPM %>%
-  mutate(nb = st_contiguity(area_honeycomb_grid),
-         .before = 1)
+adap_weekdayPM <- grid_weekdayPM %>% 
+  mutate(nb = st_knn(area_honeycomb_grid,
+                     k=6),
+         wt = st_weights(nb),
+               .before = 1)
 
-wm_qC <- grid_weekendAM %>%
-  mutate(nb = st_contiguity(area_honeycomb_grid),
-         .before = 1)
+adap_weekendAM <- grid_weekendAM %>% 
+  mutate(nb = st_knn(area_honeycomb_grid,
+                     k=6),
+         wt = st_weights(nb),
+               .before = 1)
 
-wm_qD <- grid_weekendPM %>%
-  mutate(nb = st_contiguity(area_honeycomb_grid),
-         .before = 1)
+adap_weekendPM <- grid_weekendPM %>% 
+  mutate(nb = st_knn(area_honeycomb_grid,
+                     k=6),
+         wt = st_weights(nb),
+               .before = 1)
+
 ```
 
-Here we can use the *summary()* function to take a look at the different regions and the neighbours that they have.
+## Visualise Adaptive distance map
+
+Here we will visualise the choropleth map of the nearest neighbour for the different time intervals. We will plot it using **view** mode with the regular choropleth map of the left and the choropleth map with the adaptive distance weighted map on the right. 
+
+We can mouse over each of the grid in the adaptive distance weighted map to see who the neighbours are, however the neighbours seen is from the index number of the weighted neighbour variable we generated above and not the grid number.
+
 
 ::: panel-tabset
 ## **Weekday 6am to 9am**
 
 ```{r}
-summary(wm_qA$nb)
+tmap_mode("view")
+adapA <- tm_shape(adap_weekdayAM)+
+  tm_fill("TOT_TRIPS", 
+          style = "quantile", 
+          palette = "Blues",
+          title = "Passenger trips")
 
-
+tmap_arrange(mapA, adapA, asp=1, ncol=2)
 ```
-
-We see that there are 1779 data points and they have an average of 4.3 neighbours. There are 12 hexagons with 0 neighbours and 450 hexagons with 6 neighbours.
-
-## **Weekday 6am to 9am**
-
-```{r}
-summary(wm_qB$nb)
-```
-
-We see that there are 1780 data points and they have an average of 4.3 neighbours. There are 12 hexagons with 0 neighbours and 450 hexagons with 6 neighbours.
-
-## **Weekday 6am to 9am**
-
-```{r}
-summary(wm_qC$nb)
-```
-
-We see that there are 1786 data points and they have an average of 4.3 neighbours. There are 11 hexagons with 0 neighbours and 454 hexagons with 6 neighbours.
-
-## **Weekday 6am to 9am**
-
-```{r}
-summary(wm_qD$nb)
-```
-
-We see that there are 1775 data points and they have an average of 4.3 neighbours. There are 10 hexagons with 0 neighbours and 446 hexagons with 6 neighbours.
-:::
-
-## Neighbour count
-
-Here we can convert the above neighbour count data into a variable dataframe for more direct comparison
-
-```{r}
-df_countsA <- wm_qA %>%
-  summarise(vector_length = map_dbl(nb, ~length(.))) %>%
-  group_by(vector_length) %>%
-  summarise(count = n()) %>%
-  st_drop_geometry()
-
-df_countsB <- wm_qB %>%
-  summarise(vector_length = map_dbl(nb, ~length(.))) %>%
-  group_by(vector_length) %>%
-  summarise(count = n())%>%
-  st_drop_geometry()
-
-df_countsC <- wm_qC %>%
-  summarise(vector_length = map_dbl(nb, ~length(.))) %>%
-  group_by(vector_length) %>%
-  summarise(count = n())%>%
-  st_drop_geometry()
-
-df_countsD <- wm_qD %>%
-  summarise(vector_length = map_dbl(nb, ~length(.))) %>%
-  group_by(vector_length) %>%
-  summarise(count = n())%>%
-  st_drop_geometry()
-
-result <- bind_rows(
-  mutate(df_countsA, dataset = "Weekday 6am to 9am"),
-  mutate(df_countsB, dataset = "Weekday 5pm to 8pm"),
-  mutate(df_countsC, dataset = "Weekends/holidays 11am to 2pm"),
-  mutate(df_countsD, dataset = "Weekends/holidays 4pm to 7pm")
-) %>%
-  rename("number of neighbours" = vector_length, count = count)
-
-
-```
-## Compiling neighbour count
-
-We will use the *bind_rows()* function to group all of the neighbour count data together and rearrange them.
-
-```{r}
-
-result <- bind_rows(
-  mutate(df_countsA, dataset = "Weekday 6am to 9am"),
-  mutate(df_countsB, dataset = "Weekday 5pm to 8pm"),
-  mutate(df_countsC, dataset = "Weekends/holidays 11am to 2pm"),
-  mutate(df_countsD, dataset = "Weekends/holidays 4pm to 7pm")
-) %>%
-  rename("number_of_neighbours" = vector_length, count = count)
-
-
-
-
-result <- result %>%
-  group_by(dataset) %>%
-  arrange(desc(number_of_neighbours)) %>%
-  mutate(number_of_neighbours = factor(number_of_neighbours, levels = unique(number_of_neighbours)))
-```
-
-
-
-## Plotting neighbour count bar chart
-
-Next we will use ggplot to plot the bar chart for the number of hexagons with differing neighbour count and the different time interval. 
-```{r}
-
-
-ggplot(result, aes(x = number_of_neighbours, y = count, fill = dataset)) +
-  stat_summary(fun = "sum", geom = "bar", position = "dodge") +
-  scale_fill_manual(values = c(
-                   "Weekday 6am to 9am" = "blue4",
-                   "Weekday 5pm to 8pm" = "brown2",
-                   "Weekends/holidays 11am to 2pm" = "palegreen",
-                   "Weekends/holidays 4pm to 7pm" = "mediumpurple1")) 
-  labs(title = "Number of Neighbours Counts",
-       x = "Number of Neighbours",
-       y = "Count") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-```
-
-
-
-Overall we see a decrease in ridership between weekdays and weekends however the number of bus stops that are utilised remains fairly the same. This may mean an overall decrease in ridership for all bus stops but the bus stops that are utilised for boarding remain the same.
-
-Next we will have to remove all of the data points with 0 neighbours using *filter* and **purrr** package.
-
-```{r}
-wm_qA_process <- wm_qA %>%
-   filter(!purrr::map_lgl(nb, ~ all(. == 0)))
-wm_qB_process <- wm_qB %>%
-   filter(!purrr::map_lgl(nb, ~ all(. == 0)))
-wm_qC_process <- wm_qC %>%
-   filter(!purrr::map_lgl(nb, ~ all(. == 0)))
-wm_qD_process <- wm_qD %>%
-   filter(!purrr::map_lgl(nb, ~ all(. == 0)))
-```
-
-## Spatial weights
-
-```{r}
-wm_qA_weighted <- wm_qA_process %>% 
-  mutate(nb = st_contiguity(area_honeycomb_grid),
-         wt = st_weights(nb, style = "W"),
-         .before = 1)
-wm_qB_weighted <- wm_qB_process %>% 
-  mutate(nb = st_contiguity(area_honeycomb_grid),
-         wt = st_weights(nb, style = "W"),
-         .before = 1)
-wm_qC_weighted <- wm_qC_process %>% 
-  mutate(nb = st_contiguity(area_honeycomb_grid),
-         wt = st_weights(nb, style = "W"),
-         .before = 1)
-wm_qD_weighted <- wm_qD_process %>% 
-  mutate(nb = st_contiguity(area_honeycomb_grid),
-         wt = st_weights(nb, style = "W"),
-         .before = 1)
-```
-
-## Local Moran's I
-
-Here we will be using the *local_moran()* function to calculate the local Moran's I for each region or county.
-
-```{r}
-lisaA <- wm_qA_weighted %>% 
-  mutate(local_moran = local_moran(
-    TOT_TRIPS, nb, wt, nsim = 99),
-         .before = 1) %>%
-  unnest(local_moran)
-lisaB <- wm_qB_weighted %>% 
-  mutate(local_moran = local_moran(
-    TOT_TRIPS, nb, wt, nsim = 99),
-         .before = 1) %>%
-  unnest(local_moran)
-lisaC <- wm_qC_weighted %>% 
-  mutate(local_moran = local_moran(
-    TOT_TRIPS, nb, wt, nsim = 99),
-         .before = 1) %>%
-  unnest(local_moran)
-lisaD <- wm_qD_weighted %>% 
-  mutate(local_moran = local_moran(
-    TOT_TRIPS, nb, wt, nsim = 99),
-         .before = 1) %>%
-  unnest(local_moran)
-```
-
-The output will be a data fram containing the ii, eii, var_ii, z_ii, p_ii, p_ii_sim and p_folded_sum.
-
-## Combined visualisation of local Moran's I and p-value
-
-Here we will place the maps next to each other.
-
-::: panel-tabset
-## **Weekday 6am to 9am**
-
-```{r}
-tmap_mode("plot")
-map1A <- tm_shape(lisaA) +
-  tm_fill("ii") + 
-  tm_borders(alpha = 0.5) +
-  tm_view(set.zoom.limits = c(6,8)) +
-  tm_layout(main.title = "local Moran's I of the total number of trips",
-            main.title.size = 0.8)
-
-map2A <- tm_shape(lisaA) +
-  tm_fill("p_ii",
-          breaks = c(0, 0.001, 0.01, 0.05, 1),
-              labels = c("0.001", "0.01", "0.05", "Not sig")) + 
-  tm_borders(alpha = 0.5) +
-  tm_layout(main.title = "p-value of local Moran's I",
-            main.title.size = 0.8)
-
-tmap_arrange(map1A, map2A, ncol = 2)
-```
-
 ## **Weekday 5pm to 8pm**
-
 ```{r}
-tmap_mode("plot")
-map1B <- tm_shape(lisaB) +
-  tm_fill("ii") + 
-  tm_borders(alpha = 0.5) +
-  tm_view(set.zoom.limits = c(6,8)) +
-  tm_layout(main.title = "local Moran's I of the total number of trips",
-            main.title.size = 0.8)
+adapB <- tm_shape(adap_weekdayPM)+
+  tm_fill("TOT_TRIPS", 
+          style = "quantile", 
+          palette = "Reds",
+          title = "Passenger trips")
 
-map2B <- tm_shape(lisaB) +
-  tm_fill("p_ii",
-          breaks = c(0, 0.001, 0.01, 0.05, 1),
-              labels = c("0.001", "0.01", "0.05", "Not sig")) + 
-  tm_borders(alpha = 0.5) +
-  tm_layout(main.title = "p-value of local Moran's I",
-            main.title.size = 0.8)
+tmap_arrange(mapB, adapB, asp=1, ncol=2)
 
-tmap_arrange(map1B, map2B, ncol = 2)
 ```
 
 ## **Weekend/Holidays 11am to 2pm**
 
 ```{r}
-tmap_mode("plot")
-map1C <- tm_shape(lisaC) +
-  tm_fill("ii") + 
-  tm_borders(alpha = 0.5) +
-  tm_view(set.zoom.limits = c(6,8)) +
-  tm_layout(main.title = "local Moran's I of the total number of trips",
-            main.title.size = 0.8)
+adapC <- tm_shape(adap_weekendAM)+
+  tm_fill("TOT_TRIPS", 
+          style = "quantile", 
+          palette = "Greens",
+          title = "Passenger trips")
 
-map2C <- tm_shape(lisaC) +
-  tm_fill("p_ii",
-          breaks = c(0, 0.001, 0.01, 0.05, 1),
-              labels = c("0.001", "0.01", "0.05", "Not sig")) + 
-  tm_borders(alpha = 0.5) +
-  tm_layout(main.title = "p-value of local Moran's I",
-            main.title.size = 0.8)
-
-tmap_arrange(map1C, map2C, ncol = 2)
+tmap_arrange(mapC, adapC, asp=1, ncol=2)
 ```
 
 ## **Weekend/Holidays 4pm to 7pm**
 
 ```{r}
-tmap_mode("plot")
-map1D <- tm_shape(lisaD) +
-  tm_fill("ii") + 
-  tm_borders(alpha = 0.5) +
-  tm_view(set.zoom.limits = c(6,8)) +
-  tm_layout(main.title = "local Moran's I of the total number of trips",
-            main.title.size = 0.8)
+adapD <- tm_shape(adap_weekendPM)+
+  tm_fill("TOT_TRIPS", 
+          style = "quantile", 
+          palette = "Purples",
+          title = "Passenger trips")
 
-map2D <- tm_shape(lisaD) +
-  tm_fill("p_ii",
-          breaks = c(0, 0.001, 0.01, 0.05, 1),
-              labels = c("0.001", "0.01", "0.05", "Not sig")) + 
-  tm_borders(alpha = 0.5) +
-  tm_layout(main.title = "p-value of local Moran's I",
-            main.title.size = 0.8)
+tmap_arrange(mapD, adapD, asp=1, ncol=2)
 
-tmap_arrange(map1D, map2D, ncol = 2)
 ```
 :::
 
-## Visualisation of LISA
 
-Here will will visualise LISA where we can see the presence of outliers and clusters. More information can be found [here](https://isss624-liankhye.netlify.app/hands-on_ex02/hands-on_ex2_3#lisa-cluster-map). The following is a newer method for calculating LISA, and require shorter and more concise steps such as not having to manually form the high-high, high-low, low-high and low-low quadrants. Just make sure that if the data is skewed, we will have to use the median for forming the quadrant.
+## Local Moran's I
+
+Next we will calculate the local Moran's I of the total number of trips of each hexagon using the *local_moran()* function of the **sfdep** package.
+
+```{r}
+lisa_weekdayAM <- adap_weekdayAM %>%
+  mutate(local_moran = local_moran(
+    TOT_TRIPS, nb, wt,nsim = 99),
+    .before = 1) %>%
+  unnest(local_moran)
+
+lisa_weekdayPM <- adap_weekdayPM %>%
+  mutate(local_moran = local_moran(
+    TOT_TRIPS, nb, wt,nsim = 99),
+    .before = 1) %>%
+  unnest(local_moran)
+
+lisa_weekendAM <- adap_weekendAM %>%
+  mutate(local_moran = local_moran(
+    TOT_TRIPS, nb, wt,nsim = 99),
+    .before = 1) %>%
+  unnest(local_moran)
+
+lisa_weekendPM <- adap_weekendPM %>%
+  mutate(local_moran = local_moran(
+    TOT_TRIPS, nb, wt,nsim = 99),
+    .before = 1) %>%
+  unnest(local_moran)
+
+```
+The output will be a data fram containing the ii, eii, var_ii, z_ii, p_ii, p_ii_sim and p_folded_sum.
+
+
+
+## Visualisation of local Moran's I and p-value
+
+Next we will plot the choropleth maps using the **ii* and *p_ii_sim* field.
 
 ::: panel-tabset
 ## **Weekday 6am to 9am**
 
 ```{r}
-lisa_sigA <- lisaA  %>%
-  filter(p_ii < 0.05)
-tmap_mode("view")
-tm_shape(lisaA) +
-  tm_polygons() +
+
+tmap_mode("plot")
+map1_weekdayAM <- tm_shape(lisa_weekdayAM) +
+  tm_fill("ii") + 
   tm_borders(alpha = 0.5) +
-tm_shape(lisa_sigA) +
-  tm_fill("mean") + 
-  tm_borders(alpha = 0.4)
+  tm_view(set.zoom.limits = c(6,8)) +
+  tm_layout(main.title = "local Moran's I of TOT_TRIPS(Weekday 6am to 9am)",
+            main.title.size = 0.8)
+
+map2_weekdayAM <- tm_shape(lisa_weekdayAM) +
+  tm_fill("p_ii_sim",
+          breaks = c(0, 0.001, 0.01, 0.05, 1),
+              labels = c("0.001", "0.01", "0.05", "Not sig")) + 
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "p-value of local Moran's I of TOT_TRIPS(Weekday 6am to 9am)",
+            main.title.size = 0.8)
+
+tmap_arrange(map1_weekdayAM, map2_weekdayAM, ncol = 2)
 ```
 
-## **Weekday 5pm to 9pm**
+## **Weekday 5pm to 8pm**
 
 ```{r}
-lisa_sigB <- lisaB  %>%
-  filter(p_ii < 0.05)
-tmap_mode("view")
-tm_shape(lisaB) +
-  tm_polygons() +
+
+tmap_mode("plot")
+map1_weekdayPM <- tm_shape(lisa_weekdayPM) +
+  tm_fill("ii") + 
   tm_borders(alpha = 0.5) +
-tm_shape(lisa_sigB) +
-  tm_fill("mean") + 
-  tm_borders(alpha = 0.4)
+  tm_view(set.zoom.limits = c(6,8)) +
+  tm_layout(main.title = "local Moran's I of TOT_TRIPS(Weekday 5pm to 8pm)",
+            main.title.size = 0.8)
+
+map2_weekdayPM <- tm_shape(lisa_weekdayPM) +
+  tm_fill("p_ii_sim",
+          breaks = c(0, 0.001, 0.01, 0.05, 1),
+              labels = c("0.001", "0.01", "0.05", "Not sig")) + 
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "p-value of local Moran's I of TOT_TRIPS(Weekday 5pm to 8pm)",
+            main.title.size = 0.8)
+
+tmap_arrange(map1_weekdayPM, map2_weekdayPM, ncol = 2)
+```
+## **Weekend/Holidays 11am to 2pm**
+```{r}
+
+tmap_mode("plot")
+map1_weekendAM <- tm_shape(lisa_weekendAM) +
+  tm_fill("ii") + 
+  tm_borders(alpha = 0.5) +
+  tm_view(set.zoom.limits = c(6,8)) +
+  tm_layout(main.title = "local Moran's I of TOT_TRIPS(Weekend/Holidays 11am to 2pm)",
+            main.title.size = 0.8)
+
+map2_weekendAM <- tm_shape(lisa_weekendAM) +
+  tm_fill("p_ii_sim",
+          breaks = c(0, 0.001, 0.01, 0.05, 1),
+              labels = c("0.001", "0.01", "0.05", "Not sig")) + 
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "p-value of local Moran's I of TOT_TRIPS(Weekend/Holidays 11am to 2pm)",
+            main.title.size = 0.8)
+
+tmap_arrange(map1_weekendAM, map2_weekendAM, ncol = 2)
+```
+## **Weekend/Holidays 4pm to 7pm**
+
+```{r}
+
+tmap_mode("plot")
+map1_weekendPM <- tm_shape(lisa_weekendPM) +
+  tm_fill("ii") + 
+  tm_borders(alpha = 0.5) +
+  tm_view(set.zoom.limits = c(6,8)) +
+  tm_layout(main.title = "local Moran's I of TOT_TRIPS(Weekend/Holidays 4pm to 7pm)",
+            main.title.size = 0.8)
+
+map2_weekendPM <- tm_shape(lisa_weekendPM) +
+  tm_fill("p_ii_sim",
+          breaks = c(0, 0.001, 0.01, 0.05, 1),
+              labels = c("0.001", "0.01", "0.05", "Not sig")) + 
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "p-value of local Moran's I of TOT_TRIPS(Weekend/Holidays 4pm to 7pm)",
+            main.title.size = 0.8)
+
+tmap_arrange(map1_weekendPM, map2_weekendPM, ncol = 2)
 ```
 
-## **Weekends/Holidays 11am to 2pm**
+
+:::
+
+
+## Visualising LISA map
+
+Finally we will create the LISA map. It is created using the local Moran's I and their p-values. We will be using the mean for plotting.
+
+The data that will be created will have 4 categories made of 2 outliers and 2 clusters.
+
+Outliers:
+- High-Low: High total trips with low neighbours
+
+- Low-High: Low total trips with high neighbours
+
+Clusters:
+- High-High: High total trips with high neighbours
+- Low-Low: Low total trips with low neighbours
+
+More information can be found [here](https://isss624-liankhye.netlify.app/hands-on_ex02/hands-on_ex2_3#lisa-cluster-map).
+
+::: panel-tabset
+## **Weekday 6am to 9am**
 
 ```{r}
-lisa_sigC <- lisaC  %>%
-  filter(p_ii < 0.05)
 tmap_mode("view")
-tm_shape(lisaC) +
+lisa_sig_weekdayAM <- lisa_weekdayAM  %>%
+  filter(p_ii_sim < 0.05)
+tmap_mode("plot")
+tm_shape(lisa_weekdayAM) +
   tm_polygons() +
   tm_borders(alpha = 0.5) +
-tm_shape(lisa_sigC) +
+tm_shape(lisa_sig_weekdayAM) +
   tm_fill("mean") + 
   tm_borders(alpha = 0.4)
+
+```
+```{r}
+highest_grid_weekdayAM <- lisa_weekdayAM %>%
+  group_by(mean) %>%
+  slice_max(TOT_TRIPS) %>%
+  select(10, 15,16)
+
 ```
 
-## **Weekends/Holidays 11am to 2pm**
+```{r}
+
+HL_weekdayAM <- busstop_hex %>%
+  left_join(highest_grid_weekdayAM, by = "grid_id") %>%
+  filter(grepl("High-Low", mean, ignore.case = TRUE)) %>%
+  select(3)%>%
+  summarise(HL = paste(LOC_DESC, collapse = ", "))
+
+LH_weekdayAM <- busstop_hex %>%
+  left_join(highest_grid_weekdayAM, by = "grid_id") %>%
+  filter(grepl("Low-High", mean, ignore.case = TRUE)) %>%
+  select(3)%>%
+  summarise(LH = paste(LOC_DESC, collapse = ", "))
+
+HH_weekdayAM <- busstop_hex %>%
+  left_join(highest_grid_weekdayAM, by = "grid_id") %>%
+  filter(grepl("High-High", mean, ignore.case = TRUE)) %>%
+  select(3)%>%
+  summarise(Hh = paste(LOC_DESC, collapse = ", "))
+
+LL_weekdayAM <- busstop_hex %>%
+  left_join(highest_grid_weekdayAM, by = "grid_id") %>%
+  filter(grepl("Low-Low", mean, ignore.case = TRUE)) %>%
+  select(3)%>%
+  summarise(LL = paste(LOC_DESC, collapse = ", "))
+
+outliers_weekdayAM <- glue("The bus stops with high-low outliers are:\n {HL_weekdayAM}.\n\nThe bus stops with low-high outliers are:\n{LH_weekdayAM}")
+
+clusters_weekdayAM <- glue("The bus stops with high-high clusters are:\n {HH_weekdayAM}.\n\nThe bus stops with low-low clusters are:\n{LL_weekdayAM}")
+
+summ <- glue("{outliers_weekdayAM} \n\n {clusters_weekdayAM}")
+
+summ
+```
+
+
+## **Weekday 5pm to 8pm**
 
 ```{r}
-lisa_sigD <- lisaD  %>%
-  filter(p_ii < 0.05)
 tmap_mode("view")
-tm_shape(lisaD) +
+lisa_sig_weekdayPM <- lisa_weekdayPM  %>%
+  filter(p_ii_sim < 0.05)
+tmap_mode("plot")
+tm_shape(lisa_weekdayPM) +
   tm_polygons() +
   tm_borders(alpha = 0.5) +
-tm_shape(lisa_sigD) +
+tm_shape(lisa_sig_weekdayPM) +
   tm_fill("mean") + 
   tm_borders(alpha = 0.4)
+
+```
+
+```{r}
+highest_grid_weekdayPM <- lisa_weekdayPM %>%
+  group_by(mean) %>%
+  slice_max(TOT_TRIPS) %>%
+  select(10, 15,16)
+
+
+
+HL_weekdayPM <- busstop_hex %>%
+  left_join(highest_grid_weekdayPM, by = "grid_id") %>%
+  filter(grepl("High-Low", mean, ignore.case = TRUE)) %>%
+  select(3)%>%
+  summarise(HL = paste(LOC_DESC, collapse = ", "))
+
+LH_weekdayPM <- busstop_hex %>%
+  left_join(highest_grid_weekdayPM, by = "grid_id") %>%
+  filter(grepl("Low-High", mean, ignore.case = TRUE)) %>%
+  select(3)%>%
+  summarise(LH = paste(LOC_DESC, collapse = ", "))
+
+HH_weekdayPM <- busstop_hex %>%
+  left_join(highest_grid_weekdayPM, by = "grid_id") %>%
+  filter(grepl("High-High", mean, ignore.case = TRUE)) %>%
+  select(3)%>%
+  summarise(Hh = paste(LOC_DESC, collapse = ", "))
+
+LL_weekdayPM <- busstop_hex %>%
+  left_join(highest_grid_weekdayPM, by = "grid_id") %>%
+  filter(grepl("Low-Low", mean, ignore.case = TRUE)) %>%
+  select(3)%>%
+  summarise(LL = paste(LOC_DESC, collapse = ", "))
+
+outliers_weekdayPM <- glue("The bus stops with high-low outliers are:\n {HL_weekdayPM}.\n\nThe bus stops with low-high outliers are:\n{LH_weekdayPM}")
+
+clusters_weekdayPM <- glue("The bus stops with high-high clusters are:\n {HH_weekdayPM}.\n\nThe bus stops with low-low clusters are:\n{LL_weekdayPM}")
+
+summ <- glue("{outliers_weekdayPM} \n\n {clusters_weekdayPM}")
+
+summ
+
+```
+
+## **Weekend/Holidays 11am to 2pm**
+
+```{r}
+tmap_mode("view")
+lisa_sig_weekendAM <- lisa_weekendAM  %>%
+  filter(p_ii_sim < 0.05)
+tmap_mode("plot")
+tm_shape(lisa_weekendAM) +
+  tm_polygons() +
+  tm_borders(alpha = 0.5) +
+tm_shape(lisa_sig_weekendAM) +
+  tm_fill("mean") + 
+  tm_borders(alpha = 0.4)
+
+```
+
+```{r}
+highest_grid_weekendAM <- lisa_weekendAM %>%
+  group_by(mean) %>%
+  slice_max(TOT_TRIPS) %>%
+  select(10, 15,16)
+
+
+
+HL_weekendAM <- busstop_hex %>%
+  left_join(highest_grid_weekendAM, by = "grid_id") %>%
+  filter(grepl("High-Low", mean, ignore.case = TRUE)) %>%
+  select(3)%>%
+  summarise(HL = paste(LOC_DESC, collapse = ", "))
+
+LH_weekendAM <- busstop_hex %>%
+  left_join(highest_grid_weekendAM, by = "grid_id") %>%
+  filter(grepl("Low-High", mean, ignore.case = TRUE)) %>%
+  select(3)%>%
+  summarise(LH = paste(LOC_DESC, collapse = ", "))
+
+HH_weekendAM <- busstop_hex %>%
+  left_join(highest_grid_weekendAM, by = "grid_id") %>%
+  filter(grepl("High-High", mean, ignore.case = TRUE)) %>%
+  select(3)%>%
+  summarise(Hh = paste(LOC_DESC, collapse = ", "))
+
+LL_weekendAM <- busstop_hex %>%
+  left_join(highest_grid_weekendAM, by = "grid_id") %>%
+  filter(grepl("Low-Low", mean, ignore.case = TRUE)) %>%
+  select(3)%>%
+  summarise(LL = paste(LOC_DESC, collapse = ", "))
+
+outliers_weekendAM <- glue("The bus stops with high-low outliers are:\n {HL_weekendAM}.\n\nThe bus stops with low-high outliers are:\n{LH_weekendAM}")
+
+clusters_weekendAM <- glue("The bus stops with high-high clusters are:\n {HH_weekendAM}.\n\nThe bus stops with low-low clusters are:\n{LL_weekendAM}")
+
+summ <- glue("{outliers_weekendAM} \n\n {clusters_weekendAM}")
+
+summ
+
+```
+
+## **Weekend/Holidays 4pm to 7pm**
+
+```{r}
+tmap_mode("view")
+lisa_sig_weekendPM <- lisa_weekendPM  %>%
+  filter(p_ii_sim < 0.05)
+tmap_mode("plot")
+tm_shape(lisa_weekendPM) +
+  tm_polygons() +
+  tm_borders(alpha = 0.5) +
+tm_shape(lisa_sig_weekendPM) +
+  tm_fill("mean") + 
+  tm_borders(alpha = 0.4)
+
+```
+
+
+
+```{r}
+highest_grid_weekendPM <- lisa_weekendPM %>%
+  group_by(mean) %>%
+  slice_max(TOT_TRIPS) %>%
+  select(10, 15,16)
+
+
+
+HL_weekendPM <- busstop_hex %>%
+  left_join(highest_grid_weekendPM, by = "grid_id") %>%
+  filter(grepl("High-Low", mean, ignore.case = TRUE)) %>%
+  select(3)%>%
+  summarise(HL = paste(LOC_DESC, collapse = ", "))
+
+LH_weekendPM <- busstop_hex %>%
+  left_join(highest_grid_weekendPM, by = "grid_id") %>%
+  filter(grepl("Low-High", mean, ignore.case = TRUE)) %>%
+  select(3)%>%
+  summarise(LH = paste(LOC_DESC, collapse = ", "))
+
+HH_weekendPM <- busstop_hex %>%
+  left_join(highest_grid_weekendPM, by = "grid_id") %>%
+  filter(grepl("High-High", mean, ignore.case = TRUE)) %>%
+  select(3)%>%
+  summarise(Hh = paste(LOC_DESC, collapse = ", "))
+
+LL_weekendPM <- busstop_hex %>%
+  left_join(highest_grid_weekendPM, by = "grid_id") %>%
+  filter(grepl("Low-Low", mean, ignore.case = TRUE)) %>%
+  select(3)%>%
+  summarise(LL = paste(LOC_DESC, collapse = ", "))
+
+outliers_weekendPM <- glue("The bus stops with high-low outliers are:\n {HL_weekendPM}.\n\nThe bus stops with low-high outliers are:\n{LH_weekendPM}")
+
+clusters_weekendPM <- glue("The bus stops with high-high clusters are:\n {HH_weekendPM}.\n\nThe bus stops with low-low clusters are:\n{LL_weekendPM}")
+
+summ <- glue("{outliers_weekendPM} \n\n {clusters_weekendPM}")
+
+summ
+
 ```
 :::
+
 
 # Additional processing
 
@@ -918,6 +1027,7 @@ We can then visualise this flow using the following code. Since the passenger fl
 ## **Weekday 6am to 9am**
 
 ```{r}
+tmap_mode("view")
 tm_shape(grid_weekdayAM) +
   tm_polygons() +
 flow_weekdayAM_6_9 %>%  
@@ -935,6 +1045,7 @@ tm_shape() +
 ## **Weekday 5pm to 8pm**
 
 ```{r}
+tmap_mode("view")
 tm_shape(grid_weekdayPM) +
   tm_polygons() +
 flow_weekdayPM_5_8 %>%  
@@ -951,6 +1062,7 @@ tm_shape() +
 ## **Weekend 11am to 2pm**
 
 ```{r}
+tmap_mode("view")
 tm_shape(grid_weekendAM) +
   tm_polygons() +
 flow_weekendAM_11_14 %>%  
@@ -966,6 +1078,7 @@ tm_shape() +
 ## **Weekend 4pm to 7pm**
 
 ```{r}
+tmap_mode("view")
 tm_shape(grid_weekendPM) +
   tm_polygons() +
 flow_weekendPM_16_19 %>%  
