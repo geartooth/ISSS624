@@ -37,7 +37,7 @@ Combine all of the passenger trips made by all of the bus stops within a hexagon
 
 ## Local Indicators of Spatial Association(LISA) Analysis
 
-Utilise Queen's contiguity for performing LISA of the passenger trips by origin at hexagonal level Displat the LISA maps of the passenger trips at hexagonal level.
+Compute the number of ridership from bus stops that belong to a single hexagon and display the LISA maps.
 
 # Load Packages and Data
 
@@ -110,6 +110,7 @@ colnames(busstop)[colnames(busstop) == "BUS_STOP_N"] <- "ORIGIN_PT_CODE"
 ```
 
 We will also import the layout of Singapore for excluding busstops that are not found in Singapore.
+
 ```{r}
 mpsz <- st_read(dsn = "data/geospatial",
                    layer = "MPSZ-2019") %>%
@@ -207,7 +208,6 @@ count_weekendPM_16_19 <- left_join(unique_weekendPM , busstop_hex) %>%
 
 ```
 
-
 ## Reassign polygon information
 
 We will the reassign the polygon information from the hexagonal map that we have created earlier.
@@ -218,7 +218,6 @@ poly_weekdayPM_5_8 <- left_join(honeycomb_grid_sf,count_weekdayPM_5_8)
 poly_weekendAM_11_14 <- left_join(honeycomb_grid_sf,count_weekendAM_11_14)
 poly_weekendPM_16_19 <- left_join(honeycomb_grid_sf,count_weekendPM_16_19)
 ```
-
 
 ## Filter for empty trips
 
@@ -239,7 +238,7 @@ grid_weekendPM <- poly_weekendPM_16_19 %>%
 
 ```
 
-# Choropleth map 
+# Choropleth map
 
 Here we will plot the choropleth map for the different time intervals. We will be using *tmap_mode("plot")* to create an interactive map. Although we will be coding in accessories such as the compass, they will not be displayed in the interactive map. However by writing them first, we can display them in subsequent maps once we view them in **plot** mode.
 
@@ -267,7 +266,6 @@ mapA <- tm_shape(grid_weekdayAM)+
              position = c("left", "bottom"))
 mapA
 ```
-
 
 The total number of ridership range from 1 to 357043 per hexagon. The range of the data are divided to quantile range bands for clearer distinction between ridership of each hexagon.
 
@@ -358,24 +356,18 @@ tmap_mode("plot")
 mapA
 ```
 
-
 This allows for other accessories to be added such as compass and scales which might be useful depending on the application or use of the map.
-
-
 
 ## Choropleth map discussion
 
 We can see that the total ridership over the weekends is lower than the weekday counterparts despite both being classified as peak hours. This difference is likely due to people travelling to or from work on the weekdays as compared to the weekends where there will be less traffic as people choose to stay at home or electing to travel to districts where it may be more accessible by other transportations such as trains.
-
-
-
-
 
 # LISA
 
 ## Determining the K-nearest neighbour
 
 As some of the data points are isolated or are far away from each other, it is better to use the adaptive distance weighting method to determine the number of neighbours. Here we will use 6 neighbours as a repesentative of 6 sides to a hexagon.
+
 ```{r}
 adap_weekdayAM <- grid_weekdayAM %>% 
   mutate(nb = st_knn(area_honeycomb_grid,
@@ -405,10 +397,9 @@ adap_weekendPM <- grid_weekendPM %>%
 
 ## Visualise Adaptive distance map
 
-Here we will visualise the choropleth map of the nearest neighbour for the different time intervals. We will plot it using **view** mode with the regular choropleth map of the left and the choropleth map with the adaptive distance weighted map on the right. 
+Here we will visualise the choropleth map of the nearest neighbour for the different time intervals. We will plot it using **view** mode with the regular choropleth map of the left and the choropleth map with the adaptive distance weighted map on the right.
 
 We can mouse over each of the grid in the adaptive distance weighted map to see who the neighbours are, however the neighbours seen is from the index number of the weighted neighbour variable we generated above and not the grid number.
-
 
 ::: panel-tabset
 ## **Weekday 6am to 9am**
@@ -423,7 +414,9 @@ adapA <- tm_shape(adap_weekdayAM)+
 
 tmap_arrange(mapA, adapA, asp=1, ncol=2)
 ```
+
 ## **Weekday 5pm to 8pm**
+
 ```{r}
 adapB <- tm_shape(adap_weekdayPM)+
   tm_fill("TOT_TRIPS", 
@@ -461,7 +454,6 @@ tmap_arrange(mapD, adapD, asp=1, ncol=2)
 ```
 :::
 
-
 ## Local Moran's I
 
 Next we will calculate the local Moran's I of the total number of trips of each hexagon using the *local_moran()* function of the **sfdep** package.
@@ -492,13 +484,12 @@ lisa_weekendPM <- adap_weekendPM %>%
   unnest(local_moran)
 
 ```
+
 The output will be a data fram containing the ii, eii, var_ii, z_ii, p_ii, p_ii_sim and p_folded_sum.
-
-
 
 ## Visualisation of local Moran's I and p-value
 
-Next we will plot the choropleth maps using the **ii* and *p_ii_sim* field.
+Next we will plot the choropleth maps using the \*\*ii\* and *p_ii_sim* field.
 
 ::: panel-tabset
 ## **Weekday 6am to 9am**
@@ -546,7 +537,9 @@ map2_weekdayPM <- tm_shape(lisa_weekdayPM) +
 
 tmap_arrange(map1_weekdayPM, map2_weekdayPM, ncol = 2)
 ```
+
 ## **Weekend/Holidays 11am to 2pm**
+
 ```{r}
 
 tmap_mode("plot")
@@ -567,6 +560,7 @@ map2_weekendAM <- tm_shape(lisa_weekendAM) +
 
 tmap_arrange(map1_weekendAM, map2_weekendAM, ncol = 2)
 ```
+
 ## **Weekend/Holidays 4pm to 7pm**
 
 ```{r}
@@ -589,10 +583,7 @@ map2_weekendPM <- tm_shape(lisa_weekendPM) +
 
 tmap_arrange(map1_weekendPM, map2_weekendPM, ncol = 2)
 ```
-
-
 :::
-
 
 ## Visualising LISA map
 
@@ -601,13 +592,14 @@ Finally we will create the LISA map. It is created using the local Moran's I and
 The data that will be created will have 4 categories made of 2 outliers and 2 clusters.
 
 Outliers:
-- High-Low: High total trips with low neighbours
 
-- Low-High: Low total trips with high neighbours
+-    High-Low: High total trips with low neighbours
+-   Low-High: Low total trips with high neighbours
 
 Clusters:
-- High-High: High total trips with high neighbours
-- Low-Low: Low total trips with low neighbours
+
+-   High-High: High total trips with high neighbours
+-   Low-Low: Low total trips with low neighbours
 
 More information can be found [here](https://isss624-liankhye.netlify.app/hands-on_ex02/hands-on_ex2_3#lisa-cluster-map).
 
@@ -634,6 +626,11 @@ highest_grid_weekdayAM <- lisa_weekdayAM %>%
   slice_max(TOT_TRIPS) %>%
   select(10, 15,16)
 
+lowest_grid_weekdayAM <- lisa_weekdayAM %>%
+  group_by(mean) %>%
+  slice_min(TOT_TRIPS) %>%
+  select(10, 15,16)
+
 HL_weekdayAM <- busstop_hex %>%
   left_join(highest_grid_weekdayAM, by = "grid_id") %>%
   filter(grepl("High-Low", mean, ignore.case = TRUE)) %>%
@@ -641,7 +638,7 @@ HL_weekdayAM <- busstop_hex %>%
   summarise(HL = paste(LOC_DESC, collapse = ", "))
 
 LH_weekdayAM <- busstop_hex %>%
-  left_join(highest_grid_weekdayAM, by = "grid_id") %>%
+  left_join(lowest_grid_weekdayAM, by = "grid_id") %>%
   filter(grepl("Low-High", mean, ignore.case = TRUE)) %>%
   select(3)%>%
   summarise(LH = paste(LOC_DESC, collapse = ", "))
@@ -653,15 +650,14 @@ HH_weekdayAM <- busstop_hex %>%
   summarise(Hh = paste(LOC_DESC, collapse = ", "))
 
 LL_weekdayAM <- busstop_hex %>%
-  left_join(highest_grid_weekdayAM, by = "grid_id") %>%
+  left_join(lowest_grid_weekdayAM, by = "grid_id") %>%
   filter(grepl("Low-Low", mean, ignore.case = TRUE)) %>%
   select(3)%>%
   summarise(LL = paste(LOC_DESC, collapse = ", "))
 
-glue("The bus stops with high-low outliers are:\n {HL_weekdayAM}.\n\nThe bus stops with low-high outliers are:\n{LH_weekdayAM}\n\nThe bus stops with high-high clusters are:\n {HH_weekdayAM}.\n\nThe bus stops with low-low clusters are:\n{LL_weekdayAM}")
+glue("The highest volume of riders originating from bus stops with high-low outliers are:\n {HL_weekdayAM}.\n\nThe lowest volume of riders originating from bus stops with low-high outliers are:\n{LH_weekdayAM}\n\nThe highest volume of riders originating from bus stops with high-high clusters are:\n {HH_weekdayAM}.\n\nThe lowest volume of riders originating from bus stops with low-low clusters are:\n{LL_weekdayAM}")
 
 ```
-
 
 ## **Weekday 5pm to 8pm**
 
@@ -685,6 +681,12 @@ highest_grid_weekdayPM <- lisa_weekdayPM %>%
   slice_max(TOT_TRIPS) %>%
   select(10, 15,16)
 
+lowest_grid_weekdayPM <- lisa_weekdayPM %>%
+  group_by(mean) %>%
+  slice_min(TOT_TRIPS) %>%
+  select(10, 15,16)
+
+
 HL_weekdayPM <- busstop_hex %>%
   left_join(highest_grid_weekdayPM, by = "grid_id") %>%
   filter(grepl("High-Low", mean, ignore.case = TRUE)) %>%
@@ -692,7 +694,7 @@ HL_weekdayPM <- busstop_hex %>%
   summarise(HL = paste(LOC_DESC, collapse = ", "))
 
 LH_weekdayPM <- busstop_hex %>%
-  left_join(highest_grid_weekdayPM, by = "grid_id") %>%
+  left_join(lowest_grid_weekdayPM, by = "grid_id") %>%
   filter(grepl("Low-High", mean, ignore.case = TRUE)) %>%
   select(3)%>%
   summarise(LH = paste(LOC_DESC, collapse = ", "))
@@ -704,12 +706,12 @@ HH_weekdayPM <- busstop_hex %>%
   summarise(Hh = paste(LOC_DESC, collapse = ", "))
 
 LL_weekdayPM <- busstop_hex %>%
-  left_join(highest_grid_weekdayPM, by = "grid_id") %>%
+  left_join(lowest_grid_weekdayPM, by = "grid_id") %>%
   filter(grepl("Low-Low", mean, ignore.case = TRUE)) %>%
   select(3)%>%
   summarise(LL = paste(LOC_DESC, collapse = ", "))
 
-glue("The bus stops with high-low outliers are:\n {HL_weekdayPM}.\n\nThe bus stops with low-high outliers are:\n{LH_weekdayPM} \n\nThe bus stops with high-high clusters are:\n {HH_weekdayPM}.\n\nThe bus stops with low-low clusters are:\n{LL_weekdayPM}")
+glue("The highest volume of riders originating from bus stops with high-low outliers are:\n {HL_weekdayPM}.\n\nThe lowest volume of riders originating from bus stops with low-high outliers are:\n{LH_weekdayPM} \n\nThe highest volume of riders originating from bus stops with high-high clusters are:\n {HH_weekdayPM}.\n\nThe lowest volume of riders originating from bus stops with low-low clusters are:\n{LL_weekdayPM}")
 ```
 
 ## **Weekend/Holidays 11am to 2pm**
@@ -734,6 +736,11 @@ highest_grid_weekendAM <- lisa_weekendAM %>%
   slice_max(TOT_TRIPS) %>%
   select(10, 15,16)
 
+lowest_grid_weekendAM <- lisa_weekendAM %>%
+  group_by(mean) %>%
+  slice_min(TOT_TRIPS) %>%
+  select(10, 15,16)
+
 HL_weekendAM <- busstop_hex %>%
   left_join(highest_grid_weekendAM, by = "grid_id") %>%
   filter(grepl("High-Low", mean, ignore.case = TRUE)) %>%
@@ -741,7 +748,7 @@ HL_weekendAM <- busstop_hex %>%
   summarise(HL = paste(LOC_DESC, collapse = ", "))
 
 LH_weekendAM <- busstop_hex %>%
-  left_join(highest_grid_weekendAM, by = "grid_id") %>%
+  left_join(lowest_grid_weekendAM, by = "grid_id") %>%
   filter(grepl("Low-High", mean, ignore.case = TRUE)) %>%
   select(3)%>%
   summarise(LH = paste(LOC_DESC, collapse = ", "))
@@ -753,12 +760,12 @@ HH_weekendAM <- busstop_hex %>%
   summarise(Hh = paste(LOC_DESC, collapse = ", "))
 
 LL_weekendAM <- busstop_hex %>%
-  left_join(highest_grid_weekendAM, by = "grid_id") %>%
+  left_join(lowest_grid_weekendAM, by = "grid_id") %>%
   filter(grepl("Low-Low", mean, ignore.case = TRUE)) %>%
   select(3)%>%
   summarise(LL = paste(LOC_DESC, collapse = ", "))
 
-glue("The bus stops with high-low outliers are:\n {HL_weekendAM}.\n\nThe bus stops with low-high outliers are:\n{LH_weekendAM}\n\nThe bus stops with high-high clusters are:\n {HH_weekendAM}.\n\nThe bus stops with low-low clusters are:\n{LL_weekendAM}")
+glue("The highest volume of riders originating from bus stops with high-low outliers are:\n {HL_weekendAM}.\n\nThe lowest volume of riders originating from bus stops with low-high outliers are:\n{LH_weekendAM}\n\nThe highest volume of riders originating from bus stops with high-high clusters are:\n {HH_weekendAM}.\n\nThe lowest volume of riders originating from bus stops with low-low clusters are:\n{LL_weekendAM}")
 ```
 
 ## **Weekend/Holidays 4pm to 7pm**
@@ -777,12 +784,15 @@ tm_shape(lisa_sig_weekendPM) +
 
 ```
 
-
-
 ```{r}
 highest_grid_weekendPM <- lisa_weekendPM %>%
   group_by(mean) %>%
   slice_max(TOT_TRIPS) %>%
+  select(10, 15,16)
+
+lowest_grid_weekendPM <- lisa_weekendPM %>%
+  group_by(mean) %>%
+  slice_min(TOT_TRIPS) %>%
   select(10, 15,16)
 
 HL_weekendPM <- busstop_hex %>%
@@ -792,7 +802,7 @@ HL_weekendPM <- busstop_hex %>%
   summarise(HL = paste(LOC_DESC, collapse = ", "))
 
 LH_weekendPM <- busstop_hex %>%
-  left_join(highest_grid_weekendPM, by = "grid_id") %>%
+  left_join(lowest_grid_weekendPM, by = "grid_id") %>%
   filter(grepl("Low-High", mean, ignore.case = TRUE)) %>%
   select(3)%>%
   summarise(LH = paste(LOC_DESC, collapse = ", "))
@@ -804,18 +814,18 @@ HH_weekendPM <- busstop_hex %>%
   summarise(Hh = paste(LOC_DESC, collapse = ", "))
 
 LL_weekendPM <- busstop_hex %>%
-  left_join(highest_grid_weekendPM, by = "grid_id") %>%
+  left_join(lowest_grid_weekendPM, by = "grid_id") %>%
   filter(grepl("Low-Low", mean, ignore.case = TRUE)) %>%
   select(3)%>%
   summarise(LL = paste(LOC_DESC, collapse = ", "))
 
-glue("The bus stops with high-low outliers are:\n {HL_weekendPM}.\n\nThe bus stops with low-high outliers are:\n{LH_weekendPM}\n\nThe bus stops with high-high clusters are:\n {HH_weekendPM}.\n\nThe bus stops with low-low clusters are:\n{LL_weekendPM}")
+glue("The highest volume of riders originating from bus stops with high-low outliers are:\n {HL_weekendPM}.\n\nThe lowest volume of riders originating from bus stops with low-high outliers are:\n{LH_weekendPM}\n\nThe highest volume of riders originating from bus stops with high-high clusters are:\n {HH_weekendPM}.\n\nThe lowest volume of riders originating from bus stops with low-low clusters are:\n{LL_weekendPM}")
 ```
 :::
 
 ## Summarise outliers and clusters
 
-We will then compile all of the outliers and clusters from the different time intervals together for easier comparison.
+We will then compile all of the outliers and clusters from the different time intervals together for easier comparison. We will be using the highest ridership volume for high-low and high-high grids and lowest ridership volume for low-high and low-low grids.
 
 ```{r}
 
@@ -833,10 +843,12 @@ combined <- rbind(compiled_weekdayAM, compiled_weekdayPM, compiled_weekendAM, co
 datatable(combined)
 
 ```
-We can see that the highest commuter volume can be seen at interchanges which makes sense as those bus stops cater to the most number of buses as compared to regular bus stops. Additionally they serve high passenger volume at across all intervals, likely due to the number of residential districts found near those interchanges. 
 
-There are 2 entries for Woodlands interchange as there are 2 bus stops with the same name found within the same hexagon. 
+We can see that the highest commuter volume can be seen at interchanges which makes sense as those bus stops cater to the most number of buses as compared to regular bus stops. Additionally they serve high passenger volume at across all intervals, likely due to the number of residential districts found near those interchanges.
 
+There are 2 entries for Woodlands interchange as there are 2 bus stops with the same name found within the same hexagon.
+
+The grids that are found in relatively isolated areas such as areas without residential or working facilities also reflects in the low ridership volume we see above. The bus stop, OPP JEM, that is situated next to Jurong East interchange likely experience low ridership due to it being situated next to a major bus interchange. With a high passenger volume bus stop situated next to it likely contributed it to be consistently categorised as a low-high entry.
 
 # Additional processing
 
@@ -845,6 +857,7 @@ There are 2 entries for Woodlands interchange as there are 2 bus stops with the 
 ### Origin and destination grouping
 
 We can also take a look at passenger glow between the different hexes by plotting the desire lines. We will first need to obtain the total number of trips of each intervals that are grouped by their origin followed by their destination.
+
 ```{r}
 des_weekdayAM_6_9 <- odbus %>% 
   filter(DAY_TYPE == "WEEKDAY") %>%
@@ -878,7 +891,7 @@ des_weekendPM_16_19 <- odbus %>%
 
 ### Joining destination table and grid
 
-Since we have drop 
+Since we have drop
 
 Using the grid that we have created in the beginning, we will now join the data that contains the destination together with the grid.
 
@@ -932,6 +945,7 @@ poly_des_weekendPM_16_19 <- left_join(uni_des_weekendPM_16_19 , busstop_hex,
             by = c("DESTIN_BS" = "ORIGIN_PT_CODE"))
 
 ```
+
 ### Recheck unique data
 
 We will then recheck for unique data points by running *unique()* again.
@@ -977,6 +991,7 @@ ori_des_weekendPM_16_19 <- uniP_des_weekendPM_16_19 %>%
 ## Visualisation
 
 We will first remove any intra-hexagonal travel.
+
 ```{r}
 R_weekdayAM_6_9 <- ori_des_weekdayAM_6_9[ori_des_weekdayAM_6_9$ORIGIN_GRID!=ori_des_weekdayAM_6_9$DESTIN_GRID,]
 R_weekdayPM_5_8 <- ori_des_weekdayPM_5_8[ori_des_weekdayPM_5_8$ORIGIN_GRID!=ori_des_weekdayPM_5_8$DESTIN_GRID,]
@@ -1006,7 +1021,6 @@ flow_weekendPM_16_19 <- od2line(flow = R_weekendPM_16_19,
                     zone_code = "grid_id")
 
 ```
-
 
 ## Visualise desire lines
 
@@ -1080,7 +1094,4 @@ tm_shape() +
            alpha = 0.3)
 
 ```
-
-
 :::
-
