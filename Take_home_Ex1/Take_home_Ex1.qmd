@@ -16,7 +16,7 @@ The recent shift in payment being made more digital, companies and organisations
 
 # Objectives
 
-Exploratory Spatial Data Analysis (ESDA) hold tremendous potential to address complex problems facing society. In this study, you are tasked to apply appropriate Local Indicators of Spatial Association (GLISA) and Emerging Hot Spot Analysis (EHSA) to undercover the spatial and spatio-temporal mobility patterns of public bus passengers in Singapore.
+Exploratory Spatial Data Analysis (ESDA) hold tremendous potential to address complex problems facing society. In this study, you are tasked to apply appropriate Local Indicators of Spatial Association (LISA) and Emerging Hot Spot Analysis (EHSA) to undercover the spatial and spatio-temporal mobility patterns of public bus passengers in Singapore.
 
 # Task
 
@@ -33,7 +33,7 @@ Computing passenger trips at the hexagonal level for the following time interval
 
 Display the geographical distribution using choropleth maps of the hexagons.
 
-Combine all of the passenger trips made by all of the bus stops within a hexagon together
+Combine all of the passenger trips made by all of the bus stops within a hexagon together.
 
 ## Local Indicators of Spatial Association(LISA) Analysis
 
@@ -43,7 +43,7 @@ Compute the number of ridership from bus stops that belong to a single hexagon a
 
 ## Load packages
 
-Here we will load the packages needed for this exercise and their respective functions - **sf**: - **tmap**: - **spdep**: - **tidyverse**: - **dplyr**: - **mapview**: - **sfdep**:
+Here we will load the packages needed for this exercise and their respective functions.
 
 ```{r}
 pacman::p_load(sf,tmap,spdep,tidyverse, dplyr, mapview, sfdep, stplanr, glue, DT)
@@ -53,13 +53,13 @@ pacman::p_load(sf,tmap,spdep,tidyverse, dplyr, mapview, sfdep, stplanr, glue, DT
 
 ### Loading aspatial table
 
-Here we will read all of the ridership from different bus stops in Oct 2023 and assign it to the variable.
+Here we will read all of the ridership from different bus stops in Oct 2023 and assign it to a variable.
 
 ```{r}
 odbus <- read_csv("data/aspatial/origin_destination_bus_202310.csv")
 ```
 
-We will then extract the information from the following and assign them to different variables.
+We will then extract the information from the following time intervals and assign them to different variables.
 
 | Day               | Duration   | Variable name   |
 |-------------------|------------|-----------------|
@@ -109,7 +109,7 @@ We will first rename the bus stop column title for easier data joining.
 colnames(busstop)[colnames(busstop) == "BUS_STOP_N"] <- "ORIGIN_PT_CODE"
 ```
 
-We will also import the layout of Singapore for excluding busstops that are not found in Singapore.
+We will also import the layout of Singapore for excluding bus stops that are not found in Singapore.
 
 ```{r}
 mpsz <- st_read(dsn = "data/geospatial",
@@ -118,7 +118,7 @@ mpsz <- st_read(dsn = "data/geospatial",
 
 ```
 
-After that we will create the hexagons that will create the map layout. The hexagons will be shaped 250 x 250 cell size. All of the hexagons will also be given a grid id name that can be used for identifying each individual grid.
+After that we will create the hexagons that will create the map layout. All of the hexagons will also be given a grid id name that can be used for identifying each individual grid.
 
 ```{r}
 center <- st_centroid(busstop)
@@ -133,7 +133,7 @@ honeycomb_grid_sf <- st_sf(area_honeycomb_grid) %>%
 
 ## Assigning individual bus stop to hexagons
 
-First we will assign the bus stop point geometry data to each polygon using *st_intersection()*. The function assigns all of the points to a polygon by the point-set intersection of two geometries. Additional information [here](https://postgis.net/docs/ST_Intersection.html).
+First we will assign the bus stop point geometry data to each polygon using *st_intersection()* of Singapore to obtain bus stops located locally followed by another intersection with the hexagon map. The function assigns all of the points to a polygon by the point-set intersection of two geometries. Additional information [here](https://postgis.net/docs/ST_Intersection.html).
 
 ```{r}
 
@@ -169,13 +169,13 @@ duplicate4 <- weekendPM_16_19 %>%
   ungroup()
 ```
 
-We can see which data points are duplicated here.
+We can see which data points are duplicated here if there are any.
 
 ```{r}
 c(duplicate1,duplicate2,duplicate3,duplicate4)
 ```
 
-Finally we only keep data points that are unique using the *unique()* function.
+Finally we will only keep data points that are unique using the *unique()* function.
 
 ```{r}
 unique_weekdayAM <- unique(weekdayAM_6_9)
@@ -360,9 +360,11 @@ This allows for other accessories to be added such as compass and scales which m
 
 ## Choropleth map discussion
 
-We can see that the total ridership over the weekends is lower than the weekday counterparts despite both being classified as peak hours. This difference is likely due to people travelling to or from work on the weekdays as compared to the weekends where there will be less traffic as people choose to stay at home or electing to travel to districts where it may be more accessible by other transportations such as trains.
+We can see that the total ridership over the weekends is lower than the weekday counterparts despite both being classified as peak hours. This difference is likely due to people travelling to or from work on the weekdays as compared to the weekends where there will be less traffic as people choose to stay at home or electing to travel to districts where it may be more accessible by other transportation methods such as trains.
 
 # LISA
+
+Here we will begin to plot our LISA maps where we can observe for any clustering or outlier data points aka exploring the spatial similarities of data points.
 
 ## Determining the K-nearest neighbour
 
@@ -489,7 +491,7 @@ The output will be a data fram containing the ii, eii, var_ii, z_ii, p_ii, p_ii_
 
 ## Visualisation of local Moran's I and p-value
 
-Next we will plot the choropleth maps using the \*\*ii\* and *p_ii_sim* field.
+Next we will plot the choropleth maps using the *ii* and *p_ii_sim* field.
 
 ::: panel-tabset
 ## **Weekday 6am to 9am**
@@ -593,7 +595,7 @@ The data that will be created will have 4 categories made of 2 outliers and 2 cl
 
 Outliers:
 
--    High-Low: High total trips with low neighbours
+-   High-Low: High total trips with low neighbours
 -   Low-High: Low total trips with high neighbours
 
 Clusters:
@@ -825,7 +827,7 @@ glue("The highest volume of riders originating from bus stops with high-low outl
 
 ## Summarise outliers and clusters
 
-We will then compile all of the outliers and clusters from the different time intervals together for easier comparison. We will be using the highest ridership volume for high-low and high-high grids and lowest ridership volume for low-high and low-low grids.
+We will then compile all of the outliers and clusters from the different time intervals together for easier comparison. We will be using the highest ridership volume for high-low and high-high hexagons and lowest ridership volume for low-high and low-low hexagons.
 
 ```{r}
 
@@ -890,8 +892,6 @@ des_weekendPM_16_19 <- odbus %>%
 ```
 
 ### Joining destination table and grid
-
-Since we have drop
 
 Using the grid that we have created in the beginning, we will now join the data that contains the destination together with the grid.
 
