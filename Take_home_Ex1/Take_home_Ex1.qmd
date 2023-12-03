@@ -999,7 +999,7 @@ R_weekendAM_11_14 <- ori_des_weekendAM_11_14[ori_des_weekendAM_11_14$ORIGIN_GRID
 R_weekendPM_16_19 <- ori_des_weekendPM_16_19[ori_des_weekendPM_16_19$ORIGIN_GRID!=ori_des_weekendPM_16_19$DESTIN_GRID,]
 ```
 
-## Create desire lines
+### Create desire lines
 
 Next we will visualise all of the flow or connections between different bus stops from a subzone to another using the *od2line()* function from the **stplanr** package.
 
@@ -1022,7 +1022,7 @@ flow_weekendPM_16_19 <- od2line(flow = R_weekendPM_16_19,
 
 ```
 
-## Visualise desire lines
+### Visualise desire lines
 
 We can then visualise this flow using the following code. Since the passenger flow is high, it is better to limit the visualisation. Here we will use a passenger flow from hexagons to hexagons of 1500 or more.
 
