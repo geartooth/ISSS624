@@ -45,6 +45,7 @@ found<-rbind(found,data.frame(content(res))[4:13])
 ```
 
 ```{r}
+#| eval: false
 merged = merge(csv, found, by.x = 'postal_code', by.y = 'results.POSTAL', all = TRUE)
 write.csv(merged, file = "data/aspatial/schools.csv")
 write.csv(not_found, file = "data/aspatial/not_found.csv")
@@ -53,7 +54,7 @@ write.csv(not_found, file = "data/aspatial/not_found.csv")
 
 ```
 
-Here we find out that **Zhenghua Secondary** has missing lonitude and latitude information, We will insert it manually into the **schools.csv**.
+Here we find out that **Zhenghua Secondary** has missing longitude and latitude information, We will insert it manually into the **schools.csv**.
 
 # Converting an aspatial data into a simple feature tibble data.frame
 
@@ -150,11 +151,12 @@ inter_zonal_flow <-inter_zonal_flow %>%
 
 ## Origing(Production) constrained SIM
 
-Here we will fit an origin constrained SIM by using the code chunk below.
+Firstly we will increae the amount of printed rows for R.
 ```{r}
 getOption("max.print")
 options(max.print=1000000)
 ```
+Here we will fit an origin constrained SIM by using the code chunk below.
 
 ```{r}
 orcSIM_Poisson <- glm(formula = TRIPS ~
@@ -210,16 +212,16 @@ dbcSIM_Poisson <- glm(formula = TRIPS~
 
 ```
 
-
+# 
 
 ```{r}
-flow_data <- flow_data %>%
-  left_join(mpsz_tidy,
-            by =c("DESTIN_SZ" = "SUBZONE_C"))  #change to origin for propulsion, else destination will have attractiveness
+# flow_data <- flow_data %>%
+#   left_join(mpsz_tidy,
+#             by =c("DESTIN_SZ" = "SUBZONE_C"))  #change to origin for propulsion, else destination will have attractiveness
 ```
 
 ```{r}
-summary(flow_data)
+# summary(flow_data)
 ```
 
 
@@ -227,6 +229,6 @@ summary(flow_data)
 
 We will have to remove 0 values as we will log it and substitute it to a positive value that is smaller than 1.
 ```{r}
-flow_data
+# flow_data
 
 ```
