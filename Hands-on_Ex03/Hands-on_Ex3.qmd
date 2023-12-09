@@ -9,6 +9,7 @@ In this exercise we will explore the movements
 # Loading packages & data
 
 ## Load packages
+
 ```{r}
 pacman::p_load(tmap, sf, DT, stplanr,
                performance,
@@ -16,8 +17,6 @@ pacman::p_load(tmap, sf, DT, stplanr,
 ```
 
 ## Load data
-
-
 
 ```{r}
 odbus <- read_csv("data/aspatial/origin_destination_bus_202310.csv")
@@ -73,10 +72,10 @@ mpsz <- st_read(dsn = "data/geospatial",
   st_transform(crs = 3414)
 
 ```
+
 ```{r}
 mpsz <- write_rds(mpsz, "data/rds/mpsz.rds")
 ```
-
 
 # Geospatial data processing
 
@@ -107,9 +106,7 @@ write_rds(busstop_mpsz, "data/rds/busstop_mpsz.rds")
 
 ## Combine busstop-subzone data and ridership info
 
-Next we will then combine the busstop and subzone information together with the ridership information for weekdays, 6am to 9am. This will allow us to allocate the ridership to each subzone. We will use the bus stop number to join the data using *left_join()* function. 
-
-
+Next we will then combine the busstop and subzone information together with the ridership information for weekdays, 6am to 9am. This will allow us to allocate the ridership to each subzone. We will use the bus stop number to join the data using *left_join()* function.
 
 ```{r}
 od_data <- left_join(odbus6_9 , busstop_mpsz,
@@ -137,7 +134,7 @@ od_data <- unique(od_data)
 
 ```
 
-We can then finally add the subzone polygonal information back using *left_join()* function.
+We can then finally add the destination subzone information back using *left_join()* function.
 
 ```{r}
 od_data <- left_join(od_data , busstop_mpsz,
@@ -171,8 +168,8 @@ od_data <- od_data %>%
 
 ```
 
-
 We will then save the data into rds format again
+
 ```{r}
 write_rds(od_data, "data/rds/od_data.rds")
 
@@ -202,7 +199,6 @@ flowLine <- od2line(flow = od_data1,
                     zone_code = "SUBZONE_C")
 
 ```
-
 
 ## Visualise desire lines
 
@@ -239,5 +235,4 @@ tm_shape() +
            alpha = 0.3)
 
 ```
-
 :::

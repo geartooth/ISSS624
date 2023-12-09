@@ -1,0 +1,162 @@
+---
+title: "Hands_on_Ex4"
+---
+# Overview
+
+# Loading packages and data
+
+## Loading packages
+
+```{r}
+pacman::p_load(olsrr, corrplot, ggpubr, sf, spdep, GWmodel, tmap, tidyverse, gtsummary)
+
+```
+
+## Loading data
+
+### Import Geospatial data
+
+We will be loading the layout and subzones of Singapore first.
+
+```{r}
+mpsz = st_read(dsn = "data/geospatial", layer = "MP14_SUBZONE_WEB_PL")
+
+```
+
+Next we will update the coordinate reference system information of the imported subzones.
+
+```{r}
+mpsz_svy21 <- st_transform(mpsz, 3414)
+st_crs(mpsz_svy21)
+st_bbox(mpsz_svy21) #view extent
+```
+
+### Import Aspatial data
+
+Here we will import our aspatial data. We will be looking at the resale prices of condominiums in 2015.
+
+```{r}
+condo_resale = read_csv("data/aspatial/Condo_resale_2015.csv")
+```
+
+We can use *glimpse()* function to dsiplay the column names and some data.
+```{r}
+glimpse(condo_resale)
+```
+
+We can also use the *summary()* function to view the summary statistics such as the min, max and interquartile range.
+
+```{r}
+summary(condo_resale)
+```
+
+### sf object conversion
+
+Here we will convert the asptial data into a **sf** object.
+
+```{r}
+condo_resale.sf <- st_as_sf(condo_resale,
+                            coords = c("LONGITUDE", "LATITUDE"),
+                            crs=4326) %>%
+  st_transform(crs=3414)
+
+```
+
+# Exploratory data analysis(EDA)
+
+Here we will use various capabilities of the **ggplot2** package to perform EDAs.
+
+## Statistical graphics
+
+Here we will plot the selling prices of condominiums using a histogram.
+```{r}
+ggplot(data=condo_resale.sf, aes(x=`SELLING_PRICE`)) +
+  geom_histogram(bins=20, color="black", fill="light blue")
+```
+
+Since we see a right skewed distribution, more condominiums were sold at a relatively lower price. We can convert this to a normal distribution using log transformation.
+
+We can first add a column named **LOG_SELLING_PRICE** using the *mutate()* function.
+
+```{r}
+condo_resale.sf <- condo_resale.sf %>%
+  mutate(`LOG_SELLING_PRICE` = log(SELLING_PRICE))
+
+```
+
+We can then use this column for plotting.
+
+```{r}
+ggplot(data=condo_resale.sf, aes(x=`LOG_SELLING_PRICE`)) +
+  geom_histogram(bins=20, color="black", fill="light blue")
+
+```
+
+We see a relatively more distributed histogram due to the log transformation of the selling price.
+
+## Multiple plots
+
+We can also combine multiple plots together using the *ggarrange()* function of **ggpubr** package.
+
+```{r}
+AREA_SQM <- ggplot(data=condo_resale.sf, aes(x= `AREA_SQM`)) + 
+  geom_histogram(bins=20, color="black", fill="light blue")
+
+AGE <- ggplot(data=condo_resale.sf, aes(x= `AGE`)) +
+  geom_histogram(bins=20, color="black", fill="light blue")
+
+PROX_CBD <- ggplot(data=condo_resale.sf, aes(x= `PROX_CBD`)) +
+  geom_histogram(bins=20, color="black", fill="light blue")
+
+PROX_CHILDCARE <- ggplot(data=condo_resale.sf, aes(x= `PROX_CHILDCARE`)) + 
+  geom_histogram(bins=20, color="black", fill="light blue")
+
+PROX_ELDERLYCARE <- ggplot(data=condo_resale.sf, aes(x= `PROX_ELDERLYCARE`)) +
+  geom_histogram(bins=20, color="black", fill="light blue")
+
+PROX_URA_GROWTH_AREA <- ggplot(data=condo_resale.sf, 
+                               aes(x= `PROX_URA_GROWTH_AREA`)) +
+  geom_histogram(bins=20, color="black", fill="light blue")
+
+PROX_HAWKER_MARKET <- ggplot(data=condo_resale.sf, aes(x= `PROX_HAWKER_MARKET`)) +
+  geom_histogram(bins=20, color="black", fill="light blue")
+
+PROX_KINDERGARTEN <- ggplot(data=condo_resale.sf, aes(x= `PROX_KINDERGARTEN`)) +
+  geom_histogram(bins=20, color="black", fill="light blue")
+
+PROX_MRT <- ggplot(data=condo_resale.sf, aes(x= `PROX_MRT`)) +
+  geom_histogram(bins=20, color="black", fill="light blue")
+
+PROX_PARK <- ggplot(data=condo_resale.sf, aes(x= `PROX_PARK`)) +
+  geom_histogram(bins=20, color="black", fill="light blue")
+
+PROX_PRIMARY_SCH <- ggplot(data=condo_resale.sf, aes(x= `PROX_PRIMARY_SCH`)) +
+  geom_histogram(bins=20, color="black", fill="light blue")
+
+PROX_TOP_PRIMARY_SCH <- ggplot(data=condo_resale.sf, 
+                               aes(x= `PROX_TOP_PRIMARY_SCH`)) +
+  geom_histogram(bins=20, color="black", fill="light blue")
+
+ggarrange(AREA_SQM, AGE, PROX_CBD, PROX_CHILDCARE, PROX_ELDERLYCARE, 
+          PROX_URA_GROWTH_AREA, PROX_HAWKER_MARKET, PROX_KINDERGARTEN, PROX_MRT,
+          PROX_PARK, PROX_PRIMARY_SCH, PROX_TOP_PRIMARY_SCH,  
+          ncol = 3, nrow = 4)
+
+```
+
+Here we have created 12 histograms that are arranged into 3 columns and 4 rows.
+
+## Statistical point map
+
+Nex we can see the geospatial distribution of condominium resale prices across Singapore using **tmap** package. We can create an interactive map using *tmap_mode()* and setting it to "view".
+
+tmap_mode("view")
+tm_shape(mpsz_svy21)+
+  tm_polygons() +
+tm_shape(condo_resale.sf) +  
+  tm_dots(col = "SELLING_PRICE",
+          alpha = 0.6,
+          style="quantile") +
+  tm_view(set.zoom.limits = c(11,14))
+
+

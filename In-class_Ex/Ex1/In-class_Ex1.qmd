@@ -70,6 +70,7 @@ busstop_mpsz <- st_intersection(busstop, mpsz) %>%
    select(BUS_STOP_N, SUBZONE_C) %>%
    st_drop_geometry()
 ```
+
 ```{r}
 origin_SZ <- left_join(origin7_9 , busstop_mpsz,
             by = c("ORIGIN_PT_CODE" = "BUS_STOP_N")) %>%
@@ -84,3 +85,10 @@ origintrip_SZ <- left_join(mpsz,
                            origin_SZ,
                            by = c("SUBZONE_C" = "ORIGIN_SZ"))
 ```
+
+```{r}
+basemap <- tm_shape(origintrip_SZ) +
+  tm_polygons()
+basemap
+```
+
