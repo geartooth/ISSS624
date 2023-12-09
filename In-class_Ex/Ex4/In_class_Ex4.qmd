@@ -127,6 +127,8 @@ summary(biz)
 
 # Data intergration and wrangling
 
+Here we will read the flow data from the rds file that we have created from the hands on ex.
+
 ```{r}
 flow_data <- read_rds("data/rds/flow_data_tidy.rds")
 glimpse(flow_data)
@@ -176,7 +178,9 @@ log(DIST) must be negative.
 
 p-value for all logs have to be less than 0.05 to be significant for attractiveness.
 
-Here we will create our own functin for calculating R2
+## Goodness-of-fit
+
+Here we will create our own function for calculating R2
 
 ```{r}
 CalcRSquared <- function(observed, estimated){
@@ -192,12 +196,12 @@ Next we will apply the R2 function to our data.
 CalcRSquared(orcSIM_Poisson$data$TRIPS, orcSIM_Poisson$fitted.values)
 
 ```
-How well it explains factor affects flow
+The R2 measures how well it explains factor affects flow
 ```{r}
 performance_rmse(orcSIM_Poisson, normalized = FALSE)  #normalized will set mean to 0 like a z distrib
 ```
-how well factors estimates flow, mean root square error, bigger = less nice fitting
-average 2613 trips false estimates
+Root mean square error(RMSE) measures how well the factors estimates flow, bigger = less nice fitting.
+An average 2613 trips false estimates
 
 # Doubly constrained
 
@@ -212,23 +216,29 @@ dbcSIM_Poisson <- glm(formula = TRIPS~
 
 ```
 
-# 
+## Goodness-of-fit
+
+Here we can apply the R2 function again.
 
 ```{r}
-# flow_data <- flow_data %>%
-#   left_join(mpsz_tidy,
-#             by =c("DESTIN_SZ" = "SUBZONE_C"))  #change to origin for propulsion, else destination will have attractiveness
+CalcRSquared(dbcSIM_Poisson$data$TRIPS, dbcSIM_Poisson$fitted.values)
 ```
+
+# Model Comparison
+
+We will first convert the models that we have created into a list.
 
 ```{r}
-# summary(flow_data)
+model_list <- list(originConstrained=orcSIM_Poisson,
+                   doublyConstrained=dbcSIM_Poisson)
+
 ```
+We can then finally use the *compare_performance()* function of the **performance** package to check for the better model.
 
 
-#Remove 0
-
-We will have to remove 0 values as we will log it and substitute it to a positive value that is smaller than 1.
 ```{r}
-# flow_data
+compare_performance(model_list, metrics = "RMSE")
 
 ```
+
+A smaller RMSE represents a better model
