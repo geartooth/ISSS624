@@ -176,17 +176,17 @@ flow_weekdayAM <- od2line(flow = R_weekdayAM,
 We can then visualise this flow using the following code. Since the passenger flow is high, it is better to limit the visualisation. Here we will use a passenger flow from hexagons to hexagons of 1500 or more.
 
 ```{r}
-tmap_mode("view")
-tm_shape(flow_weekdayAM) +
-  tm_polygons() +
-flow_weekdayAM %>%  
-  filter(PEAK >= 1500) %>%
-tm_shape() +
-  tm_lines(lwd = "PEAK",
-           style = "quantile",
-           scale = c(0.1, 1, 3, 5, 7, 10),
-           n = 6,
-           alpha = 0.3)
+# tmap_mode("view")
+# tm_shape(flow_weekdayAM) +
+#   tm_polygons() +
+# flow_weekdayAM %>%  
+#   filter(PEAK >= 1500) %>%
+# tm_shape() +
+#   tm_lines(lwd = "PEAK",
+#            style = "quantile",
+#            scale = c(0.1, 1, 3, 5, 7, 10),
+#            n = 6,
+#            alpha = 0.3)
 
 
 ```

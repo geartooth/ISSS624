@@ -170,6 +170,7 @@ We will first import the population data and select certain columns and renaming
 
 ```{r}
 pop <- read_csv("data/aspatial/pop.csv")
+
 pop <- pop %>%
   left_join(mpsz,
             by = c("PA" = "PLN_AREA_N",
