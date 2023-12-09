@@ -20,7 +20,7 @@ pacman::p_load(tidyverse,sf,httr,tmap, performance)
 ## Geocosing using SLA API
 Address geocoding is the process of taking an aspatial decription of a location such as an address and returning a coordinate.
 
-SLA hosts a geocoding service called OneMap API. 
+SLA hosts a geocoding service called OneMap API. It uses an address data and returns X-Y coordinates and latitude-longitude coordinates information.
 
 
 
@@ -43,7 +43,7 @@ found<-rbind(found,data.frame(content(res))[4:13])
 
 }
 ```
-
+Next we will search for any postal codes without a school.
 ```{r}
 #| eval: false
 merged = merge(csv, found, by.x = 'postal_code', by.y = 'results.POSTAL', all = TRUE)
@@ -68,6 +68,8 @@ schools <- read_csv("data/aspatial/schools.csv") %>%
 ## converting an aspatial data into sf tibble data.frame
 Next we will convert the aspatial data into a simple feature tibble data.frame called *schools_sf* using *st_as_sf()*. The following code converts 2 points into a single point and convert from decimal degree to projected coordinate system which is in meters.
 
+It is important to standardise the type of geocoordinate system used.
+
 ```{r}
 schools_sf<-st_as_sf(schools,
                      coords = c("longtitude", "latitude"),
@@ -87,14 +89,16 @@ tm_dots()+
 tmap_mode("plot")
 ```
 
-## Preparing
+# Preparing geospatial data
+
+We will first import the planning subzones of Singapore.
 
 ```{r}
 mpsz <- st_read(dsn = "data/geospatial",
                    layer = "MP14_SUBZONE_WEB_PL") %>%
   st_transform(crs = 3414)
 ```
-
+Next we will count the number of schools that can be found within each subzone.
 ```{r}
 mpsz$`SCHOOL_COUNT` <- lengths(
   st_intersects(
@@ -106,11 +110,15 @@ mpsz$`SCHOOL_COUNT` <- lengths(
 ```{R}
 summary(mpsz$SCHOOL_COUNT)
 ```
+## Import business data
 
+Here we will import the business geospatial data as our factor when considering the attractiveness factor.
 ```{r}
 biz <- st_read(dsn = "data/geospatial",
                    layer = "Business")
 ```
+
+We can then map out the locations of various businesses in Singapore. We will include the *tmap_options(check.and.fix = TRUE)* to the code to help close any unclosed polygons.
 
 ```{r}
 tmap_options(check.and.fix = TRUE)  #polygon may not close, so need to auto close
@@ -120,8 +128,9 @@ tm_shape(mpsz)+  #sg boundary
   tm_dots()
 ```
 
-
+We can then take a look at the summary of the various businesses being spread out across Singapore.
 ```{r}
+mpsz$BIZ_COUNT <- lengths(st_intersects(mpsz, biz))
 summary(biz)
 ```
 
