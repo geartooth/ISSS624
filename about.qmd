@@ -1,9 +1,18 @@
 ---
-title: "About"
+title: "ISSS624"
+image: images/adventure-compass.gif
+about:
+  template: jolla
+  image-shape: round
+  image-width: 15em
+  
 ---
 
-About this site
+Welcome to my ISSS624 Geospatial Analytics.
 
-```{r}
-1 + 1
+In this webpage, I will be going over the different hands on exercises and in-class exercises.
+
+By the end of this course, we will have learnt how to navigate geospatial data and present them for data analysis.
+
+```         
 ```
