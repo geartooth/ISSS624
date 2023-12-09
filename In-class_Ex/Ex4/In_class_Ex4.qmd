@@ -1,0 +1,234 @@
+---
+title: "In-class_Ex04"
+---
+
+# Overview
+
+In this in-class exercise, we will perform the following tasks:
+
+-   perform geocoding using data from data.gov.sg
+-   calibrate geographically weighted poisson regression
+
+# Loading packages and data
+
+## Loading packages
+
+```{r}
+pacman::p_load(tidyverse,sf,httr,tmap, performance)
+```
+
+## Geocosing using SLA API
+Address geocoding is the process of taking an aspatial decription of a location such as an address and returning a coordinate.
+
+SLA hosts a geocoding service called OneMap API. 
+
+
+
+```{r}
+
+url <- "https://www.onemap.gov.sg/api/common/elastic/search"
+csv <- read_csv("data/aspatial/Generalinformationofschools.csv")
+postcodes <- csv$`postal_code`
+
+found <- data.frame()
+not_found <-data.frame()
+for (postcode in postcodes){
+query<-list('searchVal'=postcode,'returnGeom' = 'Y', 'getAddrDetails' = 'Y', 'pageNum' = '1')
+res<- GET(url,query=query)
+if((content(res)$found)!=0){
+found<-rbind(found,data.frame(content(res))[4:13])
+
+} else{
+  not_found =data.frame(postcode)}
+
+}
+```
+
+```{r}
+#| eval: false
+merged = merge(csv, found, by.x = 'postal_code', by.y = 'results.POSTAL', all = TRUE)
+write.csv(merged, file = "data/aspatial/schools.csv")
+write.csv(not_found, file = "data/aspatial/not_found.csv")
+
+
+
+```
+
+Here we find out that **Zhenghua Secondary** has missing longitude and latitude information, We will insert it manually into the **schools.csv**.
+
+# Converting an aspatial data into a simple feature tibble data.frame
+
+## importing and tidying *schools* data
+```{r}
+schools <- read_csv("data/aspatial/schools.csv") %>%
+  rename(latitude=results.LATITUDE , longtitude = results.LONGITUDE ) %>%
+  select(2:3,40:41)
+
+```
+## converting an aspatial data into sf tibble data.frame
+Next we will convert the aspatial data into a simple feature tibble data.frame called *schools_sf* using *st_as_sf()*. The following code converts 2 points into a single point and convert from decimal degree to projected coordinate system which is in meters.
+
+```{r}
+schools_sf<-st_as_sf(schools,
+                     coords = c("longtitude", "latitude"),
+                     crs = 4326) %>%
+  st_transform(crs = 3414)
+```
+
+## Plotting a point simple feature later
+To ensure that *schools* sf tibble data.frame has been projected and converted correctly, we can plot the schools point data for visual inspection.
+
+```{r}
+
+tmap_mode("view")
+tm_shape(schools_sf)+
+tm_dots()+
+  tm_view(set.zoom.limits = c(11,14))
+tmap_mode("plot")
+```
+
+## Preparing
+
+```{r}
+mpsz <- st_read(dsn = "data/geospatial",
+                   layer = "MP14_SUBZONE_WEB_PL") %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+mpsz$`SCHOOL_COUNT` <- lengths(
+  st_intersects(
+    mpsz, schools_sf
+  )
+)
+```
+
+```{R}
+summary(mpsz$SCHOOL_COUNT)
+```
+
+```{r}
+biz <- st_read(dsn = "data/geospatial",
+                   layer = "Business")
+```
+
+```{r}
+tmap_options(check.and.fix = TRUE)  #polygon may not close, so need to auto close
+tm_shape(mpsz)+  #sg boundary
+  tm_polygons()+  #sg boundary
+  tm_shape(biz)+  #biz layer
+  tm_dots()
+```
+
+
+```{r}
+summary(biz)
+```
+
+# Data intergration and wrangling
+
+```{r}
+flow_data <- read_rds("data/rds/flow_data_tidy.rds")
+glimpse(flow_data)
+```
+
+```{r}
+flow_data$FlowNoIntra <- ifelse(
+  flow_data$ORIGIN_SZ == flow_data$DESTIN_SZ,
+  0, flow_data$MORNING_PEAK)
+flow_data$offset<-ifelse(
+  flow_data$ORIGIN_SZ == flow_data$DESTIN_SZ,
+  0.000001,1)
+
+inter_zonal_flow<-flow_data%>%
+  filter(FlowNoIntra >0)
+inter_zonal_flow <-inter_zonal_flow %>%
+  rename(TRIPS = MORNING_PEAK,
+         DIST = dist)
+```
+
+
+
+## Origing(Production) constrained SIM
+
+Firstly we will increae the amount of printed rows for R.
+```{r}
+getOption("max.print")
+options(max.print=1000000)
+```
+Here we will fit an origin constrained SIM by using the code chunk below.
+
+```{r}
+orcSIM_Poisson <- glm(formula = TRIPS ~
+                        ORIGIN_SZ + 
+                        log(SCHOOL_COUNT) +  #use attractiveness factors
+                        log(RETAIL_COUNT)+
+                        log(DIST)+
+                        log(DIST) - 1,  #have - 1 to remove intersept, already constrain to origin
+                      family = poisson(link = "log"),
+                      data = inter_zonal_flow,
+                      na.action = na.exclude)
+summary(orcSIM_Poisson)
+
+```
+What we want is the Estimate log(SCHOOL_COUNT) and log(RETAIL_COUNT) which are attractiveness factors and will tend to be positive. 
+log(DIST) must be negative.
+
+p-value for all logs have to be less than 0.05 to be significant for attractiveness.
+
+Here we will create our own functin for calculating R2
+
+```{r}
+CalcRSquared <- function(observed, estimated){
+  r<-cor(observed, estimated)
+  R2<-r^2
+  R2
+  }
+
+```
+
+Next we will apply the R2 function to our data.
+```{r}
+CalcRSquared(orcSIM_Poisson$data$TRIPS, orcSIM_Poisson$fitted.values)
+
+```
+How well it explains factor affects flow
+```{r}
+performance_rmse(orcSIM_Poisson, normalized = FALSE)  #normalized will set mean to 0 like a z distrib
+```
+how well factors estimates flow, mean root square error, bigger = less nice fitting
+average 2613 trips false estimates
+
+# Doubly constrained
+
+```{r}
+dbcSIM_Poisson <- glm(formula = TRIPS~
+                        ORIGIN_SZ + 
+                        DESTIN_SZ + 
+                        log(DIST), # no -1 cus no attractiveness btw origin and des
+                      family = poisson(link = "log"),
+                      data = inter_zonal_flow,
+                      na.action = na.exclude)
+
+```
+
+# 
+
+```{r}
+# flow_data <- flow_data %>%
+#   left_join(mpsz_tidy,
+#             by =c("DESTIN_SZ" = "SUBZONE_C"))  #change to origin for propulsion, else destination will have attractiveness
+```
+
+```{r}
+# summary(flow_data)
+```
+
+
+#Remove 0
+
+We will have to remove 0 values as we will log it and substitute it to a positive value that is smaller than 1.
+```{r}
+# flow_data
+
+```
