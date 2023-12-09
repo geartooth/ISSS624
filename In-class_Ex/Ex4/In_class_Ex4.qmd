@@ -212,7 +212,7 @@ performance_rmse(orcSIM_Poisson, normalized = FALSE)  #normalized will set mean 
 Root mean square error(RMSE) measures how well the factors estimates flow, bigger = less nice fitting.
 An average 2613 trips false estimates
 
-# Doubly constrained
+## Doubly constrained
 
 ```{r}
 dbcSIM_Poisson <- glm(formula = TRIPS~

@@ -1349,5 +1349,12 @@
     "title": "In-class_Ex04",
     "section": "Import business data",
     "text": "Import business data\nHere we will import the business geospatial data as our factor when considering the attractiveness factor.\n\nbiz &lt;- st_read(dsn = \"data/geospatial\",\n                   layer = \"Business\")\n\nReading layer `Business' from data source \n  `C:\\Users\\Lian Khye\\Desktop\\MITB\\Geospatial\\geartooth\\ISSS624\\In-class_Ex\\Ex4\\data\\geospatial' \n  using driver `ESRI Shapefile'\nSimple feature collection with 6550 features and 3 fields\nGeometry type: POINT\nDimension:     XY\nBounding box:  xmin: 3669.148 ymin: 25408.41 xmax: 47034.83 ymax: 50148.54\nProjected CRS: SVY21 / Singapore TM\n\n\nWe can then map out the locations of various businesses in Singapore. We will include the tmap_options(check.and.fix = TRUE) to the code to help close any unclosed polygons.\n\ntmap_options(check.and.fix = TRUE)  #polygon may not close, so need to auto close\ntm_shape(mpsz)+  #sg boundary\n  tm_polygons()+  #sg boundary\n  tm_shape(biz)+  #biz layer\n  tm_dots()\n\nWarning: The shape mpsz is invalid. See sf::st_is_valid\n\n\n\n\n\nWe can then take a look at the summary of the various businesses being spread out across Singapore.\n\nmpsz$BIZ_COUNT &lt;- lengths(st_intersects(mpsz, biz))\nsummary(biz)\n\n   POI_NAME          POI_ST_NUM         POI_ST_NAM                 geometry   \n Length:6550        Length:6550        Length:6550        POINT        :6550  \n Class :character   Class :character   Class :character   epsg:3414    :   0  \n Mode  :character   Mode  :character   Mode  :character   +proj=tmer...:   0"
+  },
+  {
+    "objectID": "In-class_Ex/Ex4/In_class_Ex4.html#doubly-constrained",
+    "href": "In-class_Ex/Ex4/In_class_Ex4.html#doubly-constrained",
+    "title": "In-class_Ex04",
+    "section": "Doubly constrained",
+    "text": "Doubly constrained\n\ndbcSIM_Poisson &lt;- glm(formula = TRIPS~\n                        ORIGIN_SZ + \n                        DESTIN_SZ + \n                        log(DIST), # no -1 cus no attractiveness btw origin and des\n                      family = poisson(link = \"log\"),\n                      data = inter_zonal_flow,\n                      na.action = na.exclude)"
   }
 ]
