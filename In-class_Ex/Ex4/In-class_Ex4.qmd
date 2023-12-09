@@ -20,7 +20,7 @@ pacman::p_load(tidyverse,sf,httr,tmap, performance)
 ## Geocosing using SLA API
 Address geocoding is the process of taking an aspatial decription of a location such as an address and returning a coordinate.
 
-SLA hosts a geocoding service called OneMap API. 
+SLA hosts a geocoding service called OneMap API. It uses an address data and returns X-Y coordinates and latitude-longitude coordinates information.
 
 
 
@@ -43,7 +43,7 @@ found<-rbind(found,data.frame(content(res))[4:13])
 
 }
 ```
-
+Next we will search for any postal codes without a school.
 ```{r}
 #| eval: false
 merged = merge(csv, found, by.x = 'postal_code', by.y = 'results.POSTAL', all = TRUE)
@@ -68,6 +68,8 @@ schools <- read_csv("data/aspatial/schools.csv") %>%
 ## converting an aspatial data into sf tibble data.frame
 Next we will convert the aspatial data into a simple feature tibble data.frame called *schools_sf* using *st_as_sf()*. The following code converts 2 points into a single point and convert from decimal degree to projected coordinate system which is in meters.
 
+It is important to standardise the type of geocoordinate system used.
+
 ```{r}
 schools_sf<-st_as_sf(schools,
                      coords = c("longtitude", "latitude"),
@@ -87,14 +89,16 @@ tm_dots()+
 tmap_mode("plot")
 ```
 
-## Preparing
+# Preparing geospatial data
+
+We will first import the planning subzones of Singapore.
 
 ```{r}
 mpsz <- st_read(dsn = "data/geospatial",
                    layer = "MP14_SUBZONE_WEB_PL") %>%
   st_transform(crs = 3414)
 ```
-
+Next we will count the number of schools that can be found within each subzone.
 ```{r}
 mpsz$`SCHOOL_COUNT` <- lengths(
   st_intersects(
@@ -106,11 +110,15 @@ mpsz$`SCHOOL_COUNT` <- lengths(
 ```{R}
 summary(mpsz$SCHOOL_COUNT)
 ```
+## Import business data
 
+Here we will import the business geospatial data as our factor when considering the attractiveness factor.
 ```{r}
 biz <- st_read(dsn = "data/geospatial",
                    layer = "Business")
 ```
+
+We can then map out the locations of various businesses in Singapore. We will include the *tmap_options(check.and.fix = TRUE)* to the code to help close any unclosed polygons.
 
 ```{r}
 tmap_options(check.and.fix = TRUE)  #polygon may not close, so need to auto close
@@ -120,12 +128,15 @@ tm_shape(mpsz)+  #sg boundary
   tm_dots()
 ```
 
-
+We can then take a look at the summary of the various businesses being spread out across Singapore.
 ```{r}
+mpsz$BIZ_COUNT <- lengths(st_intersects(mpsz, biz))
 summary(biz)
 ```
 
 # Data intergration and wrangling
+
+Here we will read the flow data from the rds file that we have created from the hands on ex.
 
 ```{r}
 flow_data <- read_rds("data/rds/flow_data_tidy.rds")
@@ -176,7 +187,9 @@ log(DIST) must be negative.
 
 p-value for all logs have to be less than 0.05 to be significant for attractiveness.
 
-Here we will create our own functin for calculating R2
+## Goodness-of-fit
+
+Here we will create our own function for calculating R2
 
 ```{r}
 CalcRSquared <- function(observed, estimated){
@@ -192,14 +205,14 @@ Next we will apply the R2 function to our data.
 CalcRSquared(orcSIM_Poisson$data$TRIPS, orcSIM_Poisson$fitted.values)
 
 ```
-How well it explains factor affects flow
+The R2 measures how well it explains factor affects flow
 ```{r}
 performance_rmse(orcSIM_Poisson, normalized = FALSE)  #normalized will set mean to 0 like a z distrib
 ```
-how well factors estimates flow, mean root square error, bigger = less nice fitting
-average 2613 trips false estimates
+Root mean square error(RMSE) measures how well the factors estimates flow, bigger = less nice fitting.
+An average 2613 trips false estimates
 
-# Doubly constrained
+## Doubly constrained
 
 ```{r}
 dbcSIM_Poisson <- glm(formula = TRIPS~
@@ -212,23 +225,29 @@ dbcSIM_Poisson <- glm(formula = TRIPS~
 
 ```
 
-# 
+## Goodness-of-fit
+
+Here we can apply the R2 function again.
 
 ```{r}
-# flow_data <- flow_data %>%
-#   left_join(mpsz_tidy,
-#             by =c("DESTIN_SZ" = "SUBZONE_C"))  #change to origin for propulsion, else destination will have attractiveness
+CalcRSquared(dbcSIM_Poisson$data$TRIPS, dbcSIM_Poisson$fitted.values)
 ```
+
+# Model Comparison
+
+We will first convert the models that we have created into a list.
 
 ```{r}
-# summary(flow_data)
+model_list <- list(originConstrained=orcSIM_Poisson,
+                   doublyConstrained=dbcSIM_Poisson)
+
 ```
+We can then finally use the *compare_performance()* function of the **performance** package to check for the better model.
 
 
-#Remove 0
-
-We will have to remove 0 values as we will log it and substitute it to a positive value that is smaller than 1.
 ```{r}
-# flow_data
+compare_performance(model_list, metrics = "RMSE")
 
 ```
+
+A smaller RMSE represents a better model
