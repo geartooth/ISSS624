@@ -1,10 +1,22 @@
 ---
 title: "Take-home_Ex2"
+author: "Mah Lian Khye"
+date: "14 December 2023"
+date-modified: "last-modified"
+
+format: 
+  html:
+    self_contained: false
+    code-fold: true
+    code-summary: "code chunk"
+execute:
+  echo: true # all code chunks will appear
+  eval: true # all code chunks will run live (be evaluated)
 ---
 
 # Overview
 
-Organising bodies will have to consider passenger usage to and from locations when adding, changing or removing current transportation routes. Any alterations to present routes can lead to passengers having to seek alternate travelling options that can impact travel time and distance. To minimise the impact, the travelling routes taken will have to be surveyed thorugh commuters survey. However this form of sampling can be inefficient and will easily be out of date. The use of passenger tracking methods such as GPS or smart card boarding and alighting locations may be used as a substitute that can generate data more readily. 
+Organising bodies will have to consider passenger usage to and from locations when adding, changing or removing current transportation routes. Any alterations to present routes can lead to passengers having to seek alternate travelling options that can impact travel time and distance. To minimise the impact, the travelling routes taken will have to be surveyed thorugh commuters survey. However this form of sampling can be inefficient and will easily be out of date. The use of passenger tracking methods such as GPS or smart card boarding and alighting locations may be used as a substitute that can generate data more readily.
 
 # Objective
 
@@ -12,35 +24,37 @@ The main objectives of this exercise is to analyse the boarding and alighting lo
 
 # Tasks
 
-The tasks of this exercise are as follow:
-- Derive an analytical hexagon map to be used as a traffic analysis zone
-- Construct an O-D matrix of commuter flow for weekday mornings from 6am to 9am
-- Display the O-D flows
-- Assemble at least 3 propulsive and 3 attractiveness variables 
-- Compute a distance matrix
-- Calibrate spatial interactive models and present the modelling results using geovisualisation and graphical visualisation methods
+The tasks of this exercise are as follow: - Derive an analytical hexagon map to be used as a traffic analysis zone - Construct an O-D matrix of commuter flow for weekday mornings from 6am to 9am - Display the O-D flows - Assemble at least 3 propulsive and 3 attractiveness variables - Compute a distance matrix - Calibrate spatial interactive models and present the modelling results using geovisualisation and graphical visualisation methods
 
 # Importing packages and data
 
+::: panel-tabset
 ## Import packages
+
 Firstly, we will import the various packages that we will need for this exercise.
+
 ```{r}
-pacman::p_load(sf,tmap,spdep,tidyverse, dplyr, mapview, sfdep, stplanr, glue, DT)
+pacman::p_load(tmap, sf, sp, DT, 
+               performance, reshape2,
+               ggpubr, tidyverse,spdep, dplyr, sfdep, stplanr)
 ```
+
 
 ## Import data
 
-### Loading aspatial table
+::: panel-tabset
+### **Loading aspatial table**
 
 Here we will import the ridership of the different bus stops in Oct 2023.
+
 ```{r}
 odbus <- read_csv("data/aspatial/origin_destination_bus_202310.csv")
 ```
 
-Next we will extract the ridership for weekdays from 7am to 9am only.
+Next we will extract the ridership for weekdays from 6am to 9am only.
 
 ```{r}
-weekdayAM_6_9 <- odbus %>% 
+weekdayAM <- odbus %>% 
   filter(DAY_TYPE == "WEEKDAY") %>%
   filter(TIME_PER_HOUR >= 6 & TIME_PER_HOUR <= 9) %>%
   group_by(ORIGIN_PT_CODE,
@@ -56,6 +70,16 @@ Next we will import all of the bus stops and their coordinates and attached it t
 ```{r}
 busstop <- st_read(dsn = "data/geospatial", layer = "BusStop") %>%
   st_transform(crs = 3414)
+```
+
+:::
+
+:::
+
+```{r}
+stn <- st_read(dsn = "data/geospatial", layer = "RapidTransitSystemStation") %>%
+  st_transform(crs = 3414)
+
 ```
 
 We will first rename the bus stop column title for easier data joining.
@@ -76,9 +100,9 @@ mpsz <- st_read(dsn = "data/geospatial",
 After that we will create the hexagons that will create the map layout. All of the hexagons will also be given a grid id name that can be used for identifying each individual grid.
 
 ```{r}
-center <- st_centroid(busstop)
 
-area_honeycomb_grid <- st_make_grid(center, cellsize = c(325 * sqrt(3), 325 * 2), what = "polygons", square = FALSE)
+
+area_honeycomb_grid <- st_make_grid(busstop, cellsize = 750, what = "polygons", square = FALSE)
 honeycomb_grid_sf <- st_sf(area_honeycomb_grid) %>%
   mutate(grid_id = 1:length(lengths(area_honeycomb_grid)))
 
@@ -94,7 +118,18 @@ First we will assign the bus stop point geometry data to each polygon using *st_
 
 valid_busstop <- st_intersection(busstop, mpsz)
 busstop_hex <- st_intersection(valid_busstop, honeycomb_grid_sf) %>%
+  select(1,10)%>%
   st_drop_geometry()
+busstop_hex <- unique(busstop_hex)
+
+```
+
+```{r}
+#here to test using mpsz instead of hex
+# busstop_hex <- st_intersection(busstop, mpsz) %>%
+#   select(ORIGIN_PT_CODE, SUBZONE_C) %>%
+#   rename(grid_id = SUBZONE_C) %>%
+#   st_drop_geometry()
 
 ```
 
@@ -103,7 +138,7 @@ busstop_hex <- st_intersection(valid_busstop, honeycomb_grid_sf) %>%
 Here we will check for the presence of any duplication before we further process the data.
 
 ```{r}
-duplicate <- weekdayAM_6_9 %>%
+duplicate <- weekdayAM %>%
   group_by_all() %>%
   filter(n()>1) %>%
   ungroup()
@@ -114,7 +149,7 @@ duplicate
 Finally we will only keep data points that are unique using the *unique()* function.
 
 ```{r}
-unique_weekdayAM <- unique(weekdayAM_6_9)
+unique_weekdayAM <- unique(weekdayAM)
 ```
 
 ### Joining destination table and grid
@@ -126,68 +161,618 @@ combn_des_weekdayAM <- left_join(unique_weekdayAM,busstop_hex) %>%
   rename(ORIGIN_BS = ORIGIN_PT_CODE,
          ORIGIN_GRID = grid_id,
          DESTIN_BS = DESTINATION_PT_CODE)
-
+unique(combn_des_weekdayAM)
 ```
 
-
-
-### Rejoin hexagonal information
-
-We can then rejoin the hexagonal information back using *left_join()* function.
+Here we will join the destination grid ID.
 
 ```{r}
-poly_des_weekdayAM <- left_join(combn_des_weekdayAM , busstop_hex,
+OD_weekdayAM <- left_join(combn_des_weekdayAM , busstop_hex,
             by = c("DESTIN_BS" = "ORIGIN_PT_CODE"))
+
 ```
 
-### Sum total trips
-
-We will then sum up the total number of trips made from a bus stop of origin to the destination using *group_by()* for sorting. Putting multiple arguments into the function allows for the sub categorising of the data. This way we can track the drop off point of the passengers.
+To make it clearer we will rename the **grid_ID** column, which is the destination grid id into **DESTIN_GRID**.
 
 ```{r}
-ori_des_weekdayAM <- poly_des_weekdayAM %>%
-  rename(DESTIN_GRID = grid_id) %>%
-  drop_na() %>%
+OD_weekdayAM <- OD_weekdayAM %>%
+  rename(DESTIN_GRID = grid_id)%>%
+  drop_na()%>%
   group_by(ORIGIN_GRID, DESTIN_GRID) %>%
-  summarise(PEAK = sum(TRIPS))
+  summarise(TRIPS = sum(TRIPS))
+
+
 ```
 
-## Visualisation
-
-We will first remove any intra-hexagonal travel.
+We will have to remove any intra hexagonal trips.
 
 ```{r}
-R_weekdayAM <- ori_des_weekdayAM[ori_des_weekdayAM$ORIGIN_GRID!=ori_des_weekdayAM$DESTIN_GRID,]
+OD_weekdayAM <- OD_weekdayAM[OD_weekdayAM$ORIGIN_GRID!=OD_weekdayAM$DESTIN_GRID,]
+
 ```
 
-
-### Create desire lines
-
-Next we will visualise all of the flow or connections between different bus stops from a subzone to another using the *od2line()* function from the **stplanr** package.
+Here we will create the desire lines from the different origin grids and destination grids.
 
 ```{r}
-flow_weekdayAM <- od2line(flow = R_weekdayAM, 
+#missing flowline for flowdata
+OD_weekdayAM <- od2line(flow = OD_weekdayAM, 
                     zones = honeycomb_grid_sf,
                     zone_code = "grid_id")
+
 ```
 
-### Visualise desire lines
+EVERYTHING ABOVE IS HOE3
 
-We can then visualise this flow using the following code. Since the passenger flow is high, it is better to limit the visualisation. Here we will use a passenger flow from hexagons to hexagons of 1500 or more.
+We will recreate the hexagonal-polygon data so that we are able to map out the hexagons onto the Singapore map.
+
+```{R}
+valid_hex <- st_intersection(valid_busstop, honeycomb_grid_sf)%>%
+  select(1,10) %>%
+  st_drop_geometry()
+valid_hex <- left_join(honeycomb_grid_sf, valid_hex) %>%
+  drop_na()
+```
+
+We can visualise the flow of bus passengers of more than 5000 ridership from each origin grid to the destination grid.
 
 ```{r}
-# tmap_mode("view")
-# tm_shape(flow_weekdayAM) +
-#   tm_polygons() +
-# flow_weekdayAM %>%  
-#   filter(PEAK >= 1500) %>%
-# tm_shape() +
-#   tm_lines(lwd = "PEAK",
-#            style = "quantile",
-#            scale = c(0.1, 1, 3, 5, 7, 10),
-#            n = 6,
-#            alpha = 0.3)
+tm_shape(mpsz) +
+  tm_polygons() +
+  tm_shape(valid_hex) +
+  tm_polygons()+
+OD_weekdayAM %>%  
+  filter(TRIPS >= 5000) %>%
+tm_shape() +
+  tm_lines(lwd = "TRIPS",
+           style = "quantile",
+           scale = c(0.1, 1, 3, 5, 7, 10),
+           n = 6,
+           alpha = 0.3)
+
+```
+
+We will create a hex data conaining the grid id and the polygon information.
+
+```{r}
+hex <- left_join( honeycomb_grid_sf,busstop_hex)%>%
+  group_by(grid_id)%>%
+  drop_na()%>%
+  select(1)
+hex<-unique(hex)
+
+```
+
+```{r}
+hex_sp <- as(hex, "Spatial")
+hex_sp
+```
+
+Next we will calculate the distance between the grids.
+
+```{r}
+
+DIST <- spDists(hex_sp, 
+                longlat = FALSE)
+head(DIST, n=c(10, 10))
+```
+
+We will then rename the column and row names.
+
+```{r}
+ sz_names <- hex$grid_id
+#sz_names <- hex$SUBZONE_C
+colnames(DIST) <- paste0(sz_names)
+rownames(DIST) <- paste0(sz_names)
+```
+
+We can then pivot the dataframe to form a table.
+
+```{r}
+distPair <- melt(DIST) %>%
+  rename(DIST = value)
+head(distPair, 10)
+
+```
+
+Here we will substitute any distance of 0 with 50m.
+
+```{R}
+distPair %>%
+  filter(DIST > 0) %>%
+  summary()
+distPair$DIST <- ifelse(distPair$DIST == 0,
+                        50, distPair$DIST)
+distPair %>%
+  summary()
+```
+
+We can then rename the column names.
+
+```{R}
+distPair <- distPair %>%
+  rename(orig = Var1,
+         dest = Var2)
+```
+
+We will reassign the variable name for subsequent processing.
+
+```{R}
+flow_data <- OD_weekdayAM
+# flow_data <- OD_weekdayAM %>%
+#   group_by(ORIGIN_GRID, DESTIN_GRID) %>% 
+#   summarize(TRIPS = sum(TRIPS)) 
+```
+
+Here we will join the distance between grids and their respective origin-destination grid pairs.
+
+```{R}
+flow_data1 <- flow_data %>%
+  left_join (distPair,
+             by = c("ORIGIN_GRID" = "orig",
+                    "DESTIN_GRID" = "dest"))
+```
+
+SKIP POP SECTION
+
+```{R}
+ggplot(data = flow_data1,
+       aes(x = log(DIST),
+           y = log(TRIPS))) +
+  geom_point() +
+  geom_smooth(method = lm)
+
+```
+
+EVERYTHING ABOVE IS IN CLASS3
+
+Here we will import the school distribution information across Singapore.
+
+```{R}
+schools <- read_csv("data/aspatial/schools.csv")
+
+schools <- schools %>%
+  rename("latitude" = "results.LATITUDE",
+         "longitude" = "results.LONGITUDE") %>%
+  select(postal_code, school_name, latitude, longitude)
+
+```
+
+We will then convert the geeospatial information into 3414 coordinate reference.
+
+```{R}
+schools_sf <- st_as_sf(schools, coords = c("longitude", "latitude"), crs = st_crs(4326)) %>%
+  st_transform(crs = 3414)
+```
+
+Finally we will add this to the hexagon to count the number of schools within each hex.
+
+```{R}
+hex$SCHOOL_COUNT <- lengths(st_intersects(hex, schools_sf))
+
+summary(hex$SCHOOL_COUNT)
+
+```
+
+```{r}
+tmap_options(check.and.fix = TRUE)  #polygon may not close, so need to auto close
+tm_shape(mpsz)+  #sg boundary
+  tm_polygons()+ 
+  tm_shape(hex)+  #sg boundary
+  tm_polygons()+  #sg boundary
+  tm_shape(schools_sf)+  #biz layer
+  tm_dots()
+
+```
+
+```{r}
+hdb <- read_csv("data/aspatial/hdb.csv")
+
+hdb_sf <- st_as_sf(hdb, coords = c("lng", "lat"), crs = st_crs(4326)) %>%
+  st_transform(crs = 3414)
+hex$HDB_COUNT <- lengths(st_intersects(hex, hdb_sf))
+
+summary(hex$HDB_COUNT)
+```
+
+We will do the same for businesses.
+
+```{r}
+biz_sf <- st_read(dsn = "data/geospatial", 
+                layer = "Business") %>%
+  st_transform(crs=3414)
+```
+
+```{r}
+hex$BIZ_COUNT <- lengths(st_intersects(hex, biz_sf))
+
+summary(hex$BIZ_COUNT)
+```
+
+For FinServ
+
+```{r}
+fin_sf <- st_read(dsn = "data/geospatial", 
+                layer = "FinServ") %>%
+  st_transform(crs=3414)
+hex$FIN_COUNT <- lengths(st_intersects(hex, fin_sf))
+
+summary(hex$FIN_COUNT)
+
+```
+
+For F&B
+
+```{r}
+fnb_sf <- st_read(dsn = "data/geospatial", 
+                layer = "F&B") %>%
+  st_transform(crs=3414)
+hex$FNB_COUNT <- lengths(st_intersects(hex, fnb_sf))
+
+summary(hex$FNB_COUNT)
+
+```
+
+For retail
+
+```{r}
+retail_sf <- st_read(dsn = "data/geospatial", 
+                layer = "Retails") %>%
+  st_transform(crs=3414)
+hex$retail_COUNT <- lengths(st_intersects(hex, retail_sf))
+
+summary(hex$retail_COUNT)
+
+```
+
+For entertainment
+
+```{r}
+ent_sf <- st_read(dsn = "data/geospatial", 
+                layer = "entertn") %>%
+  st_transform(crs=3414)
+hex$ent_COUNT <- lengths(st_intersects(hex, ent_sf))
+
+summary(hex$ent_COUNT)
+
+```
+
+For LnR
+
+```{r}
+lnr_sf <- st_read(dsn = "data/geospatial", 
+                layer = "Liesure&Recreation") %>%
+  st_transform(crs=3414)
+hex$lnr_COUNT <- lengths(st_intersects(hex, lnr_sf))
+
+summary(hex$lnr_COUNT)
+
+```
+
+```{r}
+
+stn_exit_sf <- st_read(dsn = "data/geospatial", 
+                layer = "Train_Station_Exit_Layer") %>%
+  st_transform(crs=3414)
+hex$stn_exit_COUNT <- lengths(st_intersects(hex, stn_exit_sf))
+summary(hex$stn_exit_COUNT)
+```
+
+use destination for pairing
+
+Since the hex variable still contains geometry information, which will prevent us from joining the various school and business information with ridership, we will drop it.
+
+```{r}
+#drop polygon from hex to retain line string
+hex <- st_drop_geometry(hex)
+
+```
+
+We can then join the school and business count information to the ridership using left_join. Since this is for attractiveness, we will match the destination grid to the grid id.
+
+```{r}
+floD<- flow_data1 %>%
+  left_join (hex,
+             by = c(
+                    "DESTIN_GRID" = "grid_id"))
+
+```
+
+Since we will log the data for modelling, we will have to convert any 0 value data in school and business count into a positive number that is less than 1. We will use 0.99.
+
+```{r}
+floD$BIZ_COUNT <- ifelse(
+  floD$BIZ_COUNT == 0,
+  0.99, floD$BIZ_COUNT)
+floD$SCHOOL_COUNT <- ifelse(
+  floD$SCHOOL_COUNT == 0,
+  0.99, floD$SCHOOL_COUNT)
+floD$FIN_COUNT <- ifelse(
+  floD$FIN_COUNT == 0,
+  0.99, floD$FIN_COUNT)
+floD$FNB_COUNT <- ifelse(
+  floD$FNB_COUNT == 0,
+  0.99, floD$FNB_COUNT)
+floD$ent_COUNT <- ifelse(
+  floD$ent_COUNT == 0,
+  0.99, floD$ent_COUNT)
+floD$lnr_COUNT <- ifelse(
+  floD$lnr_COUNT == 0,
+  0.99, floD$lnr_COUNT)
+floD$stn_exit_COUNT <- ifelse(
+  floD$stn_exit_COUNT == 0,
+  0.99, floD$stn_exit_COUNT)
+floD$HDB_COUNT <- ifelse(
+  floD$HDB_COUNT == 0,
+  0.99, floD$HDB_COUNT)
+
+```
+
+```{r}
+floD$ORIGIN_GRID <- as.character(floD$ORIGIN_GRID)
+floD$DESTIN_GRID <- as.character(floD$DESTIN_GRID)
+```
+
+```{r}
+floD$FlowNoIntra <- ifelse(
+  floD$ORIGIN_GRID == floD$DESTIN_GRID, 0, floD$TRIPS
+)
+floD$offset <- ifelse(
+  floD$ORIGIN_GRID == floD$DESTIN_GRID, 0.000001, 1
+)
+
+inter_zonal_flow <- floD %>%
+  filter(FlowNoIntra > 0)
+
+inter_zonal_flow <- inter_zonal_flow%>%
+  drop_na()
 
 
 ```
 
+```{r}
+options(max.print = 100000)
+
+```
+
+# Origin(Production) constrained SIM
+
+```{R}
+
+orcSIM_Poisson <- glm(formula = TRIPS ~
+                        ORIGIN_GRID + 
+                          #use attractiveness factors
+                        log(BIZ_COUNT)+
+                        log(SCHOOL_COUNT) +
+                        log(FIN_COUNT)+
+                        log(FNB_COUNT)+
+                        log(ent_COUNT)+
+                        log(stn_exit_COUNT)+
+                        log(HDB_COUNT)+
+                  
+                        
+                        
+                        
+                        log(lnr_COUNT)+
+                        
+                        log(DIST) - 1,  #have - 1 to remove intersept, already constrain to origin
+                      family = poisson(link = "log"),
+                      data = inter_zonal_flow,
+                      na.action = na.exclude)
+```
+
+```{r}
+summary(orcSIM_Poisson)
+```
+
+## Goodness-of-fit
+
+Goodness-of-fit refers to how well sample data is able to fit the curve. To calculate that we will first have to create our own R-squared function.
+
+```{r}
+CalcRSquared <- function(observed, estimated){
+  r<-cor(observed, estimated)
+  R2<-r^2
+  R2
+  }
+
+```
+
+After that we can then apply the function to our data from the Origin constrained model.
+
+```{r}
+CalcRSquared(orcSIM_Poisson$data$TRIPS, orcSIM_Poisson$fitted.values)
+```
+
+This shows that about 41% of our variation in our data. This means that there can be further improvement and we can try using other modeling techniques.
+
+To compare with other models, we can use the Root-mean-square deviation(RMSE). We can do that using **performance** package.
+
+```{r}
+performance_rmse(orcSIM_Poisson, normalized = FALSE)  #normalized will set mean to 0 like a z distrib
+
+```
+
+Here we obtain a value of about 1376, a smaller value represents increase accuracy.
+
+# Doubly constrained model
+
+```{r}
+dbcSIM_Poisson <- glm(formula = TRIPS~
+                        ORIGIN_GRID + 
+                        DESTIN_GRID + 
+                        log(DIST), # no -1 cus no attractiveness btw origin and des
+                      family = poisson(link = "log"),
+                      data = inter_zonal_flow,
+                      na.action = na.exclude)
+```
+
+## Goodness-of-fit
+
+```{r}
+CalcRSquared(dbcSIM_Poisson$data$TRIPS, dbcSIM_Poisson$fitted.values)
+```
+
+# Unconstrained model
+
+```{r}
+
+uncSIM <- glm(formula = TRIPS ~ 
+               log(BIZ_COUNT)+
+                        log(SCHOOL_COUNT) +
+                        log(FIN_COUNT)+
+                        log(FNB_COUNT)+
+                        log(ent_COUNT)+
+                        log(stn_exit_COUNT)+
+                        log(HDB_COUNT)+
+                  
+                        
+                        
+                        
+                        log(lnr_COUNT)+
+                log(DIST),
+              family = poisson(link = "log"),
+              data = inter_zonal_flow,
+              na.action = na.exclude)
+
+uncSIM
+```
+
+## Goodness-of-fit
+
+```{r}
+
+CalcRSquared(uncSIM$data$TRIPS, uncSIM$fitted.values)
+```
+
+# Destination constrained model
+
+```{r}
+
+decSIM <- glm(formula = TRIPS ~ 
+                DESTIN_GRID + log(SCHOOL_COUNT) +
+                        log(FIN_COUNT)+
+                        log(FNB_COUNT)+
+                        log(ent_COUNT)+
+                        log(stn_exit_COUNT)+
+                        log(HDB_COUNT)+
+                  
+                        
+                        
+                        
+                        log(lnr_COUNT)+
+                log(DIST),
+              family = poisson(link = "log"),
+              data = inter_zonal_flow,
+              na.action = na.exclude)
+
+```
+
+```{r}
+summary(decSIM)
+```
+
+```{r}
+CalcRSquared(decSIM$data$TRIPS, decSIM$fitted.values)
+
+```
+
+# Model Comparison
+
+```{r}
+
+model_list <- list(unconstrained=uncSIM,
+                   originConstrained=orcSIM_Poisson,
+                   destinationConstrained=decSIM,
+                   doublyConstrained=dbcSIM_Poisson)
+```
+
+```{r}
+compare_performance(model_list,
+                    metrics = "RMSE")
+
+```
+
+From the different RMSE calculated above, we can see that the doubly constrained model has the lowest RMSE value, which represents the most accurate model out of the 4 tested models.
+
+# Visualisation
+
+## Unconstrained
+
+```{r}
+d_f <- as.data.frame(uncSIM$fitted.values) %>%
+  round(digits = 0)
+inter_zonal_flow <- inter_zonal_flow %>%
+  cbind(d_f)
+```
+
+## Origin constrained
+
+```{r}
+
+d_f <- as.data.frame(orcSIM_Poisson$fitted.values) %>%
+  round(digits = 0)
+inter_zonal_flow <- inter_zonal_flow %>%
+  cbind(d_f)
+```
+
+## Destination constrained
+
+```{r}
+
+d_f <- as.data.frame(decSIM$fitted.values) %>%
+  round(digits = 0)
+inter_zonal_flow <- inter_zonal_flow %>%
+  cbind(d_f) 
+```
+
+## Doubly constrained
+
+```{r}
+
+d_f <- as.data.frame(dbcSIM_Poisson$fitted.values) %>%
+  round(digits = 0)
+inter_zonal_flow <- inter_zonal_flow %>%
+  cbind(d_f) 
+```
+
+```{r}
+inter_zonal_flow <- inter_zonal_flow %>%
+  rename(uncTRIPS = "uncSIM.fitted.values",
+         orcTRIPS = "orcSIM_Poisson.fitted.values",
+         decTRIPS = "decSIM.fitted.values",
+         dbcTRIPS = "dbcSIM_Poisson.fitted.values")
+
+```
+
+## Plotting
+
+```{r}
+
+unc_p <- ggplot(data = inter_zonal_flow,
+                aes(x = uncTRIPS,
+                    y = TRIPS)) +
+  geom_point() +
+  geom_smooth(method = lm)
+
+orc_p <- ggplot(data = inter_zonal_flow,
+                aes(x = orcTRIPS,
+                    y = TRIPS)) +
+  geom_point() +
+  geom_smooth(method = lm)
+
+dec_p <- ggplot(data = inter_zonal_flow,
+                aes(x = decTRIPS,
+                    y = TRIPS)) +
+  geom_point() +
+  geom_smooth(method = lm)
+
+dbc_p <- ggplot(data = inter_zonal_flow,
+                aes(x = dbcTRIPS,
+                    y = TRIPS)) +
+  geom_point() +
+  geom_smooth(method = lm)
+
+ggarrange(unc_p, orc_p, dec_p, dbc_p,
+          ncol = 2,
+          nrow = 2)
+```
