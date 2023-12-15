@@ -236,14 +236,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#joining-destination-table-and-grid" id="toc-joining-destination-table-and-grid" class="nav-link" data-scroll-target="#joining-destination-table-and-grid">Joining destination table and grid</a></li>
   </ul></li>
-  <li><a href="#visualisation-of-trips" id="toc-visualisation-of-trips" class="nav-link" data-scroll-target="#visualisation-of-trips">Visualisation of trips</a>
-  <ul class="collapse">
-  <li><a href="#all-trips" id="toc-all-trips" class="nav-link" data-scroll-target="#all-trips">All trips</a></li>
-  <li><a href="#top-5" id="toc-top-5" class="nav-link" data-scroll-target="#top-5">Top 5%</a></li>
-  </ul></li>
-  <li><a href="#bottom-5-of-trips" id="toc-bottom-5-of-trips" class="nav-link" data-scroll-target="#bottom-5-of-trips">Bottom 5% of trips</a></li>
-  <li><a href="#mean-trips" id="toc-mean-trips" class="nav-link" data-scroll-target="#mean-trips">Mean trips</a></li>
-  <li><a href="#top-10-routes" id="toc-top-10-routes" class="nav-link" data-scroll-target="#top-10-routes">Top 10 routes</a></li>
+  <li><a href="#visualisation-of-trips" id="toc-visualisation-of-trips" class="nav-link" data-scroll-target="#visualisation-of-trips">Visualisation of trips</a></li>
   </ul></li>
   <li><a href="#distance-calculation" id="toc-distance-calculation" class="nav-link" data-scroll-target="#distance-calculation">Distance calculation</a>
   <ul class="collapse">
@@ -320,9 +313,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="importing-packages-and-data" class="level1">
 <h1>Importing packages and data</h1>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" role="tab" aria-controls="tabset-2-1" aria-selected="true">Import packages</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" role="tab" aria-controls="tabset-2-2" aria-selected="false">Import data</a></li></ul>
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-3-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-1" role="tab" aria-controls="tabset-3-1" aria-selected="true">Import packages</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-2" role="tab" aria-controls="tabset-3-2" aria-selected="false">Import data</a></li></ul>
 <div class="tab-content">
-<div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
+<div id="tabset-3-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-3-1-tab">
 <p>Firstly, we will import the various packages that we will need for this exercise.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(tmap, sf, sp, DT, </span>
@@ -330,11 +323,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>               ggpubr, tidyverse,spdep, dplyr, sfdep, stplanr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
-<div id="tabset-2-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-2-tab">
+<div id="tabset-3-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-3-2-tab">
 <div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true"><strong>Loading aspatial table</strong></a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false">Loading geospatial data</a></li></ul>
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" role="tab" aria-controls="tabset-2-1" aria-selected="true"><strong>Loading aspatial table</strong></a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" role="tab" aria-controls="tabset-2-2" aria-selected="false">Loading geospatial data</a></li></ul>
 <div class="tab-content">
-<div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
+<div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
 <p>Here we will import the ridership of the different bus stops in Oct 2023.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>odbus <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/aspatial/origin_destination_bus_202310.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -396,7 +389,7 @@ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 </div>
 </div>
 </div>
-<div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
+<div id="tabset-2-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-2-tab">
 <p>Next we will import all of the bus stops and their coordinates and attached it to the <em>busstop</em> variable.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>busstop <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/geospatial"</span>, <span class="at">layer =</span> <span class="st">"BusStop"</span>) <span class="sc">%&gt;%</span></span>
@@ -412,9 +405,11 @@ Bounding box:  xmin: 3970.122 ymin: 26482.1 xmax: 48284.56 ymax: 52983.82
 Projected CRS: SVY21</code></pre>
 </div>
 </div>
-<p>We will also import all of the attractive and propulsive factors that we will use for subsequent modelling analysis. ::: panel-tabset</p>
-<section id="attractive-factors" class="level4">
-<h4 class="anchored" data-anchor-id="attractive-factors">Attractive factors</h4>
+<p>We will also import all of the attractive and propulsive factors that we will use for subsequent modelling analysis.</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true">Attractive factors</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false">Propulsive factors</a></li></ul>
+<div class="tab-content">
+<div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
 <p>For school data we will have to process them from latitude and longitude points to projected coordinate system.</p>
 <div class="cell">
 <details>
@@ -462,9 +457,8 @@ Bounding box:  xmin: 3669.148 ymin: 25408.41 xmax: 47034.83 ymax: 50148.54
 Projected CRS: SVY21 / Singapore TM</code></pre>
 </div>
 </div>
-</section>
-<section id="propulsive-factors" class="level4">
-<h4 class="anchored" data-anchor-id="propulsive-factors">Propulsive factors</h4>
+</div>
+<div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
 <div class="cell">
 <details>
 <summary>code chunk</summary>
@@ -508,14 +502,15 @@ Projected CRS: SVY21</code></pre>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(<span class="at">crs =</span> <span class="dv">3414</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-</section>
 </div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<p>:::</p>
+</div>
+</div>
+</div>
 <div class="cell">
 <details>
 <summary>code chunk</summary>
@@ -676,9 +671,11 @@ all geometries</code></pre>
 </section>
 <section id="visualisation-of-trips" class="level2">
 <h2 class="anchored" data-anchor-id="visualisation-of-trips">Visualisation of trips</h2>
-<p>Here we can visualise the flow of passengers between grids using the desire lines that we have created. We will look at all of the passenger flow, the top 5%, the bottom 5% and the interquartile range of the number of trips. ::: panel-tabset</p>
-<section id="all-trips" class="level3">
-<h3 class="anchored" data-anchor-id="all-trips">All trips</h3>
+<p>Here we can visualise the flow of passengers between grids using the desire lines that we have created. We will look at all of the passenger flow, the top 5%, the bottom 5% and the interquartile range of the number of trips.</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-4-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-1" role="tab" aria-controls="tabset-4-1" aria-selected="true">All trips</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-2" role="tab" aria-controls="tabset-4-2" aria-selected="false">Top 5%</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-3" role="tab" aria-controls="tabset-4-3" aria-selected="false">Bottom 5% of trips</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-4-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-4" role="tab" aria-controls="tabset-4-4" aria-selected="false">Mean trips</a></li></ul>
+<div class="tab-content">
+<div id="tabset-4-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-4-1-tab">
 <div class="cell">
 <details>
 <summary>code chunk</summary>
@@ -715,10 +712,9 @@ shorter object length</code></pre>
 <p><img src="Take_home_Ex2_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>As we can see, the number of trips can be too messy and we can make it clearer by limiting the plot to only a certain number of trips.</p>
-</section>
-<section id="top-5" class="level3">
-<h3 class="anchored" data-anchor-id="top-5">Top 5%</h3>
+<p>As we can see, the number of trips can be too numerous and we can make it clearer by limiting the plot to only a certain number of trips.</p>
+</div>
+<div id="tabset-4-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-4-2-tab">
 <p>Before we plot, we will have to calculate the smallest number of trips that makes it to the top 5% of trips.</p>
 <div class="cell">
 <details>
@@ -765,10 +761,8 @@ shorter object length</code></pre>
 <p><img src="Take_home_Ex2_files/figure-html/unnamed-chunk-24-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-</section>
-</section>
-<section id="bottom-5-of-trips" class="level2">
-<h2 class="anchored" data-anchor-id="bottom-5-of-trips">Bottom 5% of trips</h2>
+</div>
+<div id="tabset-4-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-4-3-tab">
 <p>Here we will find out the maximum trip count for the bottom 5% of all trips made.</p>
 <div class="cell">
 <details>
@@ -812,9 +806,8 @@ shorter object length</code></pre>
 </div>
 </div>
 <p>We can still see that there are too many desire lines to make out proper data. This means that even though we only extracted the bottom 5% of all trips, most of the trips are made with only 1 trip count.</p>
-</section>
-<section id="mean-trips" class="level2">
-<h2 class="anchored" data-anchor-id="mean-trips">Mean trips</h2>
+</div>
+<div id="tabset-4-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-4-4-tab">
 <p>We can calculate where half or more trips are made by calculating the mean number of trips.</p>
 <div class="cell">
 <details>
@@ -865,7 +858,6 @@ shorter object length</code></pre>
 </div>
 </div>
 <p>We see that the data cleared up a lot when compared against the bottom 5% of all trips made and is closer to the top 5% of trips made. When combined with the median result of 38, the average passenger count of 372.7 means more trips are made with a low number of passengers and there are popular routes that are often taken in the early morning peak period. The large number of passengers on certain popular routes causes the data to skew.</p>
-</section>
 <section id="top-10-routes" class="level2">
 <h2 class="anchored" data-anchor-id="top-10-routes">Top 10 routes</h2>
 <p>Aside from using the percentage, we can also plot out the top 10 most popular routes made during weekday morning peak period. We will first obtain the routes with top 10 trip count.</p>
@@ -976,11 +968,15 @@ shorter object length</code></pre>
 </details>
 <div class="cell-output-display">
 
-<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-a6dacfa4653ca420e021" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-a6dacfa4653ca420e021">{"x":{"filter":"none","vertical":false,"data":[["1"],["MARSILING CC, SI LING SEC SCH, GES S'PORE, BLK 206, BLK 25, WOODLANDS TRAIN CHECKPT, BLK 203, BLK 32, BLK 212, BLK 23"],["BLK 515, WOODLANDS REG INT, W'LANDS STN EXIT 4, OPP BLK 896B, RIVERSIDE SEC SCH, BLK 825, BLK 891C CP, W'LANDS PR SCH, BLK 894C, W'LANDS STN EXIT 5, BLK 803"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Most popular origin bustops<\/th>\n      <th>Most popular destination bustops<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-3fadd7f5b25bf2709650" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-3fadd7f5b25bf2709650">{"x":{"filter":"none","vertical":false,"data":[["1"],["MARSILING CC, SI LING SEC SCH, GES S'PORE, BLK 206, BLK 25, WOODLANDS TRAIN CHECKPT, BLK 203, BLK 32, BLK 212, BLK 23"],["BLK 515, WOODLANDS REG INT, W'LANDS STN EXIT 4, OPP BLK 896B, RIVERSIDE SEC SCH, BLK 825, BLK 891C CP, W'LANDS PR SCH, BLK 894C, W'LANDS STN EXIT 5, BLK 803"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Most popular origin bustops<\/th>\n      <th>Most popular destination bustops<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
-<p>We can see the bus stops that are found within the most popular origin-destination grid pair. Authorities can utilise the above information to plan for more buses to cater to those routes so as to ease traffic if needed. :::</p>
+<p>We can see the bus stops that are found within the most popular origin-destination grid pair. Authorities can utilise the above information to plan for more buses to cater to those routes so as to ease traffic if needed.</p>
+</section>
+</div>
+</div>
+</div>
 </section>
 </section>
 <section id="distance-calculation" class="level1">
@@ -1171,9 +1167,9 @@ max values  :    2505 </code></pre>
 </details>
 </div>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-4-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-1" role="tab" aria-controls="tabset-4-1" aria-selected="true"><strong>Attractive</strong></a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-2" role="tab" aria-controls="tabset-4-2" aria-selected="false"><strong>Propulsive</strong></a></li></ul>
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-6-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-1" role="tab" aria-controls="tabset-6-1" aria-selected="true"><strong>Attractive</strong></a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-6-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-2" role="tab" aria-controls="tabset-6-2" aria-selected="false"><strong>Propulsive</strong></a></li></ul>
 <div class="tab-content">
-<div id="tabset-4-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-4-1-tab">
+<div id="tabset-6-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-6-1-tab">
 <p>We will first match all of the number of schools, businesses and financial services to their respective grids.</p>
 <div class="cell">
 <details>
@@ -1190,9 +1186,9 @@ max values  :    2505 </code></pre>
 </div>
 </div>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-3-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-1" role="tab" aria-controls="tabset-3-1" aria-selected="true">School count and trips made</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-2" role="tab" aria-controls="tabset-3-2" aria-selected="false">Business count and trips made</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-3" role="tab" aria-controls="tabset-3-3" aria-selected="false">Financial service and trips made</a></li></ul>
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-5-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-1" role="tab" aria-controls="tabset-5-1" aria-selected="true">School count and trips made</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-5-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-2" role="tab" aria-controls="tabset-5-2" aria-selected="false">Business count and trips made</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-5-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-3" role="tab" aria-controls="tabset-5-3" aria-selected="false">Financial service and trips made</a></li></ul>
 <div class="tab-content">
-<div id="tabset-3-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-3-1-tab">
+<div id="tabset-5-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-5-1-tab">
 <p>We can look at the number of trips made to grids that contains schools. To do that we can first create grids with that contains schools. We will then check if the destination grid of our top 100 most popular trips have commonality with our grids that contains schools.</p>
 <div class="cell">
 <details>
@@ -1265,7 +1261,7 @@ shorter object length</code></pre>
 </div>
 <p>We see a fairly good spread of schools across Singapore. We can also see that some of the most popular bus routes contains schools as their destinations, this may mean that the schools serves as a point of attraction for that bus route.</p>
 </div>
-<div id="tabset-3-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-3-2-tab">
+<div id="tabset-5-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-5-2-tab">
 <div class="cell">
 <details>
 <summary>code chunk</summary>
@@ -1353,7 +1349,7 @@ shorter object length</code></pre>
 </div>
 <p>From this data we can see that a large number of businesses is located within the CBD region and Tuas industrial region although there are also businesses that are located beyond the hexagons. From the desire lines we can also see that transportation to these regions are limited to nearby regions. This could be due to the accessibility of train options or catered bus services by companies for businesses in the CBD region and Tuas industrial park respectively.</p>
 </div>
-<div id="tabset-3-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-3-3-tab">
+<div id="tabset-5-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-5-3-tab">
 <div class="cell">
 <details>
 <summary>code chunk</summary>
@@ -1434,7 +1430,7 @@ shorter object length</code></pre>
 </div>
 </div>
 </div>
-<div id="tabset-4-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-4-2-tab">
+<div id="tabset-6-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-6-2-tab">
 <p>Here we will assemble the propulsive factors, which are number of HDB, number of estimated residents in each hexagon and MRT exits.</p>
 <p>Since our residential data contains non-residential information, we will only keep residential data.</p>
 <div class="cell">
@@ -1624,14 +1620,15 @@ all geometries</code></pre>
 </section>
 <section id="modelling-calibration" class="level2">
 <h2 class="anchored" data-anchor-id="modelling-calibration">Modelling calibration</h2>
-<p>::: panel-tabset</p>
-<p>Here we will begin our actual modelling</p>
+<p>Here we will begin our actual modelling for our different factors.</p>
+<p>For attractive factors we will be using: - Origin constrained model - Unconstrained model - Doubly constrained model</p>
+<p>For propulsive factors we will be using: - Destination constrained model - Unconstrained model - Doubly constrained model</p>
 <section id="attractive-modelling" class="level3">
 <h3 class="anchored" data-anchor-id="attractive-modelling">Attractive modelling</h3>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-5-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-1" role="tab" aria-controls="tabset-5-1" aria-selected="true"><strong>Origin(Production) constrained SIM</strong></a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-5-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-2" role="tab" aria-controls="tabset-5-2" aria-selected="false">Unconstrained modelling</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-5-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-3" role="tab" aria-controls="tabset-5-3" aria-selected="false">Doubly Constrained modelling</a></li></ul>
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-7-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-1" role="tab" aria-controls="tabset-7-1" aria-selected="true">Origin(Production) constrained model</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-7-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-2" role="tab" aria-controls="tabset-7-2" aria-selected="false">Unconstrained modelling</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-7-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-3" role="tab" aria-controls="tabset-7-3" aria-selected="false">Doubly Constrained modelling</a></li></ul>
 <div class="tab-content">
-<div id="tabset-5-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-5-1-tab">
+<div id="tabset-7-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-7-1-tab">
 <div class="cell">
 <details>
 <summary>code chunk</summary>
@@ -2503,7 +2500,7 @@ Number of Fisher Scoring iterations: 7</code></pre>
 </div>
 <p>We have a R-square value of 0.336, which indicates that about 34% of variation can be explained by the model.</p>
 </div>
-<div id="tabset-5-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-5-2-tab">
+<div id="tabset-7-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-7-2-tab">
 <div class="cell">
 <details>
 <summary>code chunk</summary>
@@ -2547,7 +2544,7 @@ Residual Deviance: 58010000     AIC: 58370000</code></pre>
 </div>
 <p>We have a R-square value of 0.154, which indicates that only about 15.4% of variation can be explained by the unconstrained model.</p>
 </div>
-<div id="tabset-5-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-5-3-tab">
+<div id="tabset-7-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-7-3-tab">
 <div class="cell">
 <details>
 <summary>code chunk</summary>
@@ -4227,9 +4224,9 @@ Number of Fisher Scoring iterations: 7</code></pre>
 <section id="propulsive-modelling" class="level3">
 <h3 class="anchored" data-anchor-id="propulsive-modelling"><strong>Propulsive modelling</strong></h3>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-6-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-1" role="tab" aria-controls="tabset-6-1" aria-selected="true">Destination constrained</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-6-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-2" role="tab" aria-controls="tabset-6-2" aria-selected="false">Unconstrained modelling</a></li></ul>
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-8-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-8-1" role="tab" aria-controls="tabset-8-1" aria-selected="true">Destination constrained</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-8-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-8-2" role="tab" aria-controls="tabset-8-2" aria-selected="false">Unconstrained modelling</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-8-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-8-3" role="tab" aria-controls="tabset-8-3" aria-selected="false">Doubly Constrained modelling</a></li></ul>
 <div class="tab-content">
-<div id="tabset-6-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-6-1-tab">
+<div id="tabset-8-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-8-1-tab">
 <div class="cell">
 <details>
 <summary>code chunk</summary>
@@ -5098,7 +5095,7 @@ Number of Fisher Scoring iterations: 8</code></pre>
 </div>
 <p>We have a R-square value of 0.424, which indicates that about 42% of variation can be explained by the destination constrained model.</p>
 </div>
-<div id="tabset-6-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-6-2-tab">
+<div id="tabset-8-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-8-2-tab">
 <div class="cell">
 <details>
 <summary>code chunk</summary>
@@ -5140,7 +5137,9 @@ Residual Deviance: 52320000     AIC: 52680000</code></pre>
 <pre><code>[1] 0.1675065</code></pre>
 </div>
 </div>
-<p>We have a R-square value of only 0.167, which indicates that only about 17% of variation can be explained by the unconstrained model. #### Doubly Constrained modelling</p>
+<p>We have a R-square value of only 0.167, which indicates that only about 17% of variation can be explained by the unconstrained model.</p>
+</div>
+<div id="tabset-8-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-8-3-tab">
 <div class="cell">
 <details>
 <summary>code chunk</summary>
@@ -6823,9 +6822,9 @@ Number of Fisher Scoring iterations: 7</code></pre>
 <h1>Model Comparison</h1>
 <p>To compare the suitability between different models, we can use the Root-mean-square deviation(RMSE). We can do that using <strong>performance</strong> package.</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-7-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-1" role="tab" aria-controls="tabset-7-1" aria-selected="true">Attractive modelling comparison</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-7-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-2" role="tab" aria-controls="tabset-7-2" aria-selected="false"><strong>Propulsive modelling</strong></a></li></ul>
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-9-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-9-1" role="tab" aria-controls="tabset-9-1" aria-selected="true">Attractive modelling comparison</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-9-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-9-2" role="tab" aria-controls="tabset-9-2" aria-selected="false">Propulsive modelling</a></li></ul>
 <div class="tab-content">
-<div id="tabset-7-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-7-1-tab">
+<div id="tabset-9-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-9-1-tab">
 <p>We will first list all of the models used for attractive modelling.</p>
 <div class="cell">
 <details>
@@ -6854,7 +6853,8 @@ doublyConstrained |   glm | 1167.214</code></pre>
 </div>
 <p>From the different RMSE calculated above, we can see that the doubly constrained model has the lowest RMSE value of 1167.214, which represents the most accurate model out of the 3 tested models for attractive factors.</p>
 </div>
-<div id="tabset-7-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-7-2-tab">
+<div id="tabset-9-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-9-2-tab">
+<p>We will repeat the same steps for the different models for the propulsive models as well.</p>
 <div class="cell">
 <details>
 <summary>code chunk</summary>
@@ -6888,14 +6888,14 @@ doublyConstrained      |   glm | 1167.214</code></pre>
 <h1>Visualisation</h1>
 <p>Here we can visualise the modelling of the graphs between the observed and fitted values.</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-10-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-10-1" role="tab" aria-controls="tabset-10-1" aria-selected="true">Attractive modelling</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-10-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-10-2" role="tab" aria-controls="tabset-10-2" aria-selected="false">Propulsive modelling</a></li></ul>
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-12-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-12-1" role="tab" aria-controls="tabset-12-1" aria-selected="true">Attractive modelling</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-12-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-12-2" role="tab" aria-controls="tabset-12-2" aria-selected="false">Propulsive modelling</a></li></ul>
 <div class="tab-content">
-<div id="tabset-10-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-10-1-tab">
+<div id="tabset-12-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-12-1-tab">
 <p>Firstly, we will obtain the fitted values from the different models followed by placing them back to the dataframe that contains the observed values.</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-8-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-8-1" role="tab" aria-controls="tabset-8-1" aria-selected="true">Origin constrained</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-8-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-8-2" role="tab" aria-controls="tabset-8-2" aria-selected="false">Unconstrained</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-8-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-8-3" role="tab" aria-controls="tabset-8-3" aria-selected="false">Doubly constrained</a></li></ul>
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-10-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-10-1" role="tab" aria-controls="tabset-10-1" aria-selected="true">Origin constrained</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-10-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-10-2" role="tab" aria-controls="tabset-10-2" aria-selected="false">Unconstrained</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-10-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-10-3" role="tab" aria-controls="tabset-10-3" aria-selected="false">Doubly constrained</a></li></ul>
 <div class="tab-content">
-<div id="tabset-8-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-8-1-tab">
+<div id="tabset-10-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-10-1-tab">
 <div class="cell">
 <details>
 <summary>code chunk</summary>
@@ -6906,7 +6906,7 @@ doublyConstrained      |   glm | 1167.214</code></pre>
 </details>
 </div>
 </div>
-<div id="tabset-8-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-8-2-tab">
+<div id="tabset-10-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-10-2-tab">
 <div class="cell">
 <details>
 <summary>code chunk</summary>
@@ -6917,7 +6917,7 @@ doublyConstrained      |   glm | 1167.214</code></pre>
 </details>
 </div>
 </div>
-<div id="tabset-8-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-8-3-tab">
+<div id="tabset-10-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-10-3-tab">
 <div class="cell">
 <details>
 <summary>code chunk</summary>
@@ -6941,12 +6941,12 @@ doublyConstrained      |   glm | 1167.214</code></pre>
 </details>
 </div>
 </div>
-<div id="tabset-10-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-10-2-tab">
+<div id="tabset-12-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-12-2-tab">
 <p>We will also do the same for the 3 propulsive models.</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-9-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-9-1" role="tab" aria-controls="tabset-9-1" aria-selected="true">Destination constrained</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-9-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-9-2" role="tab" aria-controls="tabset-9-2" aria-selected="false">Unconstrained</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-9-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-9-3" role="tab" aria-controls="tabset-9-3" aria-selected="false">Doubly constrained</a></li></ul>
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-11-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-11-1" role="tab" aria-controls="tabset-11-1" aria-selected="true">Destination constrained</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-11-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-11-2" role="tab" aria-controls="tabset-11-2" aria-selected="false">Unconstrained</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-11-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-11-3" role="tab" aria-controls="tabset-11-3" aria-selected="false">Doubly constrained</a></li></ul>
 <div class="tab-content">
-<div id="tabset-9-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-9-1-tab">
+<div id="tabset-11-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-11-1-tab">
 <div class="cell">
 <details>
 <summary>code chunk</summary>
@@ -6957,7 +6957,7 @@ doublyConstrained      |   glm | 1167.214</code></pre>
 </details>
 </div>
 </div>
-<div id="tabset-9-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-9-2-tab">
+<div id="tabset-11-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-11-2-tab">
 <div class="cell">
 <details>
 <summary>code chunk</summary>
@@ -6968,7 +6968,7 @@ doublyConstrained      |   glm | 1167.214</code></pre>
 </details>
 </div>
 </div>
-<div id="tabset-9-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-9-3-tab">
+<div id="tabset-11-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-11-3-tab">
 <div class="cell">
 <details>
 <summary>code chunk</summary>
@@ -6997,9 +6997,9 @@ doublyConstrained      |   glm | 1167.214</code></pre>
 <h2 class="anchored" data-anchor-id="plotting-1">Plotting</h2>
 <p>Finally we can then plot the 3 scatterplots using <em>geom_point()</em> from the <strong>ggplot</strong> package.</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-11-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-11-1" role="tab" aria-controls="tabset-11-1" aria-selected="true">Attractive modelling</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-11-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-11-2" role="tab" aria-controls="tabset-11-2" aria-selected="false">Propulsive modelling</a></li></ul>
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-13-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-13-1" role="tab" aria-controls="tabset-13-1" aria-selected="true">Attractive modelling</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-13-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-13-2" role="tab" aria-controls="tabset-13-2" aria-selected="false">Propulsive modelling</a></li></ul>
 <div class="tab-content">
-<div id="tabset-11-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-11-1-tab">
+<div id="tabset-13-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-13-1-tab">
 <div class="cell">
 <details>
 <summary>code chunk</summary>
@@ -7037,7 +7037,7 @@ doublyConstrained      |   glm | 1167.214</code></pre>
 </div>
 </div>
 </div>
-<div id="tabset-11-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-11-2-tab">
+<div id="tabset-13-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-13-2-tab">
 <div class="cell">
 <details>
 <summary>code chunk</summary>

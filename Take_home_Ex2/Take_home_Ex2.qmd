@@ -83,6 +83,7 @@ busstop <- st_read(dsn = "data/geospatial", layer = "BusStop") %>%
   st_transform(crs = 3414)
 ```
 We will also import all of the attractive and propulsive factors that we will use for subsequent modelling analysis.
+
 ::: panel-tabset
 
 #### Attractive factors
@@ -266,11 +267,13 @@ valid_hex <- left_join(honeycomb_grid_sf, valid_hex) %>%
 ## Visualisation of trips
 
 Here we can visualise the flow of passengers between grids using the desire lines that we have created. We will look at all of the passenger flow, the top 5%, the bottom 5% and the interquartile range of the number of trips.
+
 ::: panel-tabset
 
 ### All trips
 
 ```{r}
+
 tm_shape(mpsz) +
   tm_polygons() +
   tm_shape(valid_hex) +
@@ -295,7 +298,7 @@ tm_shape() +
 
 ```
 
-As we can see, the number of trips can be too messy and we can make it clearer by limiting the plot to only a certain number of trips.
+As we can see, the number of trips can be too numerous and we can make it clearer by limiting the plot to only a certain number of trips.
 
 ### Top 5%
 
@@ -339,7 +342,7 @@ tm_shape() +
 
 
 
-## Bottom 5% of trips
+### Bottom 5% of trips
 
 Here we will find out the maximum trip count for the bottom 5% of all trips made.
 
@@ -350,6 +353,7 @@ bot5trips <- max(bot5$TRIPS)
 ```
 
 ```{r}
+
 tm_shape(mpsz) +
   tm_polygons() +
   tm_shape(valid_hex) +
@@ -377,7 +381,7 @@ tm_shape() +
 We can still see that there are too many desire lines to make out proper data. This means that even though we only extracted the bottom 5% of all trips, most of the trips are made with only 1 trip count.
 
 
-## Mean trips
+### Mean trips
 
 
 
@@ -985,8 +989,6 @@ options(max.print = 100000)
 ```
 
 
-
-
 ## Goodness-of-fit
 
 Goodness-of-fit refers to how well sample data is able to fit the curve. To calculate that we will first have to create our own R-squared function.
@@ -1001,15 +1003,23 @@ CalcRSquared <- function(observed, estimated){
 
 ## Modelling calibration
 
-::: panel-tabset
+Here we will begin our actual modelling for our different factors. 
 
-Here we will begin our actual modelling
+For attractive factors we will be using:
+-   Origin constrained model
+-   Unconstrained model
+-   Doubly constrained model
+
+For propulsive factors we will be using:
+-   Destination constrained model
+-   Unconstrained model
+-   Doubly constrained model
 
 ### Attractive modelling
 
 ::: panel-tabset
 
-#### **Origin(Production) constrained SIM**
+#### Origin(Production) constrained model
 
 ```{R}
 
@@ -1067,6 +1077,7 @@ We have a R-square value of 0.154, which indicates that only about 15.4% of vari
 #### Doubly Constrained modelling
 
 ```{r}
+
 dbcSIM_Poisson_A <- glm(formula = TRIPS~
                         ORIGIN_GRID + 
                         DESTIN_GRID + 
@@ -1143,6 +1154,7 @@ CalcRSquared(uncSIM_P$data$TRIPS, uncSIM_P$fitted.values)
 
 ```
 We have a R-square value of only 0.167, which indicates that only about 17% of variation can be explained by the unconstrained model.
+
 #### Doubly Constrained modelling
 
 ```{r}
@@ -1196,9 +1208,9 @@ compare_performance(model_list_A,
 
 From the different RMSE calculated above, we can see that the doubly constrained model has the lowest RMSE value of 1167.214, which represents the most accurate model out of the 3 tested models for attractive factors.
 
-## **Propulsive modelling**
+## Propulsive modelling
 
-
+We will repeat the same steps for the different models for the propulsive models as well.
 ```{r}
 
 model_list_P <- list(unconstrained=uncSIM_P,
