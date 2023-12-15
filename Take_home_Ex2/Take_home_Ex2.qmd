@@ -34,6 +34,7 @@ The tasks of this exercise are as follow: - Derive an analytical hexagon map to 
 Firstly, we will import the various packages that we will need for this exercise.
 
 ```{r}
+#| code-fold: false
 pacman::p_load(tmap, sf, sp, DT, 
                performance, reshape2,
                ggpubr, tidyverse,spdep, dplyr, sfdep, stplanr)
@@ -48,12 +49,14 @@ pacman::p_load(tmap, sf, sp, DT,
 Here we will import the ridership of the different bus stops in Oct 2023.
 
 ```{r}
+#| code-fold: false
 odbus <- read_csv("data/aspatial/origin_destination_bus_202310.csv")
 ```
 
 Next we will extract the ridership for weekdays from 6am to 9am only.
 
 ```{r}
+#| code-fold: false
 weekdayAM <- odbus %>% 
   filter(DAY_TYPE == "WEEKDAY") %>%
   filter(TIME_PER_HOUR >= 6 & TIME_PER_HOUR <= 9) %>%
@@ -63,22 +66,84 @@ weekdayAM <- odbus %>%
 
 ```
 
+We will import the HDB data and school data that will be subsequently processed into geospatial data.
+```{R}
+hdb <- read_csv("data/aspatial/hdb.csv")
+schools <- read_csv("data/aspatial/schools.csv")
+```
+
+
 ### Loading geospatial data
 
 Next we will import all of the bus stops and their coordinates and attached it to the *busstop* variable.
 
 ```{r}
+#| code-fold: false
 busstop <- st_read(dsn = "data/geospatial", layer = "BusStop") %>%
   st_transform(crs = 3414)
+```
+We will also import all of the attractive and propulsive factors that we will use for subsequent modelling analysis.
+::: panel-tabset
+
+#### Attractive factors
+
+For school data we will have to process them from latitude and longitude points to projected coordinate system.
+
+```{R}
+
+schools <- schools %>%
+  rename("latitude" = "results.LATITUDE",
+         "longitude" = "results.LONGITUDE") %>%
+  select(postal_code, school_name, latitude, longitude)
+schools_sf <- st_as_sf(schools, coords = c("longitude", "latitude"), crs = st_crs(4326)) %>%
+  st_transform(crs = 3414)
+```
+
+
+For financial services such as banks and businesses, we can import the geospatial data directly.
+```{r}
+
+fin_sf <- st_read(dsn = "data/geospatial", 
+                layer = "FinServ") %>%
+  st_transform(crs=3414)
+biz_sf <- st_read(dsn = "data/geospatial", 
+                layer = "Business") %>%
+  st_transform(crs=3414)
+
+```
+
+
+#### Propulsive factors
+
+```{r}
+
+condo <- read_csv("data/aspatial/Condo_resale_2015.csv")
+condo_sf <- st_as_sf(condo, coords = c("LONGITUDE", "LATITUDE"), crs = st_crs(4326)) %>%
+  st_transform(crs = 3414)
+
+```
+
+
+
+```{r}
+stn_exit_sf <- st_read(dsn = "data/geospatial", 
+                layer = "Train_Station_Exit_Layer") %>%
+  st_transform(crs=3414)
+
+
+hdb_sf <- st_as_sf(hdb, coords = c("lng", "lat"), crs = st_crs(4326)) %>%
+  st_transform(crs = 3414)
+
 ```
 
 :::
 
 :::
 
+:::
 ```{r}
-stn <- st_read(dsn = "data/geospatial", layer = "RapidTransitSystemStation") %>%
-  st_transform(crs = 3414)
+# stn <- st_read(dsn = "data/geospatial", layer = "RapidTransitSystemStation") %>%
+#   st_transform(crs = 3414)
 
 ```
 
@@ -100,8 +165,7 @@ mpsz <- st_read(dsn = "data/geospatial",
 After that we will create the hexagons that will create the map layout. All of the hexagons will also be given a grid id name that can be used for identifying each individual grid.
 
 ```{r}
-
-
+#| code-fold: false
 area_honeycomb_grid <- st_make_grid(busstop, cellsize = 750, what = "polygons", square = FALSE)
 honeycomb_grid_sf <- st_sf(area_honeycomb_grid) %>%
   mutate(grid_id = 1:length(lengths(area_honeycomb_grid)))
@@ -115,7 +179,7 @@ honeycomb_grid_sf <- st_sf(area_honeycomb_grid) %>%
 First we will assign the bus stop point geometry data to each polygon using *st_intersection()* of Singapore to obtain bus stops located locally followed by another intersection with the hexagon map. The function assigns all of the points to a polygon by the point-set intersection of two geometries. Additional information [here](https://postgis.net/docs/ST_Intersection.html).
 
 ```{r}
-
+#| code-fold: false
 valid_busstop <- st_intersection(busstop, mpsz)
 busstop_hex <- st_intersection(valid_busstop, honeycomb_grid_sf) %>%
   select(1,10)%>%
@@ -124,31 +188,13 @@ busstop_hex <- unique(busstop_hex)
 
 ```
 
-```{r}
-#here to test using mpsz instead of hex
-# busstop_hex <- st_intersection(busstop, mpsz) %>%
-#   select(ORIGIN_PT_CODE, SUBZONE_C) %>%
-#   rename(grid_id = SUBZONE_C) %>%
-#   st_drop_geometry()
-
-```
 
 ## Duplication check
 
-Here we will check for the presence of any duplication before we further process the data.
+We will only keep data points that are unique using the *unique()* function.
 
 ```{r}
-duplicate <- weekdayAM %>%
-  group_by_all() %>%
-  filter(n()>1) %>%
-  ungroup()
-
-duplicate
-```
-
-Finally we will only keep data points that are unique using the *unique()* function.
-
-```{r}
+#| code-fold: false
 unique_weekdayAM <- unique(weekdayAM)
 ```
 
@@ -157,6 +203,7 @@ unique_weekdayAM <- unique(weekdayAM)
 Using the grid that we have created in the beginning, we will now join the data that contains the destination together with the grid.
 
 ```{r}
+#| code-fold: false
 combn_des_weekdayAM <- left_join(unique_weekdayAM,busstop_hex) %>%
   rename(ORIGIN_BS = ORIGIN_PT_CODE,
          ORIGIN_GRID = grid_id,
@@ -167,14 +214,16 @@ unique(combn_des_weekdayAM)
 Here we will join the destination grid ID.
 
 ```{r}
+#| code-fold: false
 OD_weekdayAM <- left_join(combn_des_weekdayAM , busstop_hex,
             by = c("DESTIN_BS" = "ORIGIN_PT_CODE"))
 
 ```
 
-To make it clearer we will rename the **grid_ID** column, which is the destination grid id into **DESTIN_GRID**.
+To make it clearer we will rename the **grid_ID** column, which is the destination grid id into **DESTIN_GRID**. We will also sum up all of the trips made that have a unique origin and destination pair. This way we can calculate the trips that are taken using this particular route.
 
 ```{r}
+#| code-fold: false
 OD_weekdayAM <- OD_weekdayAM %>%
   rename(DESTIN_GRID = grid_id)%>%
   drop_na()%>%
@@ -187,6 +236,7 @@ OD_weekdayAM <- OD_weekdayAM %>%
 We will have to remove any intra hexagonal trips.
 
 ```{r}
+#| code-fold: false
 OD_weekdayAM <- OD_weekdayAM[OD_weekdayAM$ORIGIN_GRID!=OD_weekdayAM$DESTIN_GRID,]
 
 ```
@@ -194,18 +244,18 @@ OD_weekdayAM <- OD_weekdayAM[OD_weekdayAM$ORIGIN_GRID!=OD_weekdayAM$DESTIN_GRID,
 Here we will create the desire lines from the different origin grids and destination grids.
 
 ```{r}
-#missing flowline for flowdata
+#| code-fold: false
 OD_weekdayAM <- od2line(flow = OD_weekdayAM, 
                     zones = honeycomb_grid_sf,
                     zone_code = "grid_id")
 
 ```
 
-EVERYTHING ABOVE IS HOE3
 
-We will recreate the hexagonal-polygon data so that we are able to map out the hexagons onto the Singapore map.
+We will recreate the hexagonal-polygon data so that we are able to map out the hexagons onto the Singapore map. This is only for mapping and is different from the earlier hexagonal maps as we want the geometry data of each hexagon and their grid id.
 
 ```{R}
+#| code-fold: false
 valid_hex <- st_intersection(valid_busstop, honeycomb_grid_sf)%>%
   select(1,10) %>%
   st_drop_geometry()
@@ -213,7 +263,52 @@ valid_hex <- left_join(honeycomb_grid_sf, valid_hex) %>%
   drop_na()
 ```
 
-We can visualise the flow of bus passengers of more than 5000 ridership from each origin grid to the destination grid.
+## Visualisation of trips
+
+Here we can visualise the flow of passengers between grids using the desire lines that we have created. We will look at all of the passenger flow, the top 5%, the bottom 5% and the interquartile range of the number of trips.
+::: panel-tabset
+
+### All trips
+
+```{r}
+tm_shape(mpsz) +
+  tm_polygons() +
+  tm_shape(valid_hex) +
+  tm_polygons()+
+OD_weekdayAM %>%
+tm_shape() +
+  tm_lines(lwd = "TRIPS",
+           style = "quantile",
+           scale = c(0.1, 1, 3, 5, 7, 10),
+           n = 6,
+           alpha = 0.5)+
+  tm_layout(main.title = "Passenger flow of the all trip count made(Weekday 7am-9am)",
+            main.title.position = "center",
+            main.title.size = 1.2,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            frame = TRUE) +
+  
+  tm_compass(type="8star", size = 2) +
+  tm_scale_bar() +
+  tm_grid(alpha =0.2)
+
+```
+
+As we can see, the number of trips can be too messy and we can make it clearer by limiting the plot to only a certain number of trips.
+
+### Top 5%
+
+Before we plot, we will have to calculate the smallest number of trips that makes it to the top 5% of trips.
+```{r}
+
+  
+
+top5 <- OD_weekdayAM[OD_weekdayAM$TRIPS >= quantile(OD_weekdayAM$TRIPS, probs = 1-5/100),]
+top5trips <- min(top5$TRIPS)
+```
+
+We can visualise the flow of bus passengers of the top 5% ridership count from each origin grid to the destination grid.
 
 ```{r}
 tm_shape(mpsz) +
@@ -221,17 +316,194 @@ tm_shape(mpsz) +
   tm_shape(valid_hex) +
   tm_polygons()+
 OD_weekdayAM %>%  
-  filter(TRIPS >= 5000) %>%
+  filter(TRIPS >= top5trips) %>%
 tm_shape() +
   tm_lines(lwd = "TRIPS",
            style = "quantile",
            scale = c(0.1, 1, 3, 5, 7, 10),
            n = 6,
-           alpha = 0.3)
+           alpha = 0.5) +
+  tm_layout(main.title = "Passenger flow of the top 5% of trip count made(Weekday 7am-9am)",
+            main.title.position = "center",
+            main.title.size = 1.2,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            frame = TRUE) +
+  
+  tm_compass(type="8star", size = 2) +
+  tm_scale_bar() +
+  tm_grid(alpha =0.2)
 
 ```
 
-We will create a hex data conaining the grid id and the polygon information.
+
+
+
+## Bottom 5% of trips
+
+Here we will find out the maximum trip count for the bottom 5% of all trips made.
+
+```{r}
+bot5 <- OD_weekdayAM[OD_weekdayAM$TRIPS <= quantile(OD_weekdayAM$TRIPS, probs = 5/100),]
+bot5trips <- max(bot5$TRIPS)
+
+```
+
+```{r}
+tm_shape(mpsz) +
+  tm_polygons() +
+  tm_shape(valid_hex) +
+  tm_polygons()+
+OD_weekdayAM %>%  
+  filter(TRIPS <= bot5trips) %>%
+tm_shape() +
+  tm_lines(lwd = "TRIPS",
+           style = "quantile",
+           scale = c(0.1, 1, 3, 5, 7, 10),
+           n = 6,
+           alpha = 0.5)+
+  tm_layout(main.title = "Passenger flow of the bottom 5% of trip count made(Weekday 7am-9am)",
+            main.title.position = "center",
+            main.title.size = 1.2,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            frame = TRUE) +
+  
+  tm_compass(type="8star", size = 2) +
+  tm_scale_bar() +
+  tm_grid(alpha =0.2)
+
+```
+We can still see that there are too many desire lines to make out proper data. This means that even though we only extracted the bottom 5% of all trips, most of the trips are made with only 1 trip count.
+
+
+## Mean trips
+
+
+
+We can calculate where half or more trips are made by calculating the mean number of trips.
+
+
+```{r}
+
+summary(OD_weekdayAM$TRIPS)
+
+```
+
+We can see that mean is 372.7 passengers made the same trip from a origin-destination grid pair.
+
+```{r}
+tm_shape(mpsz) +
+  tm_polygons() +
+  tm_shape(valid_hex) +
+  tm_polygons()+
+OD_weekdayAM %>%  
+  filter(TRIPS >= 372.7) %>%
+tm_shape() +
+  tm_lines(lwd = "TRIPS",
+           style = "quantile",
+           scale = c(0.1, 1, 3, 5, 7, 10),
+           n = 6,
+           alpha = 0.3)+
+  tm_layout(main.title = "Half or more passenger flow of trip count made(Weekday 7am-9am)",
+            main.title.position = "center",
+            main.title.size = 1.2,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            frame = TRUE) +
+  
+  tm_compass(type="8star", size = 2) +
+  tm_scale_bar() +
+  tm_grid(alpha =0.2)
+
+```
+We see that the data cleared up a lot when compared against the bottom 5% of all trips made and is closer to the top 5% of trips made. When combined with the median result of 38, the average passenger count of 372.7 means more trips are made with a low number of passengers and there are popular routes that are often taken in the early morning peak period. The large number of passengers on certain popular routes causes the data to skew.
+
+## Top 10 routes
+
+Aside from using the percentage, we can also plot out the top 10 most popular routes made during weekday morning peak period. We will first obtain the routes with top 10 trip count.
+
+```{r}
+top10 <- head(arrange(OD_weekdayAM, desc(TRIPS)), n = 10)
+top10trips <- min(top10$TRIPS)
+
+```
+
+```{r}
+tm_shape(mpsz) +
+  tm_polygons() +
+  tm_shape(valid_hex) +
+
+  tm_polygons()+
+OD_weekdayAM %>%  
+  filter(TRIPS >= top10trips) %>%
+tm_shape() +
+  tm_lines(lwd = "TRIPS",
+           style = "quantile",
+           scale = c(0.1, 1, 3, 5, 7, 10),
+           n = 10,
+           alpha = 0.5)+
+  tm_layout(main.title = "Top 10 most popular routes of trip count made(Weekday 7am-9am)",
+            main.title.position = "center",
+            main.title.size = 1.2,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            frame = TRUE) +
+  
+  tm_compass(type="8star", size = 2) +
+  tm_scale_bar() +
+  tm_grid(alpha =0.2)
+
+```
+We can see that for most popular bus routes, the distance between the origin and destination grids is relatively short. Longer distance travel may be more efficient via other transport modes such as trains.
+
+We can also take a look at the bus stops that are found within the most popular origin-destination grid pair.
+
+```{r}
+top_df <- head(arrange(OD_weekdayAM, desc(TRIPS)), n = 1) %>% 
+  st_drop_geometry()
+busstop_hex_df <- st_drop_geometry(busstop_hex)
+
+toporigin <- top_df %>%
+  left_join (busstop_hex_df,
+             by = c("ORIGIN_GRID" = "grid_id")) %>%
+  rename(origin_bs = ORIGIN_PT_CODE)
+
+toporigin_des <- toporigin %>%
+  left_join (busstop_hex_df,
+             by = c("DESTIN_GRID" = "grid_id")) %>%
+  rename(des_bs = ORIGIN_PT_CODE)
+
+toporigin_bs <- data.frame(unique(toporigin_des$origin_bs)) %>% 
+  rename(ORIGIN_PT_CODE = 1)
+
+topdes_bs <- data.frame(unique(toporigin_des$des_bs))%>% 
+  rename(ORIGIN_PT_CODE = 1)
+
+topori_bsname <- left_join(toporigin_bs, valid_busstop)
+topdes_bsname <- left_join(topdes_bs, valid_busstop)
+
+ori <- toString(topori_bsname$LOC_DESC)
+des <- toString(topdes_bsname$LOC_DESC)
+
+
+
+mostpop <- data.frame((ori), (des)) %>%
+  rename("Most popular origin bustops" = 1,
+         "Most popular destination bustops" = 2)
+
+
+datatable(mostpop)
+```
+We can see the bus stops that are found within the most popular origin-destination grid pair. Authorities can utilise the above information to plan for more buses to cater to those routes so as to ease traffic if needed.
+:::
+
+# Distance calculation
+
+Here we will begin calculating the distance between each hexagon. Normally people are less likely to take trips if the distance is longer.
+
+
+We will create a hex data containing the grid id and the polygon information. Essentially this has the same information as the valid_hex variable that we have created earlier. But here we will add an additional step to filter out any duplicates.
 
 ```{r}
 hex <- left_join( honeycomb_grid_sf,busstop_hex)%>%
@@ -241,31 +513,32 @@ hex <- left_join( honeycomb_grid_sf,busstop_hex)%>%
 hex<-unique(hex)
 
 ```
-
+Next we will convert it to a *Spatial Polygonal Dataframe* object using the *as()* function.
 ```{r}
 hex_sp <- as(hex, "Spatial")
 hex_sp
 ```
 
-Next we will calculate the distance between the grids.
+Next we will calculate the distance between the grids. The *spDists()* function will use the center of each hexagon for calculating the distance between grids. This way we are able to standardise the reference point of each grid to the other grids.
 
 ```{r}
-
+#| code-fold: false
 DIST <- spDists(hex_sp, 
                 longlat = FALSE)
 head(DIST, n=c(10, 10))
 ```
 
-We will then rename the column and row names.
+We will then rename the column and row names with their respective grid ids.
 
 ```{r}
- sz_names <- hex$grid_id
-#sz_names <- hex$SUBZONE_C
+#| code-fold: false
+sz_names <- hex$grid_id
+
 colnames(DIST) <- paste0(sz_names)
 rownames(DIST) <- paste0(sz_names)
 ```
 
-We can then pivot the dataframe to form a table.
+We can then pivot the dataframe to form a table for easier referencing.
 
 ```{r}
 distPair <- melt(DIST) %>%
@@ -274,7 +547,7 @@ head(distPair, 10)
 
 ```
 
-Here we will substitute any distance of 0 with 50m.
+Here we will substitute any distance of 0 with 50m as we will log our subsequent distance data, this will avoid log(0) errors.
 
 ```{R}
 distPair %>%
@@ -298,9 +571,7 @@ We will reassign the variable name for subsequent processing.
 
 ```{R}
 flow_data <- OD_weekdayAM
-# flow_data <- OD_weekdayAM %>%
-#   group_by(ORIGIN_GRID, DESTIN_GRID) %>% 
-#   summarize(TRIPS = sum(TRIPS)) 
+
 ```
 
 Here we will join the distance between grids and their respective origin-destination grid pairs.
@@ -312,7 +583,7 @@ flow_data1 <- flow_data %>%
                     "DESTIN_GRID" = "dest"))
 ```
 
-SKIP POP SECTION
+## Plotting
 
 ```{R}
 ggplot(data = flow_data1,
@@ -323,246 +594,398 @@ ggplot(data = flow_data1,
 
 ```
 
-EVERYTHING ABOVE IS IN CLASS3
+We see that the graph shows an inverse relationship between trips and distance. This is expected as the further a place is, the less likely people would want to travel.
 
-Here we will import the school distribution information across Singapore.
+
+## Attractive and propulsive factor processing
+
+Here we will prepare the data into attractive and propulsive sections. To differentiate that we will use _A for each variable and _P for variables used for attractive and propulsive respectively.
 
 ```{R}
-schools <- read_csv("data/aspatial/schools.csv")
+hex_A <- hex
+hex_P <- hex
+```
 
-schools <- schools %>%
-  rename("latitude" = "results.LATITUDE",
-         "longitude" = "results.LONGITUDE") %>%
-  select(postal_code, school_name, latitude, longitude)
+
+::: panel-tabset
+
+
+## **Attractive** 
+
+We will first match all of the number of schools, businesses and financial services to their respective grids.
+
+```{R}
+hex_A$SCHOOL_COUNT <- lengths(st_intersects(hex_A, schools_sf))
+hex_A$BIZ_COUNT <- lengths(st_intersects(hex_A, biz_sf))
+hex_A$FIN_COUNT <- lengths(st_intersects(hex_A, fin_sf))
+
+summary(hex_A$SCHOOL_COUNT)
 
 ```
 
-We will then convert the geeospatial information into 3414 coordinate reference.
+::: panel-tabset
 
+Here we will see if the top 100 most popular bus routes count will intersect with the our attractive factors. Firstly we will obtain our top 100 most popular bus routes.
 ```{R}
-schools_sf <- st_as_sf(schools, coords = c("longitude", "latitude"), crs = st_crs(4326)) %>%
-  st_transform(crs = 3414)
+top100_des <- OD_weekdayAM %>%
+  group_by(DESTIN_GRID) %>%
+  summarise(TRIPS = sum(TRIPS))
+top10des <- head(arrange(top100_des, desc(TRIPS)), n = 10)
+
+top100 <- head(arrange(OD_weekdayAM, desc(TRIPS)), n = 100)
 ```
 
-Finally we will add this to the hexagon to count the number of schools within each hex.
 
-```{R}
-hex$SCHOOL_COUNT <- lengths(st_intersects(hex, schools_sf))
 
-summary(hex$SCHOOL_COUNT)
+### School count and trips made
 
-```
+We can look at the number of trips made to grids that contains schools. To do that we can first create grids with that contains schools. We will then check if the destination grid of our top 100 most popular trips have commonality with our grids that contains schools.
 
 ```{r}
+sch_grid <- hex_A%>%
+  filter(SCHOOL_COUNT >0) %>%
+  select(1,3) %>%
+  rename(DESTIN_GRID = grid_id)%>%
+  st_drop_geometry()
+
+sch_des <- left_join(top100, sch_grid) %>%
+  drop_na()
+
+```
+
+
+```{r}
+
+
+tmap_options(check.and.fix = TRUE)  #polygon may not close, so need to auto close
+tm_shape(mpsz)+  
+  tm_polygons()+
+  tm_shape(hex_A)+  
+  
+  tm_fill("SCHOOL_COUNT", 
+          n= 4, 
+          palette = "Blues",
+          title = "number of schools") +
+  tm_polygons()+
+  
+  
+  tm_shape(schools_sf)+  #biz layer
+  tm_dots()+
+  
+sch_des %>%  
+   #filter(TRIPS >= top10trips) %>%
+tm_shape() +
+  tm_lines(lwd = "TRIPS",
+           style = "quantile",
+           scale = c(0,1,3,5,10),
+           n = 6,
+           alpha = 0.5)+
+  tm_layout(main.title = "Common destination grid of top 100 trips and schools(Weekday 7am-9am)",
+            main.title.position = "center",
+            main.title.size = 1.2,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            frame = TRUE) +
+  
+  tm_compass(type="8star", size = 2) +
+  tm_scale_bar() +
+  tm_grid(alpha =0.2)
+
+
+
+```
+We see a fairly good spread of schools across Singapore. We can also see that some of the most popular bus routes contains schools as their destinations, this may mean that the schools serves as a point of attraction for that bus route.
+
+### Business count and trips made
+```{r}
+biz_grid <- hex_A %>%
+  filter(BIZ_COUNT >0)%>%
+  select(1,4) %>%
+  rename(DESTIN_GRID = grid_id)%>%
+  st_drop_geometry()
+
+BIZ_des <- left_join(top100, biz_grid) %>%
+  drop_na()
+summary(BIZ_des$BIZ_COUNT)
+
+
+```
+
+
+
+```{r}
+
+
+
 tmap_options(check.and.fix = TRUE)  #polygon may not close, so need to auto close
 tm_shape(mpsz)+  #sg boundary
-  tm_polygons()+ 
-  tm_shape(hex)+  #sg boundary
-  tm_polygons()+  #sg boundary
-  tm_shape(schools_sf)+  #biz layer
-  tm_dots()
+  tm_polygons()+
+  tm_shape(hex_A)+  #sg boundary
+  # tm_polygons()+  #sg boundary
+  
+  tm_fill("BIZ_COUNT", 
+          style = "pretty", 
+          palette = "Reds",
+          title = "number of businesses") +
+  tm_polygons()+
+  
+  
+  tm_shape(biz_sf)+  #biz layer
+  tm_dots(alpha = 0.1)+
+  
+BIZ_des %>%  
+   #filter(TRIPS >= top10trips) %>%
+tm_shape() +
+  tm_lines(lwd = "TRIPS",
+           style = "quantile",
+           scale = c(0,1,3,5,10),
+           n = 6,
+           alpha = 0.5)+
+  tm_layout(main.title = "Common destination grid of top 100 trips and businesses(Weekday 7am-9am)",
+            main.title.position = "center",
+            main.title.size = 1.2,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            frame = TRUE) +
+  
+  tm_compass(type="8star", size = 2) +
+  tm_scale_bar() +
+  tm_grid(alpha =0.2)
+
+
+
 
 ```
+From this data we can see that a large number of businesses is located within the CBD region and Tuas industrial region although there are also businesses that are located beyond the hexagons. From the desire lines we can also see that transportation to these regions are limited to nearby regions. This could be due to the accessibility of train options or catered bus services by companies for businesses in the CBD region and Tuas industrial park respectively. 
 
-```{r}
-hdb <- read_csv("data/aspatial/hdb.csv")
-
-hdb_sf <- st_as_sf(hdb, coords = c("lng", "lat"), crs = st_crs(4326)) %>%
-  st_transform(crs = 3414)
-hex$HDB_COUNT <- lengths(st_intersects(hex, hdb_sf))
-
-summary(hex$HDB_COUNT)
-```
-
-We will do the same for businesses.
-
-```{r}
-biz_sf <- st_read(dsn = "data/geospatial", 
-                layer = "Business") %>%
-  st_transform(crs=3414)
-```
-
-```{r}
-hex$BIZ_COUNT <- lengths(st_intersects(hex, biz_sf))
-
-summary(hex$BIZ_COUNT)
-```
-
-For FinServ
-
-```{r}
-fin_sf <- st_read(dsn = "data/geospatial", 
-                layer = "FinServ") %>%
-  st_transform(crs=3414)
-hex$FIN_COUNT <- lengths(st_intersects(hex, fin_sf))
-
-summary(hex$FIN_COUNT)
-
-```
-
-For F&B
-
-```{r}
-fnb_sf <- st_read(dsn = "data/geospatial", 
-                layer = "F&B") %>%
-  st_transform(crs=3414)
-hex$FNB_COUNT <- lengths(st_intersects(hex, fnb_sf))
-
-summary(hex$FNB_COUNT)
-
-```
-
-For retail
-
-```{r}
-retail_sf <- st_read(dsn = "data/geospatial", 
-                layer = "Retails") %>%
-  st_transform(crs=3414)
-hex$retail_COUNT <- lengths(st_intersects(hex, retail_sf))
-
-summary(hex$retail_COUNT)
-
-```
-
-For entertainment
-
-```{r}
-ent_sf <- st_read(dsn = "data/geospatial", 
-                layer = "entertn") %>%
-  st_transform(crs=3414)
-hex$ent_COUNT <- lengths(st_intersects(hex, ent_sf))
-
-summary(hex$ent_COUNT)
-
-```
-
-For LnR
-
-```{r}
-lnr_sf <- st_read(dsn = "data/geospatial", 
-                layer = "Liesure&Recreation") %>%
-  st_transform(crs=3414)
-hex$lnr_COUNT <- lengths(st_intersects(hex, lnr_sf))
-
-summary(hex$lnr_COUNT)
-
-```
+### Financial service and trips made
 
 ```{r}
 
-stn_exit_sf <- st_read(dsn = "data/geospatial", 
-                layer = "Train_Station_Exit_Layer") %>%
-  st_transform(crs=3414)
-hex$stn_exit_COUNT <- lengths(st_intersects(hex, stn_exit_sf))
-summary(hex$stn_exit_COUNT)
+fin_grid <- hex_A %>%
+  filter(FIN_COUNT >0)%>%
+  select(1,5) %>%
+  rename(DESTIN_GRID = grid_id)%>%
+  st_drop_geometry()
+
+fin_des <- left_join(top100, fin_grid) %>%
+  drop_na()
+summary(fin_des$FIN_COUNT)
+
 ```
 
-use destination for pairing
 
-Since the hex variable still contains geometry information, which will prevent us from joining the various school and business information with ridership, we will drop it.
+
+```{r}
+
+tmap_options(check.and.fix = TRUE)  
+tm_shape(mpsz)+  #sg boundary
+  tm_polygons()+
+  tm_shape(hex_A)+ 
+  
+  tm_fill("FIN_COUNT", 
+          style = "pretty",
+          palette = "Greens",
+          title = "number of financial services") +
+  tm_polygons()+
+
+    tm_shape(fin_sf)+  
+  tm_dots(alpha = 0.1)+
+  
+fin_des %>%  
+ tm_shape() +
+  tm_lines(lwd = "TRIPS",
+           style = "quantile",
+           scale = c(0,1,3,5,10),
+           n = 6,
+           alpha = 0.5)+
+  tm_layout(main.title = "Common destination grid of top 100 trips and financial services(Weekday 7am-9am)",
+            main.title.position = "center",
+            main.title.size = 1.2,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            frame = TRUE) +
+  
+  tm_compass(type="8star", size = 2) +
+  tm_scale_bar() +
+  tm_grid(alpha =0.2)
+
+
+
+```
+We can see the distribution of financial services are concentrated within the CBD area. However we can see that a large numbers of our most popular bus routes has a common destination grid as grids that contains financial services.
+
+
+:::
+
+
+## **Propulsive**
+
+Here we will assemble the propulsive factors, which are number of HDB, number of estimated residents in each hexagon and MRT exits. 
+
+Since our residential data contains non-residential information, we will only keep residential data.
+```{r}
+resi_sf <- hdb_sf %>%
+  filter(residential == "Y")
+```
+
+Since the average Singapore household contains 3.09 people per household, we will use the number of dwelling units in each estate and multiply it before adding into their respective grids.
+
+```{r}
+dwell_sf <- hdb_sf %>%
+  select(13) 
+  #mutate(persons = 3.09 * total_dwelling_units)
+
+```
+
+Next we will join the number of residents that belong to a grid with their respective grids
+
+```{r}
+
+hex_P <- hex
+
+hex_person<- st_intersection(hex_P, dwell_sf)%>%
+  group_by(grid_id) %>%
+  summarise(total_dwelling_units = sum(total_dwelling_units))%>%
+  rename(DWELL_COUNT = total_dwelling_units) %>%
+  st_drop_geometry()
+
+hex_P <- left_join(hex_P, hex_person) %>% 
+  mutate(DWELL_COUNT = ifelse(is.na(DWELL_COUNT), 0, DWELL_COUNT))
+
+```
+
+Other information that we will include in our propulsive factors include the number of residential estates and MRT exits.
+```{r}
+#hex_P$stn_exit_COUNT <- lengths(st_intersects(hex_P, stn_exit_sf))
+hex_P$HDB_COUNT <- lengths(st_intersects(hex_P, hdb_sf))  
+hex_P$RESI_COUNT <- lengths(st_intersects(hex_P, resi_sf))
+hex_P$stn_exit_COUNT <- lengths(st_intersects(hex_P, stn_exit_sf))
+#hex_P$CONDO_COUNT <- lengths(st_intersects(hex_P, condo_sf))
+
+```
+
+
+
+:::
+
+
+# Model calibration
+
+In this section we will prepare our data for subsequent model calibration.
+
+
+Since the hex variable still contains geometry information, which will prevent us from joining the various school and business information with ridership using **left_join**, we will drop it.
 
 ```{r}
 #drop polygon from hex to retain line string
-hex <- st_drop_geometry(hex)
+hex_A <- st_drop_geometry(hex_A)
+hex_P <- st_drop_geometry(hex_P)
 
 ```
 
-We can then join the school and business count information to the ridership using left_join. Since this is for attractiveness, we will match the destination grid to the grid id.
+We can then join the school and business count information to the ridership using left_join. For attractive factors, we will join it by destination grid since the amentities are located in the destination grid. For propulsive factors, we will use origin grid since they are factors that will push us from the origin.
 
 ```{r}
-floD<- flow_data1 %>%
-  left_join (hex,
-             by = c(
-                    "DESTIN_GRID" = "grid_id"))
+flow_A<- flow_data1 %>%
+  left_join (hex_A,
+             by = c("DESTIN_GRID" = "grid_id"))
 
+flow_P<- flow_data1 %>%
+  left_join (hex_P,
+             by = c("ORIGIN_GRID" = "grid_id"))
 ```
 
-Since we will log the data for modelling, we will have to convert any 0 value data in school and business count into a positive number that is less than 1. We will use 0.99.
+Since we will log the data for modelling, we will have to convert any 0 or NA value data amongst the different factors into a positive number that is less than 1. We will use 0.99.
+
 
 ```{r}
-floD$BIZ_COUNT <- ifelse(
-  floD$BIZ_COUNT == 0,
-  0.99, floD$BIZ_COUNT)
-floD$SCHOOL_COUNT <- ifelse(
-  floD$SCHOOL_COUNT == 0,
-  0.99, floD$SCHOOL_COUNT)
-floD$FIN_COUNT <- ifelse(
-  floD$FIN_COUNT == 0,
-  0.99, floD$FIN_COUNT)
-floD$FNB_COUNT <- ifelse(
-  floD$FNB_COUNT == 0,
-  0.99, floD$FNB_COUNT)
-floD$ent_COUNT <- ifelse(
-  floD$ent_COUNT == 0,
-  0.99, floD$ent_COUNT)
-floD$lnr_COUNT <- ifelse(
-  floD$lnr_COUNT == 0,
-  0.99, floD$lnr_COUNT)
-floD$stn_exit_COUNT <- ifelse(
-  floD$stn_exit_COUNT == 0,
-  0.99, floD$stn_exit_COUNT)
-floD$HDB_COUNT <- ifelse(
-  floD$HDB_COUNT == 0,
-  0.99, floD$HDB_COUNT)
+flow_A$BIZ_COUNT <- ifelse(
+  is.na(flow_A$BIZ_COUNT) | flow_A$BIZ_COUNT == 0,
+  0.99, flow_A$BIZ_COUNT)
 
-```
+flow_A$SCHOOL_COUNT <- ifelse(
+  is.na(flow_A$SCHOOL_COUNT) | flow_A$SCHOOL_COUNT == 0,
+  0.99, flow_A$SCHOOL_COUNT)
 
-```{r}
-floD$ORIGIN_GRID <- as.character(floD$ORIGIN_GRID)
-floD$DESTIN_GRID <- as.character(floD$DESTIN_GRID)
-```
+flow_A$FIN_COUNT <- ifelse(
+  is.na(flow_A$FIN_COUNT) | flow_A$FIN_COUNT == 0,
+  0.99, flow_A$FIN_COUNT)
 
-```{r}
-floD$FlowNoIntra <- ifelse(
-  floD$ORIGIN_GRID == floD$DESTIN_GRID, 0, floD$TRIPS
-)
-floD$offset <- ifelse(
-  floD$ORIGIN_GRID == floD$DESTIN_GRID, 0.000001, 1
+# flow_A$stn_exit_COUNT <- ifelse(
+#   flow_A$stn_exit_COUNT == 0,
+#   0.99, flow_A$stn_exit_COUNT)
+# flow_A$HDB_COUNT <- ifelse(
+#   flow_A$HDB_COUNT == 0,
+#   0.99, flow_A$HDB_COUNT)
+
+flow_P$DWELL_COUNT <- ifelse(
+  is.na(flow_P$DWELL_COUNT) | flow_P$DWELL_COUNT == 0,
+  0.99, flow_P$DWELL_COUNT
 )
 
-inter_zonal_flow <- floD %>%
+# flow_P$HDB_COUNT <- ifelse(
+#   is.na(flow_P$HDB_COUNT) | flow_P$HDB_COUNT == 0,
+#   0.99, flow_P$HDB_COUNT)
+
+flow_P$RESI_COUNT <- ifelse(
+  is.na(flow_P$RESI_COUNT) | flow_P$RESI_COUNT == 0,
+  0.99, flow_P$RESI_COUNT)
+
+flow_P$stn_exit_COUNT <- ifelse(
+  is.na(flow_P$stn_exit_COUNT) | flow_P$stn_exit_COUNT == 0,
+  0.99, flow_P$stn_exit_COUNT)
+# 
+# flow_P$CONDO_COUNT <- ifelse(
+#   flow_P$CONDO_COUNT == 0,
+#   0.99, flow_P$CONDO_COUNT)
+
+```
+
+We will also have to convert the grid names of the origin and destination into characters. We have been using numerals for naming them which would be recognised as integers by R.
+```{r}
+flow_A$ORIGIN_GRID <- as.character(flow_A$ORIGIN_GRID)
+flow_A$DESTIN_GRID <- as.character(flow_A$DESTIN_GRID)
+
+flow_P$ORIGIN_GRID <- as.character(flow_P$ORIGIN_GRID)
+flow_P$DESTIN_GRID <- as.character(flow_P$DESTIN_GRID)
+```
+
+```{r}
+flow_A$FlowNoIntra <- ifelse(
+  flow_A$ORIGIN_GRID == flow_A$DESTIN_GRID, 0, flow_A$TRIPS)
+flow_A$offset <- ifelse(
+  flow_A$ORIGIN_GRID == flow_A$DESTIN_GRID, 0.000001, 1)
+
+inter_zonal_flow_A <- flow_A %>%
   filter(FlowNoIntra > 0)
 
-inter_zonal_flow <- inter_zonal_flow%>%
-  drop_na()
+#inter_zonal_flow_A <- inter_zonal_flow_A%>%
+  #drop_na()
 
+
+flow_P$FlowNoIntra <- ifelse(
+  flow_P$ORIGIN_GRID == flow_P$DESTIN_GRID, 0, flow_P$TRIPS)
+flow_P$offset <- ifelse(
+  flow_P$ORIGIN_GRID == flow_P$DESTIN_GRID, 0.000001, 1)
+
+inter_zonal_flow_P <- flow_P %>%
+  filter(FlowNoIntra > 0)
+
+#inter_zonal_flow_P <- inter_zonal_flow_P%>%
+#  drop_na()
 
 ```
 
+
+To make sure we are able to capture all of our output, we will adjust the maximum print length into a large integer.
 ```{r}
 options(max.print = 100000)
 
 ```
 
-# Origin(Production) constrained SIM
 
-```{R}
 
-orcSIM_Poisson <- glm(formula = TRIPS ~
-                        ORIGIN_GRID + 
-                          #use attractiveness factors
-                        log(BIZ_COUNT)+
-                        log(SCHOOL_COUNT) +
-                        log(FIN_COUNT)+
-                        log(FNB_COUNT)+
-                        log(ent_COUNT)+
-                        log(stn_exit_COUNT)+
-                        log(HDB_COUNT)+
-                  
-                        
-                        
-                        
-                        log(lnr_COUNT)+
-                        
-                        log(DIST) - 1,  #have - 1 to remove intersept, already constrain to origin
-                      family = poisson(link = "log"),
-                      data = inter_zonal_flow,
-                      na.action = na.exclude)
-```
-
-```{r}
-summary(orcSIM_Poisson)
-```
 
 ## Goodness-of-fit
 
@@ -572,207 +995,390 @@ Goodness-of-fit refers to how well sample data is able to fit the curve. To calc
 CalcRSquared <- function(observed, estimated){
   r<-cor(observed, estimated)
   R2<-r^2
-  R2
-  }
+  R2}
 
 ```
 
-After that we can then apply the function to our data from the Origin constrained model.
+## Modelling calibration
+
+::: panel-tabset
+
+Here we will begin our actual modelling
+
+### Attractive modelling
+
+::: panel-tabset
+
+#### **Origin(Production) constrained SIM**
+
+```{R}
+
+
+orcSIM_Poisson_A <- glm(formula = TRIPS ~
+                        ORIGIN_GRID + 
+                          #use attractiveness factors
+                        log(BIZ_COUNT)+
+                        log(SCHOOL_COUNT) +
+                        # 
+                        # log(stn_exit_COUNT)+
+                        # log(HDB_COUNT)+
+                        log(FIN_COUNT)+
+                        
+                        log(DIST) - 1,  #have - 1 to remove intersept, already constrain to origin
+                      family = poisson(link = "log"),
+                      data = inter_zonal_flow_A,
+                      na.action = na.exclude)
+
+summary(orcSIM_Poisson_A)
+
+```
+Amongst the 3 attractive factors, financial services have the highest attractive pull followed by school and then businesses. 
 
 ```{r}
-CalcRSquared(orcSIM_Poisson$data$TRIPS, orcSIM_Poisson$fitted.values)
+CalcRSquared(orcSIM_Poisson_A$data$TRIPS, orcSIM_Poisson_A$fitted.values)
+
+```
+We have a R-square value of 0.336, which indicates that about 34% of variation can be explained by the model.
+
+#### Unconstrained modelling
+
+```{R}
+
+uncSIM_A <- glm(formula = TRIPS ~ 
+               log(BIZ_COUNT)+
+                        log(BIZ_COUNT)+
+                        log(SCHOOL_COUNT) +
+                        log(FIN_COUNT)+
+                log(DIST),
+              family = poisson(link = "log"),
+              data = inter_zonal_flow_A,
+              na.action = na.exclude)
+
+uncSIM_A
+
 ```
 
-This shows that about 41% of our variation in our data. This means that there can be further improvement and we can try using other modeling techniques.
-
-To compare with other models, we can use the Root-mean-square deviation(RMSE). We can do that using **performance** package.
-
 ```{r}
-performance_rmse(orcSIM_Poisson, normalized = FALSE)  #normalized will set mean to 0 like a z distrib
+CalcRSquared(uncSIM_A$data$TRIPS, uncSIM_A$fitted.values)
 
 ```
+We have a R-square value of 0.154, which indicates that only about 15.4% of variation can be explained by the unconstrained model.
 
-Here we obtain a value of about 1376, a smaller value represents increase accuracy.
-
-# Doubly constrained model
+#### Doubly Constrained modelling
 
 ```{r}
-dbcSIM_Poisson <- glm(formula = TRIPS~
+dbcSIM_Poisson_A <- glm(formula = TRIPS~
                         ORIGIN_GRID + 
                         DESTIN_GRID + 
                         log(DIST), # no -1 cus no attractiveness btw origin and des
                       family = poisson(link = "log"),
-                      data = inter_zonal_flow,
+                      data = inter_zonal_flow_A,
                       na.action = na.exclude)
+summary(dbcSIM_Poisson_A)
+
 ```
 
-## Goodness-of-fit
-
 ```{r}
-CalcRSquared(dbcSIM_Poisson$data$TRIPS, dbcSIM_Poisson$fitted.values)
+CalcRSquared(dbcSIM_Poisson_A$data$TRIPS, dbcSIM_Poisson_A$fitted.values)
+
 ```
+Here we have a R-square value of 0.575, which indicates that about 58% of variation can be explained by the doubly model, the best by far.
+:::
 
-# Unconstrained model
+### **Propulsive modelling**
 
-```{r}
+::: panel-tabset
 
-uncSIM <- glm(formula = TRIPS ~ 
-               log(BIZ_COUNT)+
-                        log(SCHOOL_COUNT) +
-                        log(FIN_COUNT)+
-                        log(FNB_COUNT)+
-                        log(ent_COUNT)+
-                        log(stn_exit_COUNT)+
-                        log(HDB_COUNT)+
-                  
-                        
-                        
-                        
-                        log(lnr_COUNT)+
+#### Destination constrained
+
+```{R}
+
+decSIM_P <- glm(formula = TRIPS ~ 
+                DESTIN_GRID + 
+                log(DWELL_COUNT) +
+                #log(HDB_COUNT)+
+                log(RESI_COUNT)+
+                log(stn_exit_COUNT)+
+                # log(CONDO_COUNT)+
                 log(DIST),
               family = poisson(link = "log"),
-              data = inter_zonal_flow,
+              data = inter_zonal_flow_P,
               na.action = na.exclude)
+summary(decSIM_P)
 
-uncSIM
+
+
 ```
 
-## Goodness-of-fit
+Here we see that the propulsive factors 
+
 
 ```{r}
 
-CalcRSquared(uncSIM$data$TRIPS, uncSIM$fitted.values)
+CalcRSquared(decSIM_P$data$TRIPS, decSIM_P$fitted.values)
+
 ```
+We have a R-square value of 0.424, which indicates that about 42% of variation can be explained by the destination constrained model.
 
-# Destination constrained model
 
-```{r}
+#### Unconstrained modelling
 
-decSIM <- glm(formula = TRIPS ~ 
-                DESTIN_GRID + log(SCHOOL_COUNT) +
-                        log(FIN_COUNT)+
-                        log(FNB_COUNT)+
-                        log(ent_COUNT)+
-                        log(stn_exit_COUNT)+
-                        log(HDB_COUNT)+
-                  
-                        
-                        
-                        
-                        log(lnr_COUNT)+
+```{R}
+uncSIM_P <- glm(formula = TRIPS ~ 
+                log(DWELL_COUNT) +
+                #log(HDB_COUNT)+
+                log(RESI_COUNT)+
+                log(stn_exit_COUNT)+
                 log(DIST),
               family = poisson(link = "log"),
-              data = inter_zonal_flow,
+              data = inter_zonal_flow_P,
               na.action = na.exclude)
 
+uncSIM_P
+
 ```
 
 ```{r}
-summary(decSIM)
+CalcRSquared(uncSIM_P$data$TRIPS, uncSIM_P$fitted.values)
+
+```
+We have a R-square value of only 0.167, which indicates that only about 17% of variation can be explained by the unconstrained model.
+#### Doubly Constrained modelling
+
+```{r}
+dbcSIM_Poisson_P <- glm(formula = TRIPS~
+                        ORIGIN_GRID + 
+                        DESTIN_GRID + 
+                        log(DIST), # no -1 cus no attractiveness btw origin and des
+                      family = poisson(link = "log"),
+                      data = inter_zonal_flow_P,
+                      na.action = na.exclude)
+summary(dbcSIM_Poisson_P)
+
 ```
 
 ```{r}
-CalcRSquared(decSIM$data$TRIPS, decSIM$fitted.values)
+CalcRSquared(dbcSIM_Poisson_P$data$TRIPS, dbcSIM_Poisson_P$fitted.values)
 
 ```
+This is the same model as the one performed for attrative factors. We have a R-square value of 0.575, which indicates that about 58% of variation can be explained by this model, similarly showing the best R-squared value for propulsive factors.
+
+
+:::
+
+
+
 
 # Model Comparison
 
+To compare the suitability between different models, we can use the Root-mean-square deviation(RMSE). We can do that using **performance** package.
+
+::: panel-tabset
+
+## Attractive modelling comparison
+
+We will first list all of the models used for attractive modelling.
+
 ```{r}
 
-model_list <- list(unconstrained=uncSIM,
-                   originConstrained=orcSIM_Poisson,
-                   destinationConstrained=decSIM,
-                   doublyConstrained=dbcSIM_Poisson)
+model_list_A <- list(unconstrained=uncSIM_A,
+                   originConstrained=orcSIM_Poisson_A,
+                   doublyConstrained=dbcSIM_Poisson_A)
 ```
 
+
+We can then compare using the *compare_performance()* function of the **performance** package.
 ```{r}
-compare_performance(model_list,
+compare_performance(model_list_A,
                     metrics = "RMSE")
 
 ```
 
-From the different RMSE calculated above, we can see that the doubly constrained model has the lowest RMSE value, which represents the most accurate model out of the 4 tested models.
+From the different RMSE calculated above, we can see that the doubly constrained model has the lowest RMSE value of 1167.214, which represents the most accurate model out of the 3 tested models for attractive factors.
+
+## **Propulsive modelling**
+
+
+```{r}
+
+model_list_P <- list(unconstrained=uncSIM_P,
+                   destinationConstrained=decSIM_P,
+                   doublyConstrained=dbcSIM_Poisson_P)
+```
+
+```{r}
+compare_performance(model_list_P,
+                    metrics = "RMSE")
+
+```
+Similarly, we see that the doubly constrained model shows the lowest RMSE value of 1167 which indicates that this modelling method has the best accuracy amongst the 3 tested models for propulsive factors.
+:::
+
 
 # Visualisation
 
-## Unconstrained
+Here we can visualise the modelling of the graphs between the observed and fitted values. 
+
+::: panel-tabset
+
+## Attractive modelling
+
+Firstly, we will obtain the fitted values from the different models followed by placing them back to the dataframe that contains the observed values.
+
+::: panel-tabset
+
+### Origin constrained
 
 ```{r}
-d_f <- as.data.frame(uncSIM$fitted.values) %>%
+
+df_A <- as.data.frame(orcSIM_Poisson_A$fitted.values) %>%
   round(digits = 0)
-inter_zonal_flow <- inter_zonal_flow %>%
-  cbind(d_f)
+inter_zonal_flow_A <- inter_zonal_flow_A %>%
+  cbind(df_A)
 ```
 
-## Origin constrained
-
+### Unconstrained
 ```{r}
-
-d_f <- as.data.frame(orcSIM_Poisson$fitted.values) %>%
+df_A <- as.data.frame(uncSIM_A$fitted.values) %>%
   round(digits = 0)
-inter_zonal_flow <- inter_zonal_flow %>%
-  cbind(d_f)
+inter_zonal_flow_A <- inter_zonal_flow_A %>%
+  cbind(df_A)
 ```
 
-## Destination constrained
+### Doubly constrained
 
 ```{r}
 
-d_f <- as.data.frame(decSIM$fitted.values) %>%
+df_A <- as.data.frame(dbcSIM_Poisson_A$fitted.values) %>%
   round(digits = 0)
-inter_zonal_flow <- inter_zonal_flow %>%
-  cbind(d_f) 
+inter_zonal_flow_A <- inter_zonal_flow_A %>%
+  cbind(df_A) 
+```
+:::
+
+Here we will rename the columns for easier recognition.
+```{r}
+inter_zonal_flow_A <- inter_zonal_flow_A %>%
+  rename(uncTRIPS = "uncSIM_A.fitted.values",
+         orcTRIPS = "orcSIM_Poisson_A.fitted.values",
+         dbcTRIPS = "dbcSIM_Poisson_A.fitted.values")
+
 ```
 
-## Doubly constrained
+
+## Propulsive modelling
+
+We will also do the same for the 3 propulsive models.
+
+::: panel-tabset
+
+
+### Destination constrained
 
 ```{r}
 
-d_f <- as.data.frame(dbcSIM_Poisson$fitted.values) %>%
+df_P <- as.data.frame(decSIM_P$fitted.values) %>%
   round(digits = 0)
-inter_zonal_flow <- inter_zonal_flow %>%
-  cbind(d_f) 
+inter_zonal_flow_P <- inter_zonal_flow_P %>%
+  cbind(df_P) 
 ```
+
+### Unconstrained
 
 ```{r}
-inter_zonal_flow <- inter_zonal_flow %>%
-  rename(uncTRIPS = "uncSIM.fitted.values",
-         orcTRIPS = "orcSIM_Poisson.fitted.values",
-         decTRIPS = "decSIM.fitted.values",
-         dbcTRIPS = "dbcSIM_Poisson.fitted.values")
+df_P <- as.data.frame(uncSIM_P$fitted.values) %>%
+  round(digits = 0)
+inter_zonal_flow_P <- inter_zonal_flow_P %>%
+  cbind(df_P)
+```
+
+
+### Doubly constrained
+
+```{r}
+
+df_P <- as.data.frame(dbcSIM_Poisson_P$fitted.values) %>%
+  round(digits = 0)
+inter_zonal_flow_P <- inter_zonal_flow_P %>%
+  cbind(df_P) 
+```
+:::
+
+```{r}
+inter_zonal_flow_P <- inter_zonal_flow_P %>%
+  rename(uncTRIPS = "uncSIM_P.fitted.values",
+         decTRIPS = "decSIM_P.fitted.values",
+         dbcTRIPS = "dbcSIM_Poisson_P.fitted.values")
 
 ```
+:::
+
 
 ## Plotting
 
+
+Finally we can then plot the 3 scatterplots using *geom_point()* from the **ggplot** package.
+
+::: panel-tabset
+
+
+### Attractive modelling
+
+
 ```{r}
 
-unc_p <- ggplot(data = inter_zonal_flow,
+unc_p_A <- ggplot(data = inter_zonal_flow_A,
                 aes(x = uncTRIPS,
                     y = TRIPS)) +
   geom_point() +
   geom_smooth(method = lm)
 
-orc_p <- ggplot(data = inter_zonal_flow,
+orc_p_A <- ggplot(data = inter_zonal_flow_A,
                 aes(x = orcTRIPS,
                     y = TRIPS)) +
   geom_point() +
   geom_smooth(method = lm)
 
-dec_p <- ggplot(data = inter_zonal_flow,
-                aes(x = decTRIPS,
-                    y = TRIPS)) +
-  geom_point() +
-  geom_smooth(method = lm)
 
-dbc_p <- ggplot(data = inter_zonal_flow,
+
+dbc_p_A <- ggplot(data = inter_zonal_flow_A,
                 aes(x = dbcTRIPS,
                     y = TRIPS)) +
   geom_point() +
   geom_smooth(method = lm)
 
-ggarrange(unc_p, orc_p, dec_p, dbc_p,
+ggarrange(unc_p_A, orc_p_A, dbc_p_A,
           ncol = 2,
           nrow = 2)
 ```
+
+### Propulsive modelling
+
+```{r}
+
+unc_p_P <- ggplot(data = inter_zonal_flow_P,
+                aes(x = uncTRIPS,
+                    y = TRIPS)) +
+  geom_point() +
+  geom_smooth(method = lm)
+
+
+
+dec_p_P <- ggplot(data = inter_zonal_flow_P,
+                aes(x = decTRIPS,
+                    y = TRIPS)) +
+  geom_point() +
+  geom_smooth(method = lm)
+
+dbc_p_P <- ggplot(data = inter_zonal_flow_P,
+                aes(x = dbcTRIPS,
+                    y = TRIPS)) +
+  geom_point() +
+  geom_smooth(method = lm)
+
+ggarrange(unc_p_P, dec_p_P, dbc_p_P,
+          ncol = 2,
+          nrow = 2)
+```
+
+:::
