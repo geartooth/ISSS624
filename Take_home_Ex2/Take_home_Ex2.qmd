@@ -28,7 +28,14 @@ The main objectives of this exercise is to analyse the boarding and alighting lo
 
 # Tasks
 
-The tasks of this exercise are as follow: - Derive an analytical hexagon map to be used as a traffic analysis zone - Construct an O-D matrix of commuter flow for weekday mornings from 6am to 9am - Display the O-D flows - Assemble at least 3 propulsive and 3 attractiveness variables - Compute a distance matrix - Calibrate spatial interactive models and present the modelling results using geovisualisation and graphical visualisation methods
+The tasks of this exercise are as follow:
+
+-   Derive an analytical hexagon map to be used as a traffic analysis zone
+-   Construct an O-D matrix of commuter flow for weekday evenings from 5pm to 8pm
+-   Display the O-D flows
+-   Assemble at least 3 propulsive and 3 attractiveness variables
+-   Compute a distance matrix
+-   Calibrate spatial interactive models and present the modelling results using geovisualisation and graphical visualisation methods
 
 # Importing packages and data
 
@@ -130,10 +137,12 @@ stn_exit_sf <- st_read(dsn = "data/geospatial",
 ::: callout-note
 ### Coordinate systems
 
-Remember to use the correct coordinate system so that datas can be matched correctly! More information for the system used can be found [here](https://epsg.io/3414).
+Remember to use the correct coordinate system so that data can be matched correctly! More information for the system used can be found [here](https://epsg.io/3414).
 :::
 
 #### Propulsive factors
+
+The propulsive factors chosen are schools, businesses and financial services. They are identified as so as people leave work and school in the evening.
 
 For school data we will have to process them from latitude and longitude points to projected coordinate system.
 
@@ -147,7 +156,7 @@ schools_sf <- st_as_sf(schools, coords = c("longitude", "latitude"), crs = st_cr
   st_transform(crs = 3414)
 ```
 
-For financial services such as banks and businesses, we can import the geospatial data directly.
+For financial services and businesses, we can import the geospatial data directly.
 
 ```{r}
 
@@ -162,8 +171,6 @@ biz_sf <- st_read(dsn = "data/geospatial",
 :::
 :::
 :::
-
-
 
 We will first rename the bus stop column title for easier data joining.
 
@@ -209,16 +216,16 @@ busstop_hex <- unique(busstop_hex)
 
 ## Duplication check
 
-We will only keep data points that are unique using the *unique()* function.
+We will only keep data points that are unique using the *unique()* function. This function will only keep rows that are unique in the data set.
 
 ```{r}
 #| code-fold: false
 unique_weekdayPM <- unique(weekdayPM)
 ```
 
-## Joining destination table and grid
+## Assign grid id to origin and destination
 
-Using the grid that we have created in the beginning, we will now join the data that contains the destination together with the grid.
+Using the grid that we have created in the beginning, we will now join the data that contains the destination together with the grid. Our busstop_hex variable contains a column with the bus stop number and another column with the grid id. Since we have renamed our bus stop number column name as the ORIGIN_PT_CODE, which can also be found in our trips data set, they can now be joined using that as a common point, hence assigning the grid id to the origin bus stops. The newly assigned grid id will be renamed to avoid confusion when joining the grid id again for the destination bus stop next.
 
 ```{r}
 #| code-fold: false
@@ -229,7 +236,13 @@ combn_des_weekdayPM <- left_join(unique_weekdayPM,busstop_hex) %>%
 unique(combn_des_weekdayPM)
 ```
 
-Here we will join the destination grid ID by matching the destination bus stop code and the bus stop code so as to match the destination bus stop to their grid. After that we will check for duplications again.
+::: callout-note
+### Caution
+
+Using left_join() will join the right data set to the left, so be careful to avoid losing wanted data. Use right_join() or full_join() as needed. More information [here](https://dplyr.tidyverse.org/reference/mutate-joins.html).
+:::
+
+Here we will join the destination grid ID by matching the destination bus stop code and the bus stop code so as to match the destination bus stop to their grid. Aside from joining them using a common column name, we can also force this pairing using a **by = ()** argument. After that we will check for duplications again.
 
 ```{r}
 #| code-fold: false
@@ -239,7 +252,7 @@ OD_weekdayPM <- unique(OD_weekdayPM)
 
 ```
 
-To make it clearer we will rename the **grid_ID** column, which is the destination grid id into **DESTIN_GRID**. We will also sum up all of the trips made that have a unique origin and destination pair. This way we can calculate the trips that are taken using this particular route.
+To make it clearer we will rename the **grid_ID** column, which is the destination grid id into **DESTIN_GRID**. We will also sum up all of the trips made that have a unique origin and destination pair. This way we can calculate the total trips that are taken using this particular route.
 
 ```{r}
 #| code-fold: false
@@ -260,7 +273,9 @@ OD_weekdayPM <- OD_weekdayPM[OD_weekdayPM$ORIGIN_GRID!=OD_weekdayPM$DESTIN_GRID,
 
 ```
 
-Here we will create the desire lines from the different origin grids and destination grids.
+## Creating desire lines
+
+Here we will create the desire lines from the different origin grids and destination grids using the [*od2line*](https://www.rdocumentation.org/packages/stplanr/versions/0.1.1/topics/od2line)*()* function.
 
 ```{r}
 #| code-fold: false
@@ -517,7 +532,7 @@ We can see the bus stops that are found within the most popular origin-destinati
 
 # Distance Matrix
 
-Here we will begin calculating the distance between each hexagon. Normally people are less likely to take trips if the distance is longer.
+Here we will begin calculating the distance between each hexagon and the other hexagons that contains bus stops. Normally people are less likely to take trips if the distance is longer.
 
 We will create a hex data containing the grid id and the polygon information. Essentially this has the same information as the valid_hex variable that we have created earlier. But here we will add an additional step to filter out any duplicates.
 
@@ -538,7 +553,7 @@ hex_sp <- as(hex, "Spatial")
 hex_sp
 ```
 
-Next we will calculate the distance between the grids. The *spDists()* function will use the center of each hexagon for calculating the distance between grids. This way we are able to standardise the reference point of each grid to the other grids.
+Next we will calculate the distance between the grids. The [*spDists*](https://www.rdocumentation.org/packages/sp/versions/2.1-1/topics/spDistsN1)*()* function will use the center of each hexagon for calculating the distance between grids. This way we are able to standardise the reference point of each grid to the other grids.
 
 ```{r}
 #| code-fold: false
@@ -586,13 +601,13 @@ distPair <- distPair %>%
          dest = Var2)
 ```
 
-We will reassign the variable name for subsequent processing. We do this so as to avoid manipulating data that we do not want to modify. 
+We will reassign the variable name for subsequent processing. We do this so as to avoid manipulating data that we do not want to modify.
 
 ```{R}
 flow_data <- OD_weekdayPM
 ```
 
-Here we will join the distance between grids and their respective origin-destination grid pairs.
+Here we will join the distance between grids and their respective origin-destination grid pairs. This will allow us to add the distances to the each origin-destination pair with the total number of trips made by that pair of grids.
 
 ```{R}
 flow_data1 <- flow_data %>%
@@ -616,7 +631,7 @@ We see that the graph shows an inverse relationship between trips and distance. 
 
 ## Attractive and propulsive factor processing
 
-Here we will prepare the data into attractive and propulsive sections. To differentiate that we will use _A for each variable and _P for variables used for attractive and propulsive respectively.
+Here we will prepare the data into attractive and propulsive sections. To differentiate that we will use \_A for each variable and \_P for variables used for attractive and propulsive respectively.
 
 ```{R}
 #| code-fold: false
@@ -627,7 +642,7 @@ hex_P <- hex
 ::: panel-tabset
 ## **Attractive**
 
-Here we will assemble the attractive factors, which are number of estimated HDB households, retail stores MRT exits in each hexagon.
+Here we will assemble the attractive factors, which are the number of estimated HDB households, retail stores and MRT exits in each hexagon.
 
 We will also be using the number of dwelling units as an estimation for the number of households staying in that HDB.
 
@@ -651,13 +666,12 @@ hex_A <- left_join(hex_A, hex_hdb) %>%
   mutate(DWELL_COUNT = ifelse(is.na(DWELL_COUNT), 0, DWELL_COUNT))
 ```
 
-Other information that we will include in our attractive factors include the number of residential estates and MRT exits.
+Other information that we will include in our attractive factors include the number of retail outlets and MRT exits.
 
 ```{r}
 hex_A$retail_COUNT <- lengths(st_intersects(hex_A, retail_sf))  
 hex_A$stn_exit_COUNT <- lengths(st_intersects(hex_A, stn_exit_sf))
 ```
-
 
 ::: panel-tabset
 Here we will see if the top 100 most popular bus routes will intersect with the our attractive factors. Firstly we will obtain our top 100 most popular bus routes.
@@ -668,7 +682,7 @@ top100 <- head(arrange(OD_weekdayPM, desc(TRIPS)), n = 100)
 
 ### HDB and trips made
 
-We can look at the number of trips made to grids that contains HDBs. To do that we can first create grids with that contains HDBs. We will then check if the destination grid of our top 100 most popular trips have commonality with our grids that contains schools.
+We can look at the number of trips made to grids that contains HDBs. To do that we can first create grids with that contains HDBs. We will then check if the destination grid of our top 100 most popular trips have commonality with our grids that contains schools using *left_join()*.
 
 ```{r}
 hdb_grid <- hex_A%>%
@@ -683,7 +697,7 @@ hdb_des <- left_join(top100, hdb_grid) %>%
 ```
 
 ```{r}
-tmap_options(check.and.fix = TRUE)  #polygon may not close, so need to auto close
+tmap_options(check.and.fix = TRUE)
 tm_shape(mpsz)+  
   tm_polygons()+
   tm_shape(hex_A)+  
@@ -695,7 +709,7 @@ tm_shape(mpsz)+
   tm_polygons()+
   
   
-  tm_shape(hdb_sf)+  #biz layer
+  tm_shape(hdb_sf)+ 
   tm_dots(alpha = 0.05)+
   
 hdb_des %>%  
@@ -740,11 +754,10 @@ summary(retail_des$retail_COUNT)
 ```
 
 ```{r}
-tmap_options(check.and.fix = TRUE)  #polygon may not close, so need to auto close
+tmap_options(check.and.fix = TRUE)  
 tm_shape(mpsz)+  #sg boundary
   tm_polygons()+
-  tm_shape(hex_A)+  #sg boundary
-  # tm_polygons()+  #sg boundary
+  tm_shape(hex_A)+  
   
   tm_fill("retail_COUNT", 
           style = "pretty", 
@@ -838,6 +851,7 @@ mrt_des %>%
 
 We can once again see that the heartlands contains the most number of MRT exits, this is likely from the number of larger train stations which services multiple lines, hence requiring more exits to prevent bottle-necking during rush hour. We see some commonality between train stations exits and our popular bus stop destinations.
 :::
+
 ## **Propulsive**
 
 We will match all of the number of schools, businesses and financial services to their respective grids.
@@ -876,24 +890,16 @@ tm_shape(mpsz)+  #sg boundary
   
   tm_compass(type="8star", size = 2) +
   tm_scale_bar() +
-  tm_grid(alpha =0.2)+
-
-  
-  tm_layout(legend.position = c("left", "bottom"),
-            legend.bg.color = "white",
-            legend.frame = TRUE,
-            legend.text.size = 0.7)
-  
-
-
-
+  tm_grid(alpha =0.2)
 
 ```
-To avoid over concentrating this page with maps, we will combine the distribution of schools, businesses and financial services together. We can see the distribution of schools, businesses and financial services dotted in blue, red and green respectively. We can see concentration of businesses in the industrialised zones and businesses in the heartland regions.
 
+To avoid over concentrating this page with maps, we will combine the distribution of schools, businesses and financial services together. We can see the distribution of schools, businesses and financial services dotted in blue, red and green respectively. We can see concentration of businesses in the industrialised zones and businesses in the heartland regions.
 :::
 
 # Model calibration
+
+## Flow data preparation
 
 In this section we will prepare our data for subsequent model calibration.
 
@@ -905,14 +911,14 @@ hex_P <- st_drop_geometry(hex_P)
 
 ```
 
-We can then join the school and business count information to the ridership using left_join. For attractive factors, we will join it by destination grid since the amentities are located in the destination grid. For propulsive factors, we will use origin grid since they are factors that will push us from the origin.
+We can then join the school and business count information to the ridership using left_join. For attractive factors, we will join it by destination grid since the point of attractions are located in the destination grid. For propulsive factors, we will use origin grid since they are factors that will push us from the origin.
 
 ```{r}
-flow_A<- flow_data1 %>%
+flow<- flow_data1 %>%
   left_join (hex_A,
              by = c("DESTIN_GRID" = "grid_id"))
 
-flow_P<- flow_data1 %>%
+flow<- flow %>%
   left_join (hex_P,
              by = c("ORIGIN_GRID" = "grid_id"))
 ```
@@ -922,64 +928,50 @@ Since we will log the data for modelling, we will have to convert any 0 or NA va
 ```{r}
 
 
-flow_A$DWELL_COUNT <- ifelse(
-  is.na(flow_A$DWELL_COUNT) | flow_A$DWELL_COUNT == 0,
-  0.99, flow_A$DWELL_COUNT)
+flow$DWELL_COUNT <- ifelse(
+  is.na(flow$DWELL_COUNT) | flow$DWELL_COUNT == 0,
+  0.99, flow$DWELL_COUNT)
 
-flow_A$stn_exit_COUNT <- ifelse(
-  is.na(flow_A$stn_exit_COUNT) | flow_A$stn_exit_COUNT == 0,
-  0.99, flow_A$stn_exit_COUNT)
+flow$stn_exit_COUNT <- ifelse(
+  is.na(flow$stn_exit_COUNT) | flow$stn_exit_COUNT == 0,
+  0.99, flow$stn_exit_COUNT)
 
-flow_A$retail_COUNT <- ifelse(
-  is.na(flow_A$retail_COUNT) | flow_A$retail_COUNT == 0,
-  0.99, flow_A$retail_COUNT)
+flow$retail_COUNT <- ifelse(
+  is.na(flow$retail_COUNT) | flow$retail_COUNT == 0,
+  0.99, flow$retail_COUNT)
 
 
-flow_P$BIZ_COUNT <- ifelse(
-  is.na(flow_P$BIZ_COUNT) | flow_P$BIZ_COUNT == 0,
-  0.99, flow_P$BIZ_COUNT)
+flow$BIZ_COUNT <- ifelse(
+  is.na(flow$BIZ_COUNT) | flow$BIZ_COUNT == 0,
+  0.99, flow$BIZ_COUNT)
 
-flow_P$SCHOOL_COUNT <- ifelse(
-  is.na(flow_P$SCHOOL_COUNT) | flow_P$SCHOOL_COUNT == 0,
-  0.99, flow_P$SCHOOL_COUNT)
+flow$SCHOOL_COUNT <- ifelse(
+  is.na(flow$SCHOOL_COUNT) | flow$SCHOOL_COUNT == 0,
+  0.99, flow$SCHOOL_COUNT)
 
-flow_P$FIN_COUNT <- ifelse(
-  is.na(flow_P$FIN_COUNT) | flow_P$FIN_COUNT == 0,
-  0.99, flow_P$FIN_COUNT)
+flow$FIN_COUNT <- ifelse(
+  is.na(flow$FIN_COUNT) | flow$FIN_COUNT == 0,
+  0.99, flow$FIN_COUNT)
 
 ```
 
 We will also have to convert the grid names of the origin and destination into characters. We have been using numerals for naming them which would be recognised as integers by R.
 
 ```{r}
-flow_A$ORIGIN_GRID <- as.character(flow_A$ORIGIN_GRID)
-flow_A$DESTIN_GRID <- as.character(flow_A$DESTIN_GRID)
+flow$ORIGIN_GRID <- as.character(flow$ORIGIN_GRID)
+flow$DESTIN_GRID <- as.character(flow$DESTIN_GRID)
 
-flow_P$ORIGIN_GRID <- as.character(flow_P$ORIGIN_GRID)
-flow_P$DESTIN_GRID <- as.character(flow_P$DESTIN_GRID)
+
 ```
 
 ```{r}
-flow_A$FlowNoIntra <- ifelse(
-  flow_A$ORIGIN_GRID == flow_A$DESTIN_GRID, 0, flow_A$TRIPS)
-flow_A$offset <- ifelse(
-  flow_A$ORIGIN_GRID == flow_A$DESTIN_GRID, 0.000001, 1)
+flow$FlowNoIntra <- ifelse(
+  flow$ORIGIN_GRID == flow$DESTIN_GRID, 0, flow$TRIPS)
+flow$offset <- ifelse(
+  flow$ORIGIN_GRID == flow$DESTIN_GRID, 0.000001, 1)
 
-inter_zonal_flow_A <- flow_A %>%
+inter_zonal_flow <- flow %>%
   filter(FlowNoIntra > 0)
-
-
-
-
-flow_P$FlowNoIntra <- ifelse(
-  flow_P$ORIGIN_GRID == flow_P$DESTIN_GRID, 0, flow_P$TRIPS)
-flow_P$offset <- ifelse(
-  flow_P$ORIGIN_GRID == flow_P$DESTIN_GRID, 0.000001, 1)
-
-inter_zonal_flow_P <- flow_P %>%
-  filter(FlowNoIntra > 0)
-
-
 
 ```
 
@@ -1006,111 +998,65 @@ CalcRSquared <- function(observed, estimated){
 
 Here we will begin our actual modelling for our different factors.
 
-For attractive factors we will be using: - Origin constrained model - Unconstrained model - Doubly constrained model
+The models that will be used today are known as spatial interaction models where flows between spatial entities are estimated. The models that we will be using are:
 
-For propulsive factors we will be using: - Destination constrained model - Unconstrained model - Doubly constrained model
+-   Origin constrained model
+-   Destination constrained model
+-   Unconstrained model
+-   Doubly constrained model
 
-### Attractive modelling
+The modelling will be done by using the *glm()* function from the **stats** package. It allows us to fit a generalised linear model, more information can be found [here](https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/glm).
 
 ::: panel-tabset
-#### Origin(Production) constrained model
+### Origin(Production) constrained model(Attractive modelling)
 
 ```{R}
 
 
-orcSIM_Poisson_A <- glm(formula = TRIPS ~
+orcSIM_Poisson <- glm(formula = TRIPS ~
                         ORIGIN_GRID + 
-                          #use attractiveness factors
+                          
                         log(DWELL_COUNT)+
                         log(retail_COUNT) +
-                        # 
-                        # log(stn_exit_COUNT)+
-                        # log(HDB_COUNT)+
                         log(stn_exit_COUNT)+
                         
-                        log(DIST) - 1,  #have - 1 to remove intersept, already constrain to origin
+                        log(DIST) - 1, 
                       family = poisson(link = "log"),
-                      data = inter_zonal_flow_A,
+                      data = inter_zonal_flow,
                       na.action = na.exclude)
 
-summary(orcSIM_Poisson_A)
+summary(orcSIM_Poisson)
 
 ```
 
-We can see that for all of the attractive attributes showing good attractive pull for transport there.
+We can see that for all of the attractive attributes showing good attractive pull for trips towards there.
+
+We can use the *summary()* function to obtain various coefficients and statistical analysis from our origin model as well as other models. ::: callout-note \#### Attention
+
+Here we will only use factors that are attractive for origin constrained and there is a -1 to the distance in order to remove the intercept which would otherwise be inserted.
+:::
 
 ```{r}
-CalcRSquared(orcSIM_Poisson_A$data$TRIPS, orcSIM_Poisson_A$fitted.values)
+CalcRSquared(orcSIM_Poisson$data$TRIPS, orcSIM_Poisson$fitted.values)
 
 ```
 
 We have a R-square value of 0.432, which indicates that about 43% of variation can be explained by the model.
 
-#### Unconstrained modelling
+### Destination constrained(Propulsive modelling)
 
 ```{R}
 
-uncSIM_A <- glm(formula = TRIPS ~ 
-               
-                        log(DWELL_COUNT)+
-                        log(retail_COUNT) +
-                        log(stn_exit_COUNT)+
-                log(DIST),
-              family = poisson(link = "log"),
-              data = inter_zonal_flow_A,
-              na.action = na.exclude)
-
-uncSIM_A
-
-```
-
-```{r}
-CalcRSquared(uncSIM_A$data$TRIPS, uncSIM_A$fitted.values)
-
-```
-
-We have a R-square value of 0.163, which indicates that only about 16% of variation can be explained by the unconstrained model.
-
-#### Doubly Constrained modelling
-
-```{r}
-
-dbcSIM_Poisson_A <- glm(formula = TRIPS~
-                        ORIGIN_GRID + 
-                        DESTIN_GRID + 
-                        log(DIST), 
-                      family = poisson(link = "log"),
-                      data = inter_zonal_flow_A,
-                      na.action = na.exclude)
-summary(dbcSIM_Poisson_A)
-
-```
-
-```{r}
-CalcRSquared(dbcSIM_Poisson_A$data$TRIPS, dbcSIM_Poisson_A$fitted.values)
-
-```
-
-Here we have a R-square value of 0.586, which indicates that about 59% of variation can be explained by the doubly model, the best so far.
-:::
-
-### **Propulsive modelling**
-
-::: panel-tabset
-#### Destination constrained
-
-```{R}
-
-decSIM_P <- glm(formula = TRIPS ~ 
+decSIM <- glm(formula = TRIPS ~ 
                 DESTIN_GRID + 
                 log(SCHOOL_COUNT) +
                 log(BIZ_COUNT)+
                 log(FIN_COUNT)+
                 log(DIST),
               family = poisson(link = "log"),
-              data = inter_zonal_flow_P,
+              data = inter_zonal_flow,
               na.action = na.exclude)
-summary(decSIM_P)
+summary(decSIM)
 
 
 
@@ -1118,214 +1064,176 @@ summary(decSIM_P)
 
 ```{r}
 
-CalcRSquared(decSIM_P$data$TRIPS, decSIM_P$fitted.values)
+CalcRSquared(decSIM$data$TRIPS, decSIM$fitted.values)
 
 ```
 
 We have a R-square value of 0.356, which indicates that about 36% of variation can be explained by the destination constrained model.
 
+::: callout-note
+#### Attention
+
+Here we will only use factors that are propulsive for destination constrained models.
+:::
+
+### Common modelling sets
+
+::: panel-tabset
 #### Unconstrained modelling
 
 ```{R}
-uncSIM_P <- glm(formula = TRIPS ~ 
-                log(SCHOOL_COUNT) +
+
+uncSIM <- glm(formula = TRIPS ~ 
+                  log(SCHOOL_COUNT) +
                 log(BIZ_COUNT)+
                 log(FIN_COUNT)+
+               
+                        log(DWELL_COUNT)+
+                        log(retail_COUNT) +
+                        log(stn_exit_COUNT)+
                 log(DIST),
               family = poisson(link = "log"),
-              data = inter_zonal_flow_P,
+              data = inter_zonal_flow,
               na.action = na.exclude)
 
-uncSIM_P
+uncSIM
 
 ```
 
 ```{r}
-CalcRSquared(uncSIM_P$data$TRIPS, uncSIM_P$fitted.values)
+CalcRSquared(uncSIM$data$TRIPS, uncSIM$fitted.values)
 
 ```
 
-We have a R-square value of only 0.174, which indicates that only about 17% of variation can be explained by the unconstrained model.
+We have a R-square value of 0.223, which indicates that only about 22.3% of variation can be explained by the unconstrained model.
 
 #### Doubly Constrained modelling
 
 ```{r}
 
-dbcSIM_Poisson_P <- glm(formula = TRIPS~
+dbcSIM_Poisson <- glm(formula = TRIPS~
                         ORIGIN_GRID + 
                         DESTIN_GRID + 
-                        log(DIST), # no -1 cus no attractiveness btw origin and des
+                        log(DIST), 
                       family = poisson(link = "log"),
-                      data = inter_zonal_flow_P,
+                      data = inter_zonal_flow,
                       na.action = na.exclude)
-summary(dbcSIM_Poisson_P)
+summary(dbcSIM_Poisson)
 
 ```
 
 ```{r}
-CalcRSquared(dbcSIM_Poisson_P$data$TRIPS, dbcSIM_Poisson_P$fitted.values)
+CalcRSquared(dbcSIM_Poisson$data$TRIPS, dbcSIM_Poisson$fitted.values)
 
 ```
 
-This is the same model as the one performed for attractive factors. We have a R-square value of 0.586, which indicates that about 59% of variation can be explained by this model, similarly showing the best R-squared value for propulsive factors.
+Here we have a R-square value of 0.586, which indicates that about 59% of variation can be explained by the doubly model, the best so far.
+:::
+
 :::
 
 # Model Comparison
 
 To compare the suitability between different models, we can use the Root-mean-square deviation(RMSE). We can do that using **performance** package.
 
-::: panel-tabset
-## Attractive modelling comparison
-
 We will first list all of the models used for attractive modelling.
 
 ```{r}
 
-model_list_A <- list(unconstrained=uncSIM_A,
-                   originConstrained=orcSIM_Poisson_A,
-                   doublyConstrained=dbcSIM_Poisson_A)
+model_list <- list(unconstrained=uncSIM,
+                   originConstrained=orcSIM_Poisson,
+                   destinationConstrained=decSIM,
+                  
+                   doublyConstrained=dbcSIM_Poisson)
 ```
 
 We can then compare using the *compare_performance()* function of the **performance** package.
 
 ```{r}
-compare_performance(model_list_A,
+compare_performance(model_list,
                     metrics = "RMSE")
 
 ```
 
-From the different RMSE calculated above, we can see that the doubly constrained model has the lowest RMSE value of 1043.379, which represents the most accurate model out of the 3 tested models for attractive factors.
-
-## Propulsive modelling
-
-We will repeat the same steps for the different models for the propulsive models as well.
-
-```{r}
-
-model_list_P <- list(unconstrained=uncSIM_P,
-                   destinationConstrained=decSIM_P,
-                   doublyConstrained=dbcSIM_Poisson_P)
-```
-
-```{r}
-compare_performance(model_list_P,
-                    metrics = "RMSE")
-
-```
-
-Similarly, we see that the doubly constrained model shows the lowest RMSE value of 1043.379 which indicates that this modelling method has the best accuracy amongst the 3 tested models for propulsive factors.
-:::
+From the different RMSE calculated above, we can see that the doubly constrained model has the lowest RMSE value of 1043.379, which represents the most accurate model out of the tested models.
 
 # Visualisation
 
 Here we can visualise the modelling of the graphs between the observed and fitted values.
 
 ::: panel-tabset
-## Attractive modelling
-
-Firstly, we will obtain the fitted values from the different models followed by placing them back to the dataframe that contains the observed values.
-
-::: panel-tabset
 ### Origin constrained
 
 ```{r}
 
-df_A <- as.data.frame(orcSIM_Poisson_A$fitted.values) %>%
+df_model <- as.data.frame(orcSIM_Poisson$fitted.values) %>%
   round(digits = 0)
-inter_zonal_flow_A <- inter_zonal_flow_A %>%
-  cbind(df_A)
+inter_zonal_flow <- inter_zonal_flow %>%
+  cbind(df_model)
+```
+
+### Destination constrained
+
+```{r}
+
+df_model <- as.data.frame(decSIM$fitted.values) %>%
+  round(digits = 0)
+inter_zonal_flow <- inter_zonal_flow %>%
+  cbind(df_model) 
 ```
 
 ### Unconstrained
 
 ```{r}
-df_A <- as.data.frame(uncSIM_A$fitted.values) %>%
+df_model <- as.data.frame(uncSIM$fitted.values) %>%
   round(digits = 0)
-inter_zonal_flow_A <- inter_zonal_flow_A %>%
-  cbind(df_A)
+inter_zonal_flow <- inter_zonal_flow %>%
+  cbind(df_model)
 ```
 
 ### Doubly constrained
 
 ```{r}
 
-df_A <- as.data.frame(dbcSIM_Poisson_A$fitted.values) %>%
+df_model <- as.data.frame(dbcSIM_Poisson$fitted.values) %>%
   round(digits = 0)
-inter_zonal_flow_A <- inter_zonal_flow_A %>%
-  cbind(df_A) 
+inter_zonal_flow <- inter_zonal_flow %>%
+  cbind(df_model) 
 ```
 :::
 
 Here we will rename the columns for easier recognition.
 
 ```{r}
-inter_zonal_flow_A <- inter_zonal_flow_A %>%
-  rename(uncTRIPS = "uncSIM_A.fitted.values",
-         orcTRIPS = "orcSIM_Poisson_A.fitted.values",
-         dbcTRIPS = "dbcSIM_Poisson_A.fitted.values")
+inter_zonal_flow <- inter_zonal_flow %>%
+  rename(uncTRIPS = "uncSIM.fitted.values",
+         decTRIPS = "decSIM.fitted.values",
+         orcTRIPS = "orcSIM_Poisson.fitted.values",
+         dbcTRIPS = "dbcSIM_Poisson.fitted.values")
 
 ```
-
-## Propulsive modelling
-
-We will also do the same for the 3 propulsive models.
-
-::: panel-tabset
-### Destination constrained
-
-```{r}
-
-df_P <- as.data.frame(decSIM_P$fitted.values) %>%
-  round(digits = 0)
-inter_zonal_flow_P <- inter_zonal_flow_P %>%
-  cbind(df_P) 
-```
-
-### Unconstrained
-
-```{r}
-df_P <- as.data.frame(uncSIM_P$fitted.values) %>%
-  round(digits = 0)
-inter_zonal_flow_P <- inter_zonal_flow_P %>%
-  cbind(df_P)
-```
-
-### Doubly constrained
-
-```{r}
-
-df_P <- as.data.frame(dbcSIM_Poisson_P$fitted.values) %>%
-  round(digits = 0)
-inter_zonal_flow_P <- inter_zonal_flow_P %>%
-  cbind(df_P) 
-```
-:::
-
-```{r}
-inter_zonal_flow_P <- inter_zonal_flow_P %>%
-  rename(uncTRIPS = "uncSIM_P.fitted.values",
-         decTRIPS = "decSIM_P.fitted.values",
-         dbcTRIPS = "dbcSIM_Poisson_P.fitted.values")
-
-```
-:::
 
 ## Plotting
 
 Finally we can then plot the 3 scatterplots using *geom_point()* from the **ggplot** package.
 
-::: panel-tabset
-### Attractive modelling
+::: panel-tabset \### Attractive modelling
 
 ```{r}
 
-unc_p_A <- ggplot(data = inter_zonal_flow_A,
+unc_p <- ggplot(data = inter_zonal_flow,
                 aes(x = uncTRIPS,
                     y = TRIPS)) +
   geom_point() +
   geom_smooth(method = lm)
 
-orc_p_A <- ggplot(data = inter_zonal_flow_A,
+dec_p <- ggplot(data = inter_zonal_flow,
+                aes(x = decTRIPS,
+                    y = TRIPS)) +
+  geom_point() +
+  geom_smooth(method = lm)
+
+orc_p <- ggplot(data = inter_zonal_flow,
                 aes(x = orcTRIPS,
                     y = TRIPS)) +
   geom_point() +
@@ -1333,45 +1241,15 @@ orc_p_A <- ggplot(data = inter_zonal_flow_A,
 
 
 
-dbc_p_A <- ggplot(data = inter_zonal_flow_A,
+dbc_p <- ggplot(data = inter_zonal_flow,
                 aes(x = dbcTRIPS,
                     y = TRIPS)) +
   geom_point() +
   geom_smooth(method = lm)
 
-ggarrange(unc_p_A, orc_p_A, dbc_p_A,
+ggarrange(unc_p, orc_p,dec_p, dbc_p,
           ncol = 2,
           nrow = 2)
 ```
-The plot shows the the observed(y-axis) and an estimated value(x-axis). Each observed and estimated pair trip value will form a dot on the graph. We can see that amongst the 3 plots, the plot from the doubly constrained model shows the best grouping, indicative of the accuracy from that model as seen previously. The unconstrained model shows the widest spread.
 
-### Propulsive modelling
-
-```{r}
-
-unc_p_P <- ggplot(data = inter_zonal_flow_P,
-                aes(x = uncTRIPS,
-                    y = TRIPS)) +
-  geom_point() +
-  geom_smooth(method = lm)
-
-
-
-dec_p_P <- ggplot(data = inter_zonal_flow_P,
-                aes(x = decTRIPS,
-                    y = TRIPS)) +
-  geom_point() +
-  geom_smooth(method = lm)
-
-dbc_p_P <- ggplot(data = inter_zonal_flow_P,
-                aes(x = dbcTRIPS,
-                    y = TRIPS)) +
-  geom_point() +
-  geom_smooth(method = lm)
-
-ggarrange(unc_p_P, dec_p_P, dbc_p_P,
-          ncol = 2,
-          nrow = 2)
-```
-Similarly for the propulsive factor modelling, the doubly constrained models show the tighests grouping and least difference between the observed and estimated trip values. Likewise the model with the widest spread is the unconstrained model.
-:::
+The plot shows the the observed(y-axis) and an estimated value(x-axis). Each observed and estimated pair trip value will form a dot on the graph. We can see that amongst the 4 plots, the plot from the doubly constrained model shows the best grouping, indicative of the accuracy from that model as seen previously. This is also echoed from its high R-square value and low RMSE value. The unconstrained model shows the widest spread.
