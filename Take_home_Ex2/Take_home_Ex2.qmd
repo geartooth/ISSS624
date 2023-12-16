@@ -123,7 +123,7 @@ condo_sf <- st_as_sf(condo, coords = c("LONGITUDE", "LATITUDE"), crs = st_crs(43
   st_transform(crs = 3414)
 
 ```
-
+The propulsive factors that we will use include the HDBs and train station exits.
 
 
 ```{r}
@@ -199,7 +199,7 @@ We will only keep data points that are unique using the *unique()* function.
 unique_weekdayAM <- unique(weekdayAM)
 ```
 
-### Joining destination table and grid
+## Joining destination table and grid
 
 Using the grid that we have created in the beginning, we will now join the data that contains the destination together with the grid.
 

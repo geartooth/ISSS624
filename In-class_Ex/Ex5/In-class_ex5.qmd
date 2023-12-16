@@ -1,0 +1,229 @@
+---
+title: "In-class_ex5"
+---
+# Overview
+
+# Import package and data
+## Import packages
+
+Here we will install the development version of **spflow** package using devtools.
+
+```{R}
+devtools::install_github("LukeCe/spflow")
+
+```
+Next we will load the other packages.1
+
+```{r}
+pacman::p_load(tmap,sf,spdep,sp,Matrix,reshape2,knitr, tidyverse, spflow)
+
+```
+
+## Import data
+
+Here we will load the data that we will be using for this in class exercise.
+
+Before we can calibrate Spatial Econometric Interaction models by using spflow we need 3 sets of fdata
+tibble data containing origins, destination, flows and distances between the origin and destination
+spatial weights
+tibble data containing explanatory variables
+
+
+We weill import all of the prepared data for use in this in class exercise 5.
+
+```{r}
+mpsz_nb<-read_rds("data/rds/mpsz_nb.rds")
+mpsz_flow<-read_rds("data/rds/mpsz_flow.rds")
+mpsz_var<-read_rds("data/rds/mpsz_var.rds")
+```
+
+# Creating spflow_network-class objects
+spflow_network-class is an S4 class that contains all information on a spatial network which is composed by a set of nodes that are linked by some neighbourhood relation. It can be created by spflow_network() function of **spflow** package.
+
+For our model, we choose the contiguity based neighbourhood structure.
+
+```{r}
+mpsz_net<- spflow_network(
+  id_net = "sg",
+  node_neighborhood = 
+    nb2mat(mpsz_nb$by_contiguity),
+  node_data= mpsz_var,
+  node_key_column = "SZ_CODE"
+)
+
+mpsz_net
+```
+
+```{r}
+mpsz_net_pairs <- spflow_network_pair(
+  id_orig_net = "sg",
+  id_dest_net = "sg",
+  pair_data = mpsz_flow,
+  orig_key_column = "ORIGIN_SZ",
+  dest_key_column = "DESTIN_SZ")
+mpsz_net_pairs
+```
+The sp_multi_network class combines information on the nodes and the node-pairs and also ensures that both data sources are consistent. For example, if some of the origins in the sp_network_pair-class are not identified with the nodes in the sp_network_nodes-class an error will be raised.
+
+
+```{r}
+
+mpsz_multi_net <- spflow_network_multi(mpsz_net,
+                                       mpsz_net_pairs)
+mpsz_multi_net
+
+```
+
+# Correlation analysis
+
+Multicollinearity refers to a situation in which more than 2 explanatory variables in a multiple regression model are highly linearly related. In this situation, the coefficient estimates of the multiple regression may change erratically in response to small changes in the data or the procedure used to fit the model.
+
+spflow provides *pair_cor()* and *cor_image()* to create a correlation matrix and to plot the correlation matrix as a correlogram. 
+
+```{r}
+cor_formula <- log(1+TRIPS) ~
+  BUSSTOP_COUNT +
+  AGE7_12 +
+  AGE13_24+
+  AGE25_64+
+  SCHOOL_COUNT+
+  BUSINESS_COUNT+
+  RETAILS_COUNT+
+  FINSERV_COUNT+
+  P_(log(DISTANCE+1))
+
+cor_mat<-pair_cor(
+  mpsz_multi_net,
+  spflow_formula = cor_formula,
+  add_lags_x = FALSE)
+
+colnames(cor_mat) <- paste0(
+  substr(
+    colnames(cor_mat),1,3),"...")
+
+cor_image(cor_mat)
+
+```
+
+# Model calibration
+
+## Base model
+
+```{r}
+base_model <- spflow(
+  spflow_formula = log(1+TRIPS) ~
+    O_(BUSSTOP_COUNT + 
+         AGE25_64) +
+    D_(SCHOOL_COUNT+
+         BUSINESS_COUNT+
+         RETAILS_COUNT+
+         FINSERV_COUNT) +
+    P_(log(DISTANCE + 1)),
+  spflow_networks = mpsz_multi_net
+)
+base_model
+```
+
+We see that the about 69% of all trip variations can be explained by the model.
+We see that the bus stops and its neighbours are both statistically significant.
+
+# Residual diagnostics
+
+```{r}
+old_par <- par(mfrow = c(1,3),
+               mar = c(2,2,2,2))
+spflow_moran_plots(base_model)
+
+```
+
+
+Next, pair_cor() can be used to inspect the relationship of the residual and the explanatory variables and we will re run the correlogram.
+```{r}
+corr_residual <- pair_cor(base_model)
+colnames(corr_residual) <- substr(colnames(corr_residual),1,3)
+cor_image(corr_residual)
+
+```
+
+```{r}
+spflow_formula <- log(1+TRIPS)~
+   O_(BUSSTOP_COUNT + 
+         AGE25_64) +
+    D_(SCHOOL_COUNT+
+         BUSINESS_COUNT+
+         RETAILS_COUNT+
+         FINSERV_COUNT) +
+    P_(log(DISTANCE + 1))
+
+model_control <- spflow_control(
+  estimation_method = "mle",
+  model = "model_1")
+
+mle_model1 <- spflow(
+  spflow_formula,
+  spflow_networks = mpsz_multi_net,
+  estimation_control = model_control
+)
+
+mle_model1
+
+```
+This represents our unconstrained model and a Rsquare of only about 28%.
+
+```{r}
+model_control <- spflow_control(
+  estimation_method = "mle",
+  model = "model_2")
+
+mle_model2 <- spflow(
+  spflow_formula,
+  spflow_networks = mpsz_multi_net,
+  estimation_control = model_control
+)
+
+mle_model2
+
+```
+
+## Model 8
+```{r}
+model_control <- spflow_control(
+  estimation_method = "mle",
+  model = "model_8")
+
+mle_model8 <- spflow(
+  spflow_formula,
+  spflow_networks = mpsz_multi_net,
+  estimation_control = model_control
+)
+
+mle_model8
+
+
+```
+Model 8 contains intra-zonal data and have a R square of 0.69
+```{r}
+old_par <- par(mfrow = c(1,3),
+               mar = c(2,2,2,2))
+spflow_moran_plots(mle_model8)
+par(old_par)
+
+```
+
+## Model 9
+
+```{r}
+
+model_control <- spflow_control(
+  estimation_method = "mle",
+  model = "model_9")
+
+mle_model9 <- spflow(
+  spflow_formula,
+  spflow_networks = mpsz_multi_net,
+  estimation_control = model_control
+)
+
+mle_model9
+
+```
