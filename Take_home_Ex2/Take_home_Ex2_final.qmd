@@ -1265,3 +1265,4 @@ ggarrange(unc_p, orc_p,dec_p, dbc_p,
 ```
 
 The plot shows the the observed(y-axis) and an estimated value(x-axis). Each observed and estimated pair trip value will form a dot on the graph. We can see that amongst the 4 plots, the plot from the doubly constrained model shows the best grouping, indicative of the accuracy from that model as seen previously. This is also echoed from its high R-square value and low RMSE value. The unconstrained model shows the widest spread.
+
