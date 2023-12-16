@@ -433,7 +433,7 @@ tm_shape() +
 
 We see that the data cleared up a lot when compared against the bottom 5% of all trips made and is closer to the top 5% of trips made. When combined with the median result of 35, the average passenger count of 343.4 means more trips are made with a low number of passengers and there are popular routes that are often taken in the early morning peak period. The large number of passengers on certain popular routes causes the data to skew.
 
-## Top 10 routes
+### Top 10 routes
 
 Aside from using the percentage, we can also plot out the top 10 most popular routes made during weekday morning peak period. We will first obtain the routes with top 10 trip count.
 
@@ -657,7 +657,7 @@ Other information that we will include in our attractive factors include the num
 hex_A$retail_COUNT <- lengths(st_intersects(hex_A, retail_sf))  
 hex_A$stn_exit_COUNT <- lengths(st_intersects(hex_A, stn_exit_sf))
 ```
-:::
+
 
 ::: panel-tabset
 Here we will see if the top 100 most popular bus routes will intersect with the our attractive factors. Firstly we will obtain our top 100 most popular bus routes.
@@ -837,7 +837,7 @@ mrt_des %>%
 ```
 
 We can once again see that the heartlands contains the most number of MRT exits, this is likely from the number of larger train stations which services multiple lines, hence requiring more exits to prevent bottle-necking during rush hour. We see some commonality between train stations exits and our popular bus stop destinations.
-
+:::
 ## **Propulsive**
 
 We will match all of the number of schools, businesses and financial services to their respective grids.
@@ -1150,6 +1150,7 @@ We have a R-square value of only 0.174, which indicates that only about 17% of v
 #### Doubly Constrained modelling
 
 ```{r}
+
 dbcSIM_Poisson_P <- glm(formula = TRIPS~
                         ORIGIN_GRID + 
                         DESTIN_GRID + 
