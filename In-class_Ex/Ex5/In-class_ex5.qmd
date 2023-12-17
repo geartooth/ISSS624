@@ -159,13 +159,13 @@ base_model <- spflow(
 )
 base_model
 ```
-
+We see that the about 69% of all trip variations can be explained by the model.
 ```{r}
 plot(base_model)
 
 ```
 
-We see that the about 69% of all trip variations can be explained by the model.
+
 
 # Residual diagnostics
 
