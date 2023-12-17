@@ -3,7 +3,7 @@ title: "Take home exercise 2"
 ---
 
 ---
-title: "Take-home_Ex2"
+title: "Take home Exercise 2"
 author: "Mah Lian Khye"
 date: "14 December 2023"
 date-modified: "last-modified"
