@@ -1015,6 +1015,7 @@ The models that will be used today are known as spatial interaction models where
 The modelling will be done by using the *glm()* function from the **stats** package. It allows us to fit a generalised linear model, more information can be found [here](https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/glm).
 
 ::: panel-tabset
+
 ### Origin(Production) constrained model(Attractive modelling)
 
 ```{R}
@@ -1082,7 +1083,7 @@ We have a R-square value of 0.356, which indicates that about 36% of variation c
 #### Attention
 
 Here we will only use factors that are propulsive for destination constrained models.
-
+:::
 
 ### Common modelling sets
 
