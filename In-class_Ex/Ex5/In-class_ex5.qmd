@@ -161,7 +161,7 @@ base_model
 ```
 
 ```{r}
-#plot(base_model)
+plot(base_model)
 
 ```
 
