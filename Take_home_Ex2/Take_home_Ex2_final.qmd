@@ -1033,7 +1033,7 @@ orcSIM_Poisson <- glm(formula = TRIPS ~
                         log(retail_COUNT) +
                         log(stn_exit_COUNT)+
                         
-                        log(DIST) - 1, 
+                        log(DIST), 
                       family = poisson(link = "log"),
                       data = inter_zonal_flow,
                       na.action = na.exclude)
@@ -1046,7 +1046,8 @@ We can see that for all of the attractive attributes showing good attractive pul
 
 We can use the *summary()* function to obtain various coefficients and statistical analysis from our origin model as well as other models. ::: callout-note \#### Attention
 
-Here we will only use factors that are attractive for origin constrained and there is a -1 to the distance in order to remove the intercept which would otherwise be inserted.
+Here we will only use factors that are attractive for origin constrained.
+:::
 
 ```{r}
 #| code-fold: false
@@ -1106,7 +1107,7 @@ uncSIM <- glm(formula = TRIPS ~
               data = inter_zonal_flow,
               na.action = na.exclude)
 
-uncSIM
+summary(uncSIM)
 
 ```
 
@@ -1140,11 +1141,12 @@ CalcRSquared(dbcSIM_Poisson$data$TRIPS, dbcSIM_Poisson$fitted.values)
 ```
 
 Here we have a R-square value of 0.586, which indicates that about 59% of variation can be explained by the doubly model, the best so far.
+
 :::
 
 # Model Comparison
 
-To compare the suitability between different models, we can use the Root-mean-square deviation(RMSE). We can do that using **performance** package.
+To compare the suitability between different models, we can use the Root-mean-square deviation(RMSE). We can do that using **performance** package. RMSE measures the difference in the predicted values by the model and the observed values, so a smaller RMSE value shows more accurate modelling.
 
 We will first list all of the models used for attractive modelling.
 
