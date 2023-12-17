@@ -914,7 +914,7 @@ hex_P <- st_drop_geometry(hex_P)
 
 ```
 
-We can then join the school and business count information to the ridership using left_join. For attractive factors, we will join it by destination grid since the point of attractions are located in the destination grid. For propulsive factors, we will use origin grid since they are factors that will push us from the origin.
+We can then join the school and business count information to the ridership using left_join. For attractive factors, we will join it by destination grid since the point of attractions are located in the destination grid. For propulsive factors, we will use origin grid since they are factors that will push us from the origin. We can take a look at what our flow data consists of using *glimpse()* function.
 
 ```{r}
 #| code-fold: false
@@ -925,7 +925,11 @@ flow<- flow_data1 %>%
 flow<- flow %>%
   left_join (hex_P,
              by = c("ORIGIN_GRID" = "grid_id"))
+
+glimpse(flow)
 ```
+We see that some of our data contains 0 value and our grid names are in integer values. We will have to modify them before our modelling.
+
 
 Since we will log the data for modelling, we will have to convert any 0 or NA value data amongst the different factors into a positive number that is less than 1. We will use 0.99.
 
