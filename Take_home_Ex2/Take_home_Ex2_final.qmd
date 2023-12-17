@@ -54,15 +54,15 @@ pacman::p_load(tmap, sf, sp, DT,
 ::: callout-note
 ### Package functions
 
--   **tmap**: choropleth map visualisation
--   **sf**: package containing functions to support simple features and standardised a way to encode spatial vector data
--   **DT**: for creating DataTables
--   **performance**: for assessing model quality
--   **reshape2**: for reshaping data
--   **tidyverse**: for manipulating and data presentations
--   **dplyr**: for working with dataframes
--   **stplanr**: for creating mobility lines
--   **ggpubr**: for manipulating plots
+-   [**tmap**](https://cran.r-project.org/web/packages/tmap/tmap.pdf): choropleth map visualisation
+-   [**sf**](https://r-spatial.github.io/sf/): package containing functions to support simple features and standardised a way to encode spatial vector data
+-   [**sp**](https://cran.r-project.org/web/packages/sp/sp.pdf): provide classes and methods for spatial data types
+-   [**DT**](https://rstudio.github.io/DT/): for creating DataTables
+-   [**performance**](https://easystats.github.io/performance/): for assessing model quality
+-   [**reshape2**](https://cran.r-project.org/web/packages/reshape2/reshape2.pdf): for reshaping data
+-   [**tidyverse**](https://www.tidyverse.org/packages/): for manipulating and data presentations, it also contains other packages such as dplyr etc for tidying up data
+-   [**stplanr**](https://docs.ropensci.org/stplanr/): for creating mobility lines
+-   [**ggpubr**](https://rpkgs.datanovia.com/ggpubr/): for manipulating plots
 :::
 
 ## Import data
@@ -107,7 +107,7 @@ We will also import all of the attractive and propulsive factors that we will us
 ::: panel-tabset
 #### Attractive factors
 
-For attractive factors we will be using HDBs, retail outlets and train station exits as people either take buses to return home directly or to the train stations for their subsequent journey after work. There might be people who choose to do shopping after work or dinner, therefore retail stores have been chosen as a attractive factor. Here we will import the aspatial data for them.
+For attractive factors we will be using HDBs, retail outlets and train station exits as people either take buses to return home directly or to the train stations for their subsequent journey in the evening. There might be people who choose to do shopping after work or dinner, therefore retail stores have been chosen as a attractive factor. Here we will import the data for them.
 
 For HDB data we will have to process them from latitude and longitude points to projected coordinate system.
 
@@ -142,9 +142,9 @@ Remember to use the correct coordinate system so that data can be matched correc
 
 #### Propulsive factors
 
-The propulsive factors chosen are schools, businesses and financial services. They are identified as so as people leave work and school in the evening.
+The propulsive factors chosen are schools, businesses and financial services. They are identified as propulsive attributes as people leave work and school in the evening.
 
-For school data we will have to process them from latitude and longitude points to projected coordinate system.
+For school data we will have to process them from latitude and longitude points to projected coordinate system as well.
 
 ```{R}
 schools <- read_csv("data/aspatial/schools.csv")
@@ -188,7 +188,9 @@ mpsz <- st_read(dsn = "data/geospatial",
 
 ```
 
-After that we will create the hexagons that will create the map layout. All of the hexagons will also be given a grid id name that can be used for identifying each individual grid.
+# Creating Hexagon layer
+
+After we have import our data, we will create the hexagons that will create the map layout. All of the hexagons will also be given a grid id name that can be used for identifying each individual grid.
 
 ```{r}
 #| code-fold: false
@@ -202,7 +204,7 @@ honeycomb_grid_sf <- st_sf(area_honeycomb_grid) %>%
 
 ## Assigning individual bus stop to hexagons
 
-First we will assign the bus stop point geometry data to each polygon using *st_intersection()* of Singapore to obtain bus stops located locally followed by another intersection with the hexagon map. The function assigns all of the points to a polygon by the point-set intersection of two geometries. Additional information [here](https://postgis.net/docs/ST_Intersection.html).
+First we will assign the bus stop point geometry data to each polygon using *st_intersection()* of the layout of Singapore to obtain bus stops located locally followed by another intersection with the hexagon map. The function assigns all of the points to a polygon by the point-set intersection of two geometries. Additional information [here](https://postgis.net/docs/ST_Intersection.html).
 
 ```{r}
 #| code-fold: false
@@ -225,7 +227,7 @@ unique_weekdayPM <- unique(weekdayPM)
 
 ## Assign grid id to origin and destination
 
-Using the grid that we have created in the beginning, we will now join the data that contains the destination together with the grid. Our busstop_hex variable contains a column with the bus stop number and another column with the grid id. Since we have renamed our bus stop number column name as the ORIGIN_PT_CODE, which can also be found in our trips data set, they can now be joined using that as a common point, hence assigning the grid id to the origin bus stops. The newly assigned grid id will be renamed to avoid confusion when joining the grid id again for the destination bus stop next.
+Using the grid that we have created in the beginning, we will now join the data that contains the destination together with the grid. Our busstop_hex variable contains a column with the bus stop number and another column with the grid id. Since we have renamed our bus stop number column name as ORIGIN_PT_CODE, which can also be found in our trips data set, they can now be joined using that as a common point, thereby assigning the grid id to the origin bus stops. The newly assigned grid id will be renamed to avoid confusion when joining the grid id again for the destination bus stop next.
 
 ```{r}
 #| code-fold: false
@@ -298,7 +300,7 @@ valid_hex <- left_join(honeycomb_grid_sf, valid_hex) %>%
 
 ## Visualisation of trips
 
-Here we can visualise the flow of passengers between grids using the desire lines that we have created. We will look at all of the passenger flow, the top 5%, the bottom 5% and the interquartile range of the number of trips.
+Here we can visualise the flow of passengers between grids using the desire lines that we have created. We will look at all of the passenger flow, the top 5%, the bottom 5%, mean number of trips and the top 10 most popular trip routes.
 
 ::: panel-tabset
 ### All trips
@@ -450,7 +452,7 @@ We see that the data cleared up a lot when compared against the bottom 5% of all
 
 ### Top 10 routes
 
-Aside from using the percentage, we can also plot out the top 10 most popular routes made during weekday morning peak period. We will first obtain the routes with top 10 trip count.
+Aside from using the percentage, we can also plot out the top 10 most popular routes made during weekday evening peak period. We will first obtain the routes with top 10 trip count.
 
 ```{r}
 #| code-fold: false
@@ -553,7 +555,7 @@ hex_sp <- as(hex, "Spatial")
 hex_sp
 ```
 
-Next we will calculate the distance between the grids. The [*spDists*](https://www.rdocumentation.org/packages/sp/versions/2.1-1/topics/spDistsN1)*()* function will use the center of each hexagon for calculating the distance between grids. This way we are able to standardise the reference point of each grid to the other grids.
+Next we will calculate the distance between the grids. The [*spDists*](https://www.rdocumentation.org/packages/sp/versions/2.1-1/topics/spDistsN1)*()* function will use the center of each hexagon for calculating the distance between grids.
 
 ```{r}
 #| code-fold: false
@@ -601,7 +603,7 @@ distPair <- distPair %>%
          dest = Var2)
 ```
 
-We will reassign the variable name for subsequent processing. We do this so as to avoid manipulating data that we do not want to modify.
+We will reassign the variable name of the flow data for subsequent processing. We do this so as to avoid manipulating data that we do not want to modify and to rename it for better clarification.
 
 ```{R}
 flow_data <- OD_weekdayPM
@@ -631,7 +633,7 @@ We see that the graph shows an inverse relationship between trips and distance. 
 
 ## Attractive and propulsive factor processing
 
-Here we will prepare the data into attractive and propulsive sections. To differentiate that we will use \_A for each variable and \_P for variables used for attractive and propulsive respectively.
+Here we will prepare the data into attractive and propulsive sections for clarity. To differentiate that we will use \_A for each variable and \_P for variables used for attractive and propulsive respectively. We will join them together later but we will keep them separate for now to prevent double merging when joining later.
 
 ```{R}
 #| code-fold: false
@@ -653,7 +655,7 @@ dwell_sf <- hdb_sf %>%
 datatable(dwell_sf)
 ```
 
-Next we will join the number of households that belong to a grid with their respective grids.
+Next we will join the number of households that belong to a grid with their respective grids. We will do this by first intersecting the household locations and their grid. These households will then be grouped together by their grid id using **group_by()** function and be summed up together as the overall household number in each grid. They will then be joined together with our hexagonal data.
 
 ```{R}
 #| code-fold: false
@@ -928,8 +930,8 @@ flow<- flow %>%
 
 glimpse(flow)
 ```
-We see that some of our data contains 0 value and our grid names are in integer values. We will have to modify them before our modelling.
 
+We see that some of our data contains 0 value and our grid names are in integer values. We will have to modify them before our modelling.
 
 Since we will log the data for modelling, we will have to convert any 0 or NA value data amongst the different factors into a positive number that is less than 1. We will use 0.99.
 
@@ -1019,8 +1021,7 @@ The models that will be used today are known as spatial interaction models where
 The modelling will be done by using the *glm()* function from the **stats** package. It allows us to fit a generalised linear model, more information can be found [here](https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/glm).
 
 ::: panel-tabset
-
-### Origin(Production) constrained model(Attractive modelling)
+### Origin(Production) constrained model
 
 ```{R}
 
@@ -1047,7 +1048,6 @@ We can use the *summary()* function to obtain various coefficients and statistic
 
 Here we will only use factors that are attractive for origin constrained and there is a -1 to the distance in order to remove the intercept which would otherwise be inserted.
 
-
 ```{r}
 #| code-fold: false
 CalcRSquared(orcSIM_Poisson$data$TRIPS, orcSIM_Poisson$fitted.values)
@@ -1056,7 +1056,7 @@ CalcRSquared(orcSIM_Poisson$data$TRIPS, orcSIM_Poisson$fitted.values)
 
 We have a R-square value of 0.432, which indicates that about 43% of variation can be explained by the model.
 
-### Destination constrained(Propulsive modelling)
+### Destination constrained
 
 ```{R}
 
@@ -1089,10 +1089,7 @@ We have a R-square value of 0.356, which indicates that about 36% of variation c
 Here we will only use factors that are propulsive for destination constrained models.
 :::
 
-### Common modelling sets
-
-::: panel-tabset
-#### Unconstrained modelling
+### Unconstrained modelling
 
 ```{R}
 
@@ -1121,7 +1118,7 @@ CalcRSquared(uncSIM$data$TRIPS, uncSIM$fitted.values)
 
 We have a R-square value of 0.223, which indicates that only about 22.3% of variation can be explained by the unconstrained model.
 
-#### Doubly Constrained modelling
+### Doubly Constrained modelling
 
 ```{r}
 
@@ -1143,8 +1140,6 @@ CalcRSquared(dbcSIM_Poisson$data$TRIPS, dbcSIM_Poisson$fitted.values)
 ```
 
 Here we have a R-square value of 0.586, which indicates that about 59% of variation can be explained by the doubly model, the best so far.
-:::
-
 :::
 
 # Model Comparison
@@ -1230,11 +1225,7 @@ inter_zonal_flow <- inter_zonal_flow %>%
 
 ```
 
-
-
 Finally we can then plot the scatterplots using *geom_point()* from the **ggplot** package.
-
-
 
 ```{r}
 
@@ -1270,4 +1261,3 @@ ggarrange(unc_p, orc_p,dec_p, dbc_p,
 ```
 
 The plot shows the the observed(y-axis) and an estimated value(x-axis). Each observed and estimated pair trip value will form a dot on the graph. We can see that amongst the 4 plots, the plot from the doubly constrained model shows the best grouping, indicative of the accuracy from that model as seen previously. This is also echoed from its high R-square value and low RMSE value. The unconstrained model shows the widest spread.
-
